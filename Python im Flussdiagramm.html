@@ -1,0 +1,811 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Entscheidungen:
+Einsatztyp: Lernmaterial Informatik für Schüler:innen (Einstieg), Gerät gemischt
+Thema: Flussdiagramme (Programmablaufplan nach DIN 66001 / ISO 5807) für Python: Symbole, Regeln, Sequenz, if/elif/else, while, for
+Interaktivität: voll – Schritt-für-Schritt-Simulation (Diagramm und Code laufen im Gleichschritt, mit Variablen und Ausgabe), Symbol-Quiz mit sofortiger Rückmeldung, Übungen mit einblendbaren Lösungen, Kopierknopf an Codeblöcken
+Schleifen werden mit Raute und Rückpfeil gezeichnet (nicht mit dem Schleifenbegrenzungssymbol)
+Datenhaltung: nur Komfort per localStorage (gewählte Variante)
+Export: keiner (Code per Zwischenablage kopierbar)
+Varianten: A «Klar» – hell, ruhig, Diagramme auf heller Fläche; B «Technisch» – dunkler Kopf und Einstieg, Diagramme auf dunklem Punktraster, Code-Schrift für Nummern und Labels
+Farben: Nord-Palette, Symboltypen farblich unterschieden (zusätzlich immer Form und Name); Schriften: Open Sans, Google Sans Code; Hell/Dunkel folgt dem System
+-->
+<title>Python im Flussdiagramm</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<script>try{var v=localStorage.getItem("fd-variant");document.documentElement.setAttribute("data-variant",v==="b"?"b":"a")}catch(e){document.documentElement.setAttribute("data-variant","a")}document.documentElement.lang="de-CH";</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: Kopfleiste, Einstiegsband mit Simulator, dann nummerierte Lernabschnitte in einer 960px-Spalte */
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+
+  --bg:var(--nord6);--surface:var(--nord5);--surface-2:var(--nord4);
+  --text:var(--nord0);--muted:var(--nord3);--accent:var(--nord10);
+  --code-bg:var(--nord1);
+  --head-bg:var(--nord6);--head-text:var(--nord0);--head-border:var(--nord4);
+  --hero-bg:var(--nord6);
+  --dg-bg:var(--nord5);--dg-border:var(--nord4);--dg-stroke:var(--nord3);--dg-text:var(--nord0);--dg-label:var(--nord3);
+  --dg-active:var(--nord10);--dg-active-fill:rgba(136,192,208,.6);--dg-grid:rgba(0,0,0,0);
+  --f-term:rgba(180,142,173,.42);--f-op:rgba(136,192,208,.42);--f-io:rgba(163,190,140,.5);--f-dec:rgba(235,203,139,.6);--f-sub:rgba(208,135,112,.42);
+  --radius:12px;--radius-sm:8px;--h-weight:600;--label-font:var(--font);--code-bar:0px;
+}
+:root[data-variant="b"]{
+  --head-bg:var(--nord0);--head-text:var(--nord6);--head-border:var(--nord0);
+  --hero-bg:var(--nord1);--code-bg:var(--nord0);
+  --dg-bg:var(--nord0);--dg-border:var(--nord2);--dg-stroke:var(--nord4);--dg-text:var(--nord6);--dg-label:var(--nord4);
+  --dg-active:var(--nord8);--dg-active-fill:rgba(136,192,208,.35);--dg-grid:rgba(76,86,106,.75);
+  --f-term:rgba(180,142,173,.3);--f-op:rgba(136,192,208,.25);--f-io:rgba(163,190,140,.3);--f-dec:rgba(235,203,139,.3);--f-sub:rgba(208,135,112,.3);
+  --radius:4px;--radius-sm:3px;--h-weight:700;--label-font:var(--font-mono);--code-bar:4px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+    --text:var(--nord6);--muted:var(--nord4);--accent:var(--nord8);--code-bg:var(--nord1);
+    --head-bg:var(--nord0);--head-text:var(--nord6);--head-border:var(--nord2);--hero-bg:var(--nord0);
+    --dg-bg:var(--nord1);--dg-border:var(--nord2);--dg-stroke:var(--nord4);--dg-text:var(--nord6);--dg-label:var(--nord4);
+    --dg-active:var(--nord8);--dg-active-fill:rgba(136,192,208,.35);
+    --f-term:rgba(180,142,173,.3);--f-op:rgba(136,192,208,.25);--f-io:rgba(163,190,140,.3);--f-dec:rgba(235,203,139,.3);--f-sub:rgba(208,135,112,.3);
+  }
+  :root:not([data-theme="light"])[data-variant="b"]{--head-bg:var(--nord1);--head-border:var(--nord1);--hero-bg:var(--nord1);--dg-bg:var(--nord0);--dg-grid:rgba(76,86,106,.75)}
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--muted:var(--nord4);--accent:var(--nord8);--code-bg:var(--nord1);
+  --head-bg:var(--nord0);--head-text:var(--nord6);--head-border:var(--nord2);--hero-bg:var(--nord0);
+  --dg-bg:var(--nord1);--dg-border:var(--nord2);--dg-stroke:var(--nord4);--dg-text:var(--nord6);--dg-label:var(--nord4);
+  --dg-active:var(--nord8);--dg-active-fill:rgba(136,192,208,.35);
+  --f-term:rgba(180,142,173,.3);--f-op:rgba(136,192,208,.25);--f-io:rgba(163,190,140,.3);--f-dec:rgba(235,203,139,.3);--f-sub:rgba(208,135,112,.3);
+}
+:root[data-theme="dark"][data-variant="b"]{--head-bg:var(--nord1);--head-border:var(--nord1);--hero-bg:var(--nord1);--dg-bg:var(--nord0);--dg-grid:rgba(76,86,106,.75)}
+
+html{font-size:17px;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 4.5rem)}
+*,*::before,*::after{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:1rem;line-height:1.6;-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:underline}
+:focus-visible{outline:3px solid var(--nord8);outline-offset:2px}
+code{font-family:var(--font-mono);font-size:.9em;background:var(--surface);padding:.08em .35em;border-radius:4px}
+h1,h2,h3{text-wrap:balance}
+
+.wrap{max-width:960px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Kopf */
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--head-bg)}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--head-bg);color:var(--head-text);border-bottom:1px solid var(--head-border)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding-block:.6rem;flex-wrap:wrap}
+.brand{font-weight:700;display:flex;align-items:center;gap:.55rem;font-size:1.05rem}
+.brand svg{flex:none}
+.seg{display:inline-flex;border:1px solid currentColor;border-radius:999px;overflow:hidden}
+:root[data-variant="b"] .seg{border-radius:3px}
+.seg button{background:transparent;border:0;padding:.3rem .8rem;cursor:pointer;font-size:.85rem;font-family:var(--label-font)}
+.seg button[aria-pressed="true"]{background:var(--head-text);color:var(--head-bg);font-weight:600}
+
+/* Einstieg */
+.hero{background:var(--hero-bg);padding-block:2.4rem 2.6rem}
+:root[data-variant="b"] .hero{--text:var(--nord6);--muted:var(--nord4);--surface:var(--nord2);--surface-2:var(--nord3);--accent:var(--nord8);color:var(--nord6)}
+.hero h1{font-size:clamp(2.1rem,6vw,3.3rem);line-height:1.1;margin:0 0 .7rem;font-weight:700;letter-spacing:-.01em}
+:root[data-variant="b"] .hero h1{font-family:var(--font-mono);font-weight:600;letter-spacing:-.03em}
+.lead{font-size:1.12rem;max-width:64ch;margin:0 0 1.8rem}
+
+/* Simulator */
+.lab{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:1.2rem;align-items:start;margin:1.2rem 0 .5rem}
+@media (max-width:780px){.lab{grid-template-columns:minmax(0,1fr)}}
+.dg-panel{background-color:var(--dg-bg);background-image:radial-gradient(var(--dg-grid) 1px,transparent 1.2px);background-size:18px 18px;border:1px solid var(--dg-border);border-radius:var(--radius);padding:.8rem;min-width:0}
+.dg-scroll{overflow-x:auto}
+.dg-scroll svg{display:block;margin:0 auto;height:auto}
+.lab-side{display:grid;gap:.8rem;min-width:0}
+.lab-inputs{display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:flex-end}
+.inp{display:grid;gap:.15rem;font-weight:600;font-size:.9rem}
+.inp input{width:7.5rem;padding:.35rem .55rem;border:1px solid var(--surface-2);border-radius:var(--radius-sm);background:var(--bg);font-family:var(--font-mono);font-weight:400;font-size:1rem}
+:root[data-variant="b"] .hero .inp input{background:var(--nord0)}
+.lab-inputs .hint{font-size:.85rem;color:var(--muted);flex:1 1 12rem}
+.codebox{background:var(--code-bg);color:var(--nord6);border-radius:var(--radius-sm);border-left:var(--code-bar) solid var(--nord8);position:relative}
+.codebox .scroll{overflow-x:auto;padding:.6rem 0}
+.codebox .inner{min-width:max-content;padding-right:5rem}
+.ln{display:grid;grid-template-columns:2.2em auto;gap:.7em;padding:0 .9em 0 .5em;border-left:3px solid transparent;font-family:var(--font-mono);font-size:.88rem;line-height:1.75}
+.ln .no{color:var(--nord4);opacity:.5;text-align:right;user-select:none}
+.ln code{background:none;padding:0;font-size:inherit;white-space:pre;border-radius:0;color:inherit}
+.ln.cur{background:rgba(136,192,208,.2);border-left-color:var(--nord8)}
+.msg{min-height:4.8em;margin:0;font-size:.95rem;line-height:1.55}
+.stepbar{display:flex;align-items:center;gap:.45rem;flex-wrap:wrap}
+.stepbar .count{font-family:var(--font-mono);font-size:.85rem;color:var(--muted);margin-right:auto}
+.btn{background:var(--surface);color:var(--text);border:1px solid var(--surface-2);border-radius:var(--radius-sm);padding:.35rem .85rem;cursor:pointer;font-size:.9rem}
+.btn:hover:not(:disabled){border-color:var(--nord9)}
+.btn.primary{background:var(--nord8);border-color:var(--nord8);color:var(--nord0);font-weight:600}
+.btn:disabled{opacity:.45;cursor:default}
+.state{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.8rem}
+@media (max-width:420px){.state{grid-template-columns:minmax(0,1fr)}}
+.lbl{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;font-family:var(--label-font)}
+.vars{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius-sm);padding:.55rem .7rem;min-width:0}
+.vars table{border-collapse:collapse;width:100%;font-family:var(--font-mono);font-size:.86rem}
+.vars td{padding:.12rem .3rem;vertical-align:top}
+.vars td:first-child{color:var(--muted);width:45%}
+.vars tr.chg td:last-child{font-weight:600}
+.vars tr.chg td:last-child::after{content:" ◂ neu";font-family:var(--font);font-size:.75rem;color:var(--muted);font-weight:400}
+.vars .empty{font-size:.85rem;color:var(--muted)}
+.console{background:var(--code-bg);color:var(--nord6);border-radius:var(--radius-sm);padding:.55rem .7rem;font-family:var(--font-mono);font-size:.86rem;min-width:0;overflow-x:auto}
+.console .lbl{color:var(--nord4)}
+.console .line{white-space:pre}
+.console .line.new{color:var(--nord8)}
+.console .empty{opacity:.5}
+
+/* Diagramm-Elemente */
+.dg .nd .sh{stroke:var(--dg-stroke);stroke-width:1.6;transition:stroke .15s,fill .15s}
+.dg .t-term .sh{fill:var(--f-term)}.dg .t-op .sh{fill:var(--f-op)}.dg .t-io .sh{fill:var(--f-io)}.dg .t-dec .sh{fill:var(--f-dec)}.dg .t-sub .sh{fill:var(--f-sub)}
+.dg .nd .sub-line{stroke:var(--dg-stroke);stroke-width:1.6}
+.dg .nd.active .sh{stroke:var(--dg-active);stroke-width:3.4;fill:var(--dg-active-fill)}
+.dg .nt{fill:var(--dg-text);font-family:var(--font-mono);font-size:13px}
+.dg .edge{fill:none;stroke:var(--dg-stroke);stroke-width:1.6}
+.dg .arrow{fill:var(--dg-stroke)}
+.dg .el{fill:var(--dg-label);font-family:var(--label-font);font-size:12px;font-weight:600}
+
+/* Abschnitte */
+main{padding-block:1rem 3rem}
+section{padding-block:2.6rem 1rem;border-top:1px solid var(--surface-2);scroll-margin-top:4.5rem}
+main section:first-child{border-top:0}
+:root[data-variant="b"] section{border-top:0}
+h2{font-size:1.65rem;line-height:1.25;margin:0 0 1rem;font-weight:var(--h-weight);display:flex;gap:.6rem;align-items:baseline}
+h2 .num{font-weight:400;color:var(--muted);font-size:1.1rem;min-width:1.4em}
+:root[data-variant="b"] h2 .num{font-family:var(--font-mono);font-weight:600;color:var(--nord0);background:var(--nord8);padding:.05em .45em;border-radius:3px;font-size:.95rem;align-self:center;min-width:0}
+h3{font-weight:var(--h-weight);font-size:1.15rem;margin:1.8rem 0 .5rem}
+p,li{max-width:70ch}
+
+.symbols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-top:1.2rem}
+@media (max-width:820px){.symbols{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.symbols{grid-template-columns:minmax(0,1fr)}}
+.sym{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:1rem;display:grid;grid-template-rows:auto auto auto 1fr;gap:.35rem;min-width:0}
+.sym .icon{background:var(--dg-bg);border-radius:var(--radius-sm);display:grid;place-items:center;padding:.6rem;border:1px solid var(--dg-border)}
+.sym h3{margin:.4rem 0 0;font-size:1.05rem}
+.sym .norm{font-size:.82rem;color:var(--muted);margin:0;font-family:var(--label-font)}
+.sym p{margin:.1rem 0;font-size:.93rem}
+.sym .py{margin-top:.3rem;align-self:end}
+.sym .py code{display:block;white-space:pre;overflow-x:auto;padding:.45rem .6rem;background:var(--code-bg);color:var(--nord6);border-radius:var(--radius-sm)}
+
+.rules{list-style:none;padding:0;margin:1rem 0;display:grid;gap:.55rem}
+.rules li{display:grid;grid-template-columns:1.6rem minmax(0,1fr);gap:.4rem}
+.rules li::before{content:"✓";font-weight:700;color:var(--accent)}
+
+.code{position:relative;background:var(--code-bg);color:var(--nord6);border-radius:var(--radius-sm);border-left:var(--code-bar) solid var(--nord8);margin:1rem 0}
+.code pre{margin:0;padding:1rem 1.1rem;padding-right:5.5rem;overflow-x:auto;font-family:var(--font-mono);font-size:.9rem;line-height:1.5}
+.copy{position:absolute;top:.5rem;right:.5rem;background:var(--nord2);color:var(--nord6);border:1px solid var(--nord3);border-radius:var(--radius-sm);font-size:.78rem;padding:.2rem .6rem;cursor:pointer;font-family:var(--label-font);z-index:1}
+.copy:hover{background:var(--nord3)}
+.k{color:var(--nord9);font-weight:600}.s{color:var(--nord14)}.n{color:var(--nord15)}.c{color:var(--nord4);font-style:italic;opacity:.72}.f{color:var(--nord8)}
+
+.note{background:var(--surface);border-left:4px solid var(--nord8);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:.8rem 1rem;margin:1.2rem 0}
+.note.merke{border-left-color:var(--nord15)}
+.note.achtung{border-left-color:var(--nord13)}
+.note strong:first-child{display:block;margin-bottom:.15rem}
+.note p{margin:.2rem 0}
+
+.quiz{display:grid;gap:1.2rem;margin-top:1rem}
+.q{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:1rem}
+.q h3{margin:0 0 .5rem;font-size:1rem}
+.q .prompt{margin:0 0 .8rem}
+.q .prompt code{font-size:.95em}
+.opts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem}
+@media (max-width:700px){.opts{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:420px){.opts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.opt{background:var(--bg);border:2px solid var(--surface-2);border-radius:var(--radius-sm);padding:.45rem .3rem;cursor:pointer;display:grid;justify-items:center;gap:.25rem;font-size:.82rem;font-weight:600;text-align:center}
+.opt svg{width:72px;height:auto}
+.opt:hover:not(:disabled){border-color:var(--nord9)}
+.opt:disabled{cursor:default}
+.opt.right{border-color:var(--nord14);background:rgba(163,190,140,.25)}
+.opt.wrong{border-color:var(--nord11);background:rgba(191,97,106,.18)}
+.fb{margin:.7rem 0 0}
+.score{font-weight:600;margin-top:1rem}
+
+.task{margin-bottom:1.2rem}
+.task h3{margin-top:2.2rem}
+details.ex{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:1rem;margin:1rem 0}
+details.ex>summary{cursor:pointer;font-weight:600;color:var(--accent);list-style:none}
+details.ex>summary::-webkit-details-marker{display:none}
+details.ex>summary::before{content:"▸ "}
+details.ex[open]>summary::before{content:"▾ "}
+details.ex .dg-panel{margin-top:.8rem}
+.solgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1rem;align-items:start}
+@media (max-width:720px){.solgrid{grid-template-columns:minmax(0,1fr)}}
+.task-dg{max-width:560px}
+
+footer{color:var(--muted);font-size:.88rem;padding-block:2rem 3rem;border-top:1px solid var(--surface-2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="7" y="1" width="12" height="6" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13 7v3" stroke="currentColor" stroke-width="1.6"/><path d="M13 10l6 5-6 5-6-5z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M13 20v4" stroke="currentColor" stroke-width="1.6"/></svg>
+      Python im Flussdiagramm
+    </div>
+    <div class="seg" role="group" aria-label="Design-Variante">
+      <button type="button" data-set-variant="a" aria-pressed="true">Variante A</button>
+      <button type="button" data-set-variant="b" aria-pressed="false">Variante B</button>
+    </div>
+  </div>
+</header>
+
+<div class="hero" id="start">
+  <div class="wrap">
+    <h1>Erst zeichnen, dann programmieren</h1>
+    <p class="lead">Ein Flussdiagramm, auch Programmablaufplan (PAP) genannt, zeigt mit wenigen genormten Symbolen, in welcher Reihenfolge ein Programm arbeitet und wo es sich entscheidet. Gib eine Note ein und klick dich mit «Weiter» durch: Diagramm und Python-Code laufen im Gleichschritt.</p>
+    <div class="lab" data-ex="note"></div>
+  </div>
+</div>
+
+<main class="wrap">
+
+<section id="symbole">
+  <h2><span class="num">1</span>Die Symbole</h2>
+  <p>Die Symbole sind in der Norm DIN 66001 festgelegt (international ISO 5807). Für Python-Programme brauchst du fast nur diese sechs. Die Farben sind eine Lesehilfe, entscheidend ist die Form.</p>
+  <div class="symbols" id="symbolGrid"></div>
+</section>
+
+<section id="regeln">
+  <h2><span class="num">2</span>Regeln für saubere Diagramme</h2>
+  <ul class="rules">
+    <li><span>Es gibt genau einen <strong>Start</strong> und ein <strong>Ende</strong>.</span></li>
+    <li><span>Der Ablauf fliesst von <strong>oben nach unten</strong>. Pfeile zeigen die Richtung.</span></li>
+    <li><span>Jede <strong>Raute</strong> hat genau zwei Ausgänge, beschriftet mit <strong>Ja</strong> und <strong>Nein</strong>.</span></li>
+    <li><span>Alle anderen Symbole haben genau <strong>einen</strong> Ausgang.</span></li>
+    <li><span>Bei einer Schleife führt der Rückpfeil nach oben und mündet in die Linie <strong>vor</strong> der Raute.</span></li>
+    <li><span>Texte in den Symbolen sind kurz. Variablennamen und Bedingungen schreibst du so wie im Code.</span></li>
+    <li><span>Linien kreuzen sich möglichst nicht.</span></li>
+  </ul>
+  <div class="note merke">
+    <strong>Merke</strong>
+    <p>Ein Flussdiagramm ist sprachunabhängig. Es beschreibt den <em>Ablauf</em>, nicht die genaue Python-Schreibweise. Deshalb steht im Parallelogramm «Eingabe: note» und nicht <code>float(input("Note: "))</code>.</p>
+  </div>
+</section>
+
+<section id="sequenz">
+  <h2><span class="num">3</span>Sequenz: Schritt für Schritt</h2>
+  <p>Ohne Verzweigung und ohne Schleife laufen die Befehle einfach der Reihe nach ab. Im Diagramm ist das eine gerade Linie von oben nach unten. Jede Zeile Code wird zu einem Symbol.</p>
+  <div class="lab" data-ex="seq"></div>
+</section>
+
+<section id="verzweigung">
+  <h2><span class="num">4</span>Verzweigung: if, elif und else</h2>
+  <p>Eine <code>if</code>-Anweisung wird zur Raute, wie im Notenbeispiel oben. Mit <code>elif</code> kommen weitere Rauten dazu: Jede neue Bedingung hängt am <strong>Nein</strong>-Ausgang der vorherigen. Probier 0, 10 und 25 °C aus.</p>
+  <div class="lab" data-ex="elif"></div>
+  <div class="note">
+    <strong>Wo ist das else?</strong>
+    <p><code>else</code> bekommt keine eigene Raute, weil es keine Bedingung hat. Es ist einfach der letzte Nein-Ausgang.</p>
+  </div>
+</section>
+
+<section id="schleifen">
+  <h2><span class="num">5</span>Schleifen: while und for</h2>
+  <p>Eine Schleife erkennst du im Diagramm an einem <strong>Pfeil, der zurück nach oben führt</strong>. Die Raute prüft vor jedem Durchgang, ob es noch einmal losgeht.</p>
+  <h3>while-Schleife: Countdown</h3>
+  <div class="lab" data-ex="while"></div>
+
+  <h3>for-Schleife: Zahlen aufsummieren</h3>
+  <p>Eine <code>for</code>-Schleife versteckt drei Dinge in einer Zeile: den Startwert des Zählers, die Bedingung und das Hochzählen. Im Flussdiagramm muss alles davon sichtbar werden. Deshalb gehören hier drei Symbole zur <code>for</code>-Zeile.</p>
+  <div class="lab" data-ex="for"></div>
+  <div class="note achtung">
+    <strong>Schleifensymbol der Norm</strong>
+    <p>DIN 66001 kennt auch ein eigenes Schleifensymbol (zwei Rechtecke mit abgeschrägten Ecken für Anfang und Ende). Wir zeichnen Schleifen mit Raute und Rückpfeil, weil man so genau sieht, wann die Bedingung geprüft wird.</p>
+  </div>
+</section>
+
+<section id="quiz">
+  <h2><span class="num">6</span>Quiz: Welches Symbol passt?</h2>
+  <p>Zu jeder Python-Zeile gehört ein Symbol. Wähle eines aus und lies die Begründung.</p>
+  <div class="quiz" id="quizBox"></div>
+  <p class="score" id="score" aria-live="polite"></p>
+</section>
+
+<section id="uebungen">
+  <h2><span class="num">7</span>Übungen</h2>
+  <p>Zeichne auf Papier oder mit einem Werkzeug wie draw.io. Öffne die Lösung erst, wenn du fertig bist.</p>
+
+  <div class="task">
+    <h3>Übung 1: Vom Code zum Diagramm</h3>
+    <p>Im Kino zahlen Personen unter 16 Jahren CHF 12, alle anderen CHF 18. Zeichne das Flussdiagramm zu diesem Programm.</p>
+    <div class="code"><pre data-code>
+alter = int(input("Alter: "))
+if alter &lt; 16:
+    preis = 12
+else:
+    preis = 18
+print("Preis:", preis, "CHF")
+</pre></div>
+    <details class="ex"><summary>Lösung anzeigen</summary>
+      <div class="dg-panel task-dg"><div class="dg-scroll" data-dg="kino"></div></div>
+      <p>Die Zuweisungen <code>preis = 12</code> und <code>preis = 18</code> sind Rechtecke, weil sie weder etwas einlesen noch ausgeben.</p>
+    </details>
+  </div>
+
+  <div class="task">
+    <h3>Übung 2: Vom Diagramm zum Code</h3>
+    <p>Schreib das Python-Programm zu diesem Ratespiel.</p>
+    <div class="dg-panel task-dg"><div class="dg-scroll" data-dg="raten"></div></div>
+    <details class="ex"><summary>Lösung anzeigen</summary>
+      <div class="code"><pre data-code>
+geheim = 7
+tipp = int(input("Tipp: "))
+while tipp != geheim:
+    print("Falsch")
+    tipp = int(input("Tipp: "))
+print("Richtig!")
+</pre></div>
+      <p>Der Rückpfeil zeigt die Schleife. Die Raute oben an der Schleife wird zu <code>while</code>, nicht zu <code>if</code>.</p>
+    </details>
+  </div>
+
+  <div class="task">
+    <h3>Übung 3: Fehler finden</h3>
+    <p>Dieses Diagramm soll eine Zahl einlesen und «positiv» ausgeben, wenn sie grösser als 0 ist. Es enthält drei Fehler. Finde sie.</p>
+    <div class="dg-panel task-dg"><div class="dg-scroll" data-dg="fehler"></div></div>
+    <details class="ex"><summary>Lösung anzeigen</summary>
+      <ul>
+        <li><strong>Falsches Symbol:</strong> Das Einlesen ist eine Eingabe und gehört in ein Parallelogramm, nicht in ein Rechteck.</li>
+        <li><strong>Nein-Ausgang fehlt:</strong> Jede Raute braucht zwei beschriftete Ausgänge.</li>
+        <li><strong>Ende fehlt:</strong> Alle Wege müssen beim Ende-Symbol ankommen.</li>
+      </ul>
+      <div class="solgrid">
+        <div class="dg-panel"><div class="dg-scroll" data-dg="fehlerOk"></div></div>
+        <div class="code"><pre data-code>
+zahl = int(input("Zahl: "))
+if zahl &gt; 0:
+    print("positiv")
+</pre></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="task">
+    <h3>Übung 4 (Zusatz): Passwort mit drei Versuchen</h3>
+    <p>Ein Programm fragt nach einem Passwort. Wer «sesam» eingibt, wird begrüsst. Nach drei falschen Versuchen ist Schluss und es erscheint «Gesperrt». Zeichne zuerst das Flussdiagramm, schreib dann den Code.</p>
+    <details class="ex"><summary>Lösung anzeigen</summary>
+      <div class="dg-panel"><div class="dg-scroll" data-dg="pw"></div></div>
+      <div class="code"><pre data-code>
+versuche = 0
+pw = ""
+while pw != "sesam" and versuche &lt; 3:
+    pw = input("Passwort: ")
+    versuche = versuche + 1
+if pw == "sesam":
+    print("Willkommen")
+else:
+    print("Gesperrt")
+</pre></div>
+      <p>Nach der Schleife muss das Programm nochmals fragen, <em>warum</em> sie aufgehört hat. Deshalb folgt auf die erste Raute eine zweite.</p>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<footer><div class="wrap">Python im Flussdiagramm · Lernmaterial Informatik zu Programmablaufplänen nach DIN 66001</div></footer>
+
+<script>
+(function(){
+  const root=document.documentElement;
+  const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+  /* ---------- Syntax-Hervorhebung ---------- */
+  const KW=new Set(["if","elif","else","and","or","not","True","False","None","in","is","def","return","for","while"]);
+  function hl(src){
+    const re=/(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_][A-Za-z0-9_]*)|(\s+)|(.)/gm;
+    let out="",m;
+    while((m=re.exec(src))!==null){
+      if(m[0]===""){re.lastIndex++;continue}
+      if(m[1])out+='<span class="c">'+esc(m[1])+"</span>";
+      else if(m[2])out+='<span class="s">'+esc(m[2])+"</span>";
+      else if(m[3])out+='<span class="n">'+m[3]+"</span>";
+      else if(m[4]){
+        if(KW.has(m[4]))out+='<span class="k">'+m[4]+"</span>";
+        else if(src[re.lastIndex]==="(")out+='<span class="f">'+m[4]+"</span>";
+        else out+=m[4];
+      } else out+=esc(m[0]);
+    }
+    return out;
+  }
+  function copyText(t,btn){
+    const done=()=>{btn.textContent="Kopiert ✓";setTimeout(()=>btn.textContent="Kopieren",1500)};
+    const fallback=()=>{const ta=document.createElement("textarea");ta.value=t;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done()}catch(e){}ta.remove()};
+    try{navigator.clipboard.writeText(t).then(done,fallback)}catch(e){fallback()}
+  }
+  function copyBtn(src){
+    const b=document.createElement("button");b.type="button";b.className="copy";b.textContent="Kopieren";
+    b.setAttribute("aria-label","Code kopieren");b.addEventListener("click",()=>copyText(src,b));return b;
+  }
+  document.querySelectorAll("pre[data-code]").forEach(pre=>{
+    const src=pre.textContent.replace(/^\n/,"").replace(/\s+$/,"");
+    pre.innerHTML=hl(src);pre.parentElement.appendChild(copyBtn(src));
+  });
+
+  /* ---------- Flussdiagramm-Renderer ---------- */
+  const SK=18;
+  const SIZE={term:[120,40],op:[180,44],io:[190,44],dec:[170,76],sub:[190,44]};
+  let uid=0;
+  function shape(n){
+    const x=n.x,y=n.y,w=n.w,h=n.h;
+    if(n.type==="term")return `<rect class="sh" x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="${h/2}"/>`;
+    if(n.type==="op")return `<rect class="sh" x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="2"/>`;
+    if(n.type==="sub")return `<rect class="sh" x="${x-w/2}" y="${y-h/2}" width="${w}" height="${h}" rx="2"/><line class="sub-line" x1="${x-w/2+10}" y1="${y-h/2}" x2="${x-w/2+10}" y2="${y+h/2}"/><line class="sub-line" x1="${x+w/2-10}" y1="${y-h/2}" x2="${x+w/2-10}" y2="${y+h/2}"/>`;
+    if(n.type==="io")return `<polygon class="sh" points="${x-w/2+SK},${y-h/2} ${x+w/2},${y-h/2} ${x+w/2-SK},${y+h/2} ${x-w/2},${y+h/2}"/>`;
+    return `<polygon class="sh" points="${x},${y-h/2} ${x+w/2},${y} ${x},${y+h/2} ${x-w/2},${y}"/>`;
+  }
+  function label(n){
+    const lines=n.t.split("\n");
+    return `<text class="nt" x="${n.x}" y="${n.y}" text-anchor="middle" dominant-baseline="central">`+
+      lines.map((l,i)=>`<tspan x="${n.x}" dy="${i===0?-(lines.length-1)*8:16}">${esc(l)}</tspan>`).join("")+`</text>`;
+  }
+  function port(n,side){
+    const off=n.type==="io"?SK/2:0;
+    if(side==="t")return [n.x,n.y-n.h/2];
+    if(side==="b")return [n.x,n.y+n.h/2];
+    if(side==="l")return [n.x-n.w/2+off,n.y];
+    return [n.x+n.w/2-off,n.y];
+  }
+  function renderDiagram(spec,title){
+    const id="ar"+(++uid);
+    const N={};
+    spec.nodes.forEach(n=>{const s=SIZE[n.type];n.w=n.w||s[0];n.h=n.h||s[1];N[n.id]=n});
+    let edges="",labels="";
+    spec.edges.forEach(e=>{
+      const a=N[e.from],fs=e.fs||"b";
+      const p0=port(a,fs);let p1,ts=null;
+      if(e.toPt)p1=e.toPt;else{ts=e.ts||"t";p1=port(N[e.to],ts)}
+      const pts=[p0];
+      if(e.via)pts.push(...e.via);
+      else if(fs==="l"||fs==="r"){if(ts==="t"||ts==="b")pts.push([p1[0],p0[1]])}
+      else{
+        if(ts==="t"&&Math.abs(p0[0]-p1[0])>.5){const my=e.my||(p0[1]+p1[1])/2;pts.push([p0[0],my],[p1[0],my])}
+        else if(ts==="l"||ts==="r")pts.push([p0[0],p1[1]]);
+      }
+      pts.push(p1);
+      edges+=`<polyline class="edge" points="${pts.map(p=>p.join(",")).join(" ")}" marker-end="url(#${id})"/>`;
+      if(e.label){
+        let lx,ly,anc;
+        if(fs==="l"){lx=p0[0]-6;ly=p0[1]-8;anc="end"}
+        else if(fs==="r"){lx=p0[0]+6;ly=p0[1]-8;anc="start"}
+        else{lx=p0[0]+8;ly=p0[1]+16;anc="start"}
+        labels+=`<text class="el" x="${lx}" y="${ly}" text-anchor="${anc}">${e.label}</text>`;
+      }
+    });
+    const nodes=spec.nodes.map(n=>`<g class="nd t-${n.type}" data-n="${n.id}">${shape(n)}${label(n)}</g>`).join("");
+    return `<svg class="dg" viewBox="0 0 ${spec.W} ${spec.H}" width="${spec.W}" style="width:100%;max-width:${spec.W}px;min-width:${Math.round(spec.W*.68)}px" role="img" aria-label="${esc(title||"Flussdiagramm")}">
+      <defs><marker id="${id}" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      ${edges}${nodes}${labels}</svg>`;
+  }
+  function symbolIcon(type){
+    if(type==="arrow")return `<svg class="dg" viewBox="0 0 120 60" width="96" aria-hidden="true"><defs><marker id="symarr" viewBox="0 0 10 10" refX="9.5" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs><line class="edge" x1="60" y1="6" x2="60" y2="54" marker-end="url(#symarr)"/></svg>`;
+    const s={term:[96,34],op:[100,38],io:[104,38],dec:[100,52],sub:[104,38]}[type];
+    const n={type,x:60,y:30,w:s[0],h:s[1],t:""};
+    return `<svg class="dg" viewBox="0 0 120 60" width="96" aria-hidden="true"><g class="nd t-${type}">${shape(n)}</g></svg>`;
+  }
+
+  /* ---------- Diagramme ---------- */
+  const D={
+    note:{W:450,H:490,nodes:[
+      {id:"s",type:"term",x:225,y:36,t:"Start"},
+      {id:"in",type:"io",x:225,y:108,t:"Eingabe: note"},
+      {id:"d",type:"dec",x:225,y:196,t:"note >= 4"},
+      {id:"a",type:"io",x:105,y:290,h:52,t:'Ausgabe:\n"Bestanden"'},
+      {id:"b",type:"io",x:345,y:290,w:196,h:52,t:'Ausgabe:\n"Nicht bestanden"'},
+      {id:"out",type:"io",x:225,y:380,w:236,h:52,t:'Ausgabe:\n"Ende der Auswertung"'},
+      {id:"e",type:"term",x:225,y:456,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"d"},{from:"d",to:"a",fs:"l",label:"Ja"},{from:"d",to:"b",fs:"r",label:"Nein"},
+        {from:"a",to:"out",my:335},{from:"b",to:"out",my:335},{from:"out",to:"e"}]},
+    seq:{W:400,H:460,nodes:[
+      {id:"s",type:"term",x:200,y:36,t:"Start"},
+      {id:"in1",type:"io",x:200,y:110,t:"Eingabe: breite"},
+      {id:"in2",type:"io",x:200,y:186,t:"Eingabe: hoehe"},
+      {id:"op",type:"op",x:200,y:264,h:52,t:"flaeche =\nbreite * hoehe"},
+      {id:"out",type:"io",x:200,y:344,w:210,t:"Ausgabe: flaeche"},
+      {id:"e",type:"term",x:200,y:424,t:"Ende"}],
+      edges:[{from:"s",to:"in1"},{from:"in1",to:"in2"},{from:"in2",to:"op"},{from:"op",to:"out"},{from:"out",to:"e"}]},
+    elif:{W:680,H:450,nodes:[
+      {id:"s",type:"term",x:115,y:36,t:"Start"},
+      {id:"in",type:"io",x:115,y:108,t:"Eingabe: temp"},
+      {id:"d1",type:"dec",x:115,y:200,t:"temp < 5"},
+      {id:"o1",type:"io",x:115,y:300,h:52,t:'Ausgabe:\n"Winterjacke"'},
+      {id:"d2",type:"dec",x:345,y:200,t:"temp < 18"},
+      {id:"o2",type:"io",x:345,y:300,h:52,t:'Ausgabe:\n"Pullover"'},
+      {id:"o3",type:"io",x:565,y:300,h:52,t:'Ausgabe:\n"T-Shirt"'},
+      {id:"e",type:"term",x:345,y:416,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"d1"},{from:"d1",to:"o1",label:"Ja"},{from:"d1",to:"d2",fs:"r",ts:"l",label:"Nein"},
+        {from:"d2",to:"o2",label:"Ja"},{from:"d2",to:"o3",fs:"r",label:"Nein"},
+        {from:"o1",to:"e",my:361},{from:"o2",to:"e",my:361},{from:"o3",to:"e",my:361}]},
+    while:{W:520,H:440,nodes:[
+      {id:"s",type:"term",x:180,y:36,t:"Start"},
+      {id:"in",type:"io",x:180,y:108,t:"Eingabe: n"},
+      {id:"d",type:"dec",x:180,y:210,t:"n > 0"},
+      {id:"p",type:"io",x:180,y:300,t:"Ausgabe: n"},
+      {id:"op",type:"op",x:180,y:376,t:"n = n - 1"},
+      {id:"out",type:"io",x:410,y:300,h:52,t:'Ausgabe:\n"Start!"'},
+      {id:"e",type:"term",x:410,y:400,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"d"},{from:"d",to:"p",label:"Ja"},{from:"p",to:"op"},
+        {from:"op",fs:"l",via:[[30,376],[30,150]],toPt:[180,150]},
+        {from:"d",to:"out",fs:"r",label:"Nein"},{from:"out",to:"e"}]},
+    for:{W:550,H:540,nodes:[
+      {id:"s",type:"term",x:200,y:36,t:"Start"},
+      {id:"in",type:"io",x:200,y:104,t:"Eingabe: n"},
+      {id:"op1",type:"op",x:200,y:172,t:"summe = 0"},
+      {id:"op2",type:"op",x:200,y:240,t:"i = 1"},
+      {id:"d",type:"dec",x:200,y:330,t:"i <= n"},
+      {id:"op3",type:"op",x:200,y:420,w:210,t:"summe = summe + i"},
+      {id:"op4",type:"op",x:200,y:492,t:"i = i + 1"},
+      {id:"out",type:"io",x:430,y:420,t:"Ausgabe: summe"},
+      {id:"e",type:"term",x:430,y:500,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"op1"},{from:"op1",to:"op2"},{from:"op2",to:"d"},
+        {from:"d",to:"op3",label:"Ja"},{from:"op3",to:"op4"},
+        {from:"op4",fs:"l",via:[[40,492],[40,277]],toPt:[200,277]},
+        {from:"d",to:"out",fs:"r",label:"Nein"},{from:"out",to:"e"}]},
+    kino:{W:450,H:490,nodes:[
+      {id:"s",type:"term",x:225,y:36,t:"Start"},
+      {id:"in",type:"io",x:225,y:108,t:"Eingabe: alter"},
+      {id:"d",type:"dec",x:225,y:196,t:"alter < 16"},
+      {id:"a",type:"op",x:105,y:290,t:"preis = 12"},
+      {id:"b",type:"op",x:345,y:290,t:"preis = 18"},
+      {id:"out",type:"io",x:225,y:380,w:210,t:"Ausgabe: preis"},
+      {id:"e",type:"term",x:225,y:456,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"d"},{from:"d",to:"a",fs:"l",label:"Ja"},{from:"d",to:"b",fs:"r",label:"Nein"},
+        {from:"a",to:"out",my:335},{from:"b",to:"out",my:335},{from:"out",to:"e"}]},
+    raten:{W:520,H:510,nodes:[
+      {id:"s",type:"term",x:190,y:36,t:"Start"},
+      {id:"op",type:"op",x:190,y:106,t:"geheim = 7"},
+      {id:"in",type:"io",x:190,y:176,t:"Eingabe: tipp"},
+      {id:"d",type:"dec",x:190,y:290,w:190,t:"tipp != geheim"},
+      {id:"p",type:"io",x:190,y:382,w:200,t:'Ausgabe: "Falsch"'},
+      {id:"in2",type:"io",x:190,y:456,t:"Eingabe: tipp"},
+      {id:"out",type:"io",x:420,y:382,w:180,h:52,t:'Ausgabe:\n"Richtig!"'},
+      {id:"e",type:"term",x:420,y:470,t:"Ende"}],
+      edges:[{from:"s",to:"op"},{from:"op",to:"in"},{from:"in",to:"d"},{from:"d",to:"p",label:"Ja"},{from:"p",to:"in2"},
+        {from:"in2",fs:"l",via:[[30,456],[30,225]],toPt:[190,225]},
+        {from:"d",to:"out",fs:"r",label:"Nein"},{from:"out",to:"e"}]},
+    fehler:{W:400,H:360,nodes:[
+      {id:"s",type:"term",x:200,y:36,t:"Start"},
+      {id:"op",type:"op",x:200,y:116,w:190,t:"zahl = input()"},
+      {id:"d",type:"dec",x:200,y:215,t:"zahl > 0"},
+      {id:"p",type:"io",x:200,y:316,h:52,t:'Ausgabe:\n"positiv"'}],
+      edges:[{from:"s",to:"op"},{from:"op",to:"d"},{from:"d",to:"p",label:"Ja"}]},
+    fehlerOk:{W:400,H:440,nodes:[
+      {id:"s",type:"term",x:180,y:36,t:"Start"},
+      {id:"in",type:"io",x:180,y:108,t:"Eingabe: zahl"},
+      {id:"d",type:"dec",x:180,y:200,t:"zahl > 0"},
+      {id:"p",type:"io",x:180,y:300,h:52,t:'Ausgabe:\n"positiv"'},
+      {id:"e",type:"term",x:180,y:400,t:"Ende"}],
+      edges:[{from:"s",to:"in"},{from:"in",to:"d"},{from:"d",to:"p",label:"Ja"},{from:"p",to:"e"},
+        {from:"d",fs:"r",via:[[340,200],[340,400]],to:"e",ts:"r",label:"Nein"}]},
+    pw:{W:780,H:600,nodes:[
+      {id:"s",type:"term",x:200,y:36,t:"Start"},
+      {id:"op",type:"op",x:200,y:116,h:52,t:'versuche = 0\npw = ""'},
+      {id:"d1",type:"dec",x:200,y:240,w:260,h:100,t:'pw != "sesam"\nand versuche < 3'},
+      {id:"in",type:"io",x:200,y:350,t:"Eingabe: pw"},
+      {id:"op2",type:"op",x:200,y:430,h:52,t:"versuche =\nversuche + 1"},
+      {id:"d2",type:"dec",x:480,y:350,w:180,t:'pw == "sesam"'},
+      {id:"o1",type:"io",x:480,y:456,h:52,t:'Ausgabe:\n"Willkommen"'},
+      {id:"o2",type:"io",x:680,y:456,w:180,h:52,t:'Ausgabe:\n"Gesperrt"'},
+      {id:"e",type:"term",x:480,y:560,t:"Ende"}],
+      edges:[{from:"s",to:"op"},{from:"op",to:"d1"},{from:"d1",to:"in",label:"Ja"},{from:"in",to:"op2"},
+        {from:"op2",fs:"l",via:[[40,430],[40,166]],toPt:[200,166]},
+        {from:"d1",to:"d2",fs:"r",label:"Nein"},
+        {from:"d2",to:"o1",label:"Ja"},{from:"d2",to:"o2",fs:"r",label:"Nein"},
+        {from:"o1",to:"e",my:511},{from:"o2",to:"e",my:511}]}
+  };
+
+  /* ---------- Werte-Darstellung wie in Python ---------- */
+  const F=x=>Number.isInteger(x)?x.toFixed(1):String(Math.round(x*1000)/1000);
+  const I=x=>String(x);
+  const Q=s=>'"'+s+'"';
+
+  function tracer(){
+    const S=[],v={};
+    return {S,v,push(n,l,m,o){S.push({n,l,m,o,v:Object.assign({},v)})}};
+  }
+
+  /* ---------- Beispiele mit Ablauf ---------- */
+  const EX={
+    note:{dia:D.note,title:"Flussdiagramm Notenauswertung",
+      code:['note = float(input("Note: "))','if note >= 4:','    print("Bestanden")','else:','    print("Nicht bestanden")','print("Ende der Auswertung")'],
+      inputs:[{id:"note",label:"Note",min:1,max:6,step:.5,val:4.5}],hint:"Schweizer Noten: ab 4 genügend.",
+      run({note}){
+        const t=tracer();
+        t.push("s",null,"Jedes Flussdiagramm beginnt mit genau einem <strong>Start</strong>-Symbol.");
+        t.v.note=F(note);
+        t.push("in",0,`Das <strong>Parallelogramm</strong> steht für Ein- und Ausgabe. Python liest mit <code>input()</code> die Note ein und speichert <code>${t.v.note}</code> in der Variable <code>note</code>.`,"Note: "+note);
+        const c=note>=4;
+        t.push("d",1,`Die <strong>Raute</strong> stellt eine Ja/Nein-Frage: Ist <code>${t.v.note} >= 4</code>? Antwort: <strong>${c?"Ja (True)":"Nein (False)"}</strong>. Das Programm folgt dem Pfeil «${c?"Ja":"Nein"}».`);
+        if(c)t.push("a",2,"Im Ja-Zweig wird «Bestanden» ausgegeben. Der Nein-Zweig wird übersprungen.","Bestanden");
+        else t.push("b",[3,4],"Im Nein-Zweig, also im <code>else</code>-Block, wird «Nicht bestanden» ausgegeben. Der Ja-Zweig wird übersprungen.","Nicht bestanden");
+        t.push("out",5,"Beide Zweige treffen sich wieder. Diese Ausgabe kommt in jedem Fall, im Code ist sie nicht mehr eingerückt.","Ende der Auswertung");
+        t.push("e",null,"Das <strong>Ende</strong>-Symbol schliesst den Ablauf ab.");
+        return t.S;
+      }},
+    seq:{dia:D.seq,title:"Flussdiagramm Rechteckfläche",
+      code:['breite = float(input("Breite in cm: "))','hoehe = float(input("Höhe in cm: "))','flaeche = breite * hoehe','print("Fläche:", flaeche, "cm²")'],
+      inputs:[{id:"breite",label:"Breite",min:.5,max:50,step:.5,val:4},{id:"hoehe",label:"Höhe",min:.5,max:50,step:.5,val:3}],
+      run({breite,hoehe}){
+        const t=tracer();
+        t.push("s",null,"Das Programm startet.");
+        t.v.breite=F(breite);t.push("in1",0,"Erste Eingabe: Die Breite wird eingelesen. Eingaben sind Parallelogramme.","Breite in cm: "+breite);
+        t.v.hoehe=F(hoehe);t.push("in2",1,"Zweite Eingabe: die Höhe.","Höhe in cm: "+hoehe);
+        const f=breite*hoehe;t.v.flaeche=F(f);
+        t.push("op",2,`Eine Berechnung mit Zuweisung ist ein <strong>Rechteck</strong>. <code>${t.v.breite} * ${t.v.hoehe}</code> ergibt <code>${t.v.flaeche}</code>.`);
+        t.push("out",3,"Die Ausgabe ist wieder ein Parallelogramm.","Fläche: "+F(f)+" cm²");
+        t.push("e",null,"Ende. Kein Symbol wurde übersprungen: Bei einer Sequenz läuft jede Zeile genau einmal.");
+        return t.S;
+      }},
+    elif:{dia:D.elif,title:"Flussdiagramm Kleiderwahl nach Temperatur",
+      code:['temp = int(input("Temperatur in °C: "))','if temp < 5:','    print("Winterjacke")','elif temp < 18:','    print("Pullover")','else:','    print("T-Shirt")'],
+      inputs:[{id:"temp",label:"Temperatur °C",min:-20,max:40,step:1,val:10,int:true}],
+      run({temp}){
+        const t=tracer();
+        t.push("s",null,"Das Programm startet.");
+        t.v.temp=I(temp);t.push("in",0,"Die Temperatur wird eingelesen.","Temperatur in °C: "+temp);
+        const c1=temp<5;
+        t.push("d1",1,`Erste Raute: Ist <code>${temp} < 5</code>? <strong>${c1?"Ja":"Nein"}</strong>.`);
+        if(c1){t.push("o1",2,"Ja-Zweig: «Winterjacke». Die zweite Raute wird gar nie erreicht.","Winterjacke")}
+        else{
+          const c2=temp<18;
+          t.push("d2",3,`Der Nein-Ausgang führt zur zweiten Raute, das ist das <code>elif</code>. Ist <code>${temp} < 18</code>? <strong>${c2?"Ja":"Nein"}</strong>.`);
+          if(c2)t.push("o2",4,"Ja-Zweig der zweiten Raute: «Pullover».","Pullover");
+          else t.push("o3",[5,6],"Auch hier Nein. Der letzte Nein-Ausgang ist das <code>else</code>: «T-Shirt».","T-Shirt");
+        }
+        t.push("e",null,"Alle drei Wege enden beim selben Ende-Symbol.");
+        return t.S;
+      }},
+    while:{dia:D.while,title:"Flussdiagramm Countdown mit while",
+      code:['n = int(input("Startwert: "))','while n > 0:','    print(n)','    n = n - 1','print("Start!")'],
+      inputs:[{id:"n",label:"Startwert",min:0,max:6,step:1,val:3,int:true}],hint:"Zwischen 0 und 6.",
+      run({n}){
+        const t=tracer();
+        t.push("s",null,"Das Programm startet.");
+        t.v.n=I(n);t.push("in",0,`Der Startwert <code>${n}</code> wird eingelesen.`,"Startwert: "+n);
+        let first=true;
+        while(n>0){
+          t.push("d",1,first?`Die Raute prüft <code>n > 0</code>: <code>${n} > 0</code> ist <strong>Ja</strong>. Es geht hinein in die Schleife.`:`Zurück an der Raute: <code>${n} > 0</code>? <strong>Ja</strong>, noch ein Durchgang.`);
+          t.push("p",2,`Ausgabe von <code>n</code>.`,String(n));
+          n--;t.v.n=I(n);
+          t.push("op",3,`<code>n</code> wird um 1 kleiner und ist jetzt <code>${n}</code>. Der Pfeil führt <strong>zurück nach oben</strong> vor die Raute: Das ist die Schleife.`);
+          first=false;
+        }
+        t.push("d",1,`<code>${n} > 0</code>? <strong>Nein</strong>. Die Schleife ist fertig, der Nein-Ausgang führt aus ihr heraus.`);
+        t.push("out",4,"Diese Zeile steht nach der Schleife und läuft nur einmal.","Start!");
+        t.push("e",null,"Ende.");
+        return t.S;
+      }},
+    for:{dia:D.for,title:"Flussdiagramm Summe mit for-Schleife",
+      code:['n = int(input("n: "))','summe = 0','for i in range(1, n + 1):','    summe = summe + i','print(summe)'],
+      inputs:[{id:"n",label:"n",min:0,max:5,step:1,val:3,int:true}],hint:"Zwischen 0 und 5.",
+      run({n}){
+        const t=tracer();
+        t.push("s",null,"Das Programm startet.");
+        t.v.n=I(n);t.push("in",0,"<code>n</code> wird eingelesen.","n: "+n);
+        let s=0;t.v.summe=I(s);t.push("op1",1,"Die Summe beginnt bei 0.");
+        let i=1;t.v.i=I(i);
+        t.push("op2",2,"Die <code>for</code>-Zeile setzt zuerst den Zähler <code>i</code> auf den ersten Wert von <code>range(1, n + 1)</code>. Im Diagramm braucht das ein eigenes Rechteck.");
+        while(i<=n){
+          t.push("d",2,`Python prüft unsichtbar, ob <code>i</code> noch im Bereich liegt: <code>${i} <= ${n}</code>? <strong>Ja</strong>.`);
+          s+=i;t.v.summe=I(s);
+          t.push("op3",3,`<code>summe</code> wird um <code>${i}</code> grösser und ist jetzt <code>${s}</code>.`);
+          i++;t.v.i=I(i);
+          t.push("op4",2,`Das Hochzählen macht die <code>for</code>-Schleife automatisch. Im Diagramm muss es sichtbar sein: <code>i</code> ist jetzt <code>${i}</code>. Zurück zur Raute.`);
+        }
+        t.push("d",2,`<code>${i} <= ${n}</code>? <strong>Nein</strong>. Die Schleife ist zu Ende.`);
+        t.push("out",4,`Die Summe der Zahlen von 1 bis ${n} wird ausgegeben.`,String(s));
+        t.push("e",null,"Ende.");
+        return t.S;
+      }}
+  };
+
+  function buildLab(el){
+    const key=el.dataset.ex,ex=EX[key];
+    el.innerHTML=`
+      <div class="dg-panel"><div class="dg-scroll">${renderDiagram(ex.dia,ex.title)}</div></div>
+      <div class="lab-side">
+        <div class="lab-inputs">${ex.inputs.map(i=>`<label class="inp" for="${key}-${i.id}"><span>${i.label}</span><input type="number" id="${key}-${i.id}" min="${i.min}" max="${i.max}" step="${i.step}" value="${i.val}" inputmode="decimal"></label>`).join("")}${ex.hint?`<span class="hint">${ex.hint}</span>`:""}</div>
+        <div class="codebox"><div class="scroll"><div class="inner">${ex.code.map((l,i)=>`<div class="ln" data-l="${i}"><span class="no">${i+1}</span><code>${hl(l)}</code></div>`).join("")}</div></div></div>
+        <p class="msg" aria-live="polite"></p>
+        <div class="stepbar"><span class="count"></span>
+          <button type="button" class="btn" data-a="restart">Von vorne</button>
+          <button type="button" class="btn" data-a="prev">Zurück</button>
+          <button type="button" class="btn primary" data-a="next">Weiter</button></div>
+        <div class="state">
+          <div class="vars"><span class="lbl">Variablen</span><div class="vt"></div></div>
+          <div class="console"><span class="lbl">Ausgabe</span><div class="ot"></div></div>
+        </div>
+      </div>`;
+    el.querySelector(".codebox").appendChild(copyBtn(ex.code.join("\n")));
+    const nodes=el.querySelectorAll(".nd"),lines=el.querySelectorAll(".ln"),msg=el.querySelector(".msg"),cnt=el.querySelector(".count"),vt=el.querySelector(".vt"),ot=el.querySelector(".ot");
+    const bPrev=el.querySelector('[data-a="prev"]'),bNext=el.querySelector('[data-a="next"]');
+    let steps=[],k=0;
+    function readInputs(){
+      const o={};
+      ex.inputs.forEach(i=>{
+        const f=el.querySelector("#"+key+"-"+i.id);
+        let x=parseFloat(String(f.value).replace(",","."));
+        if(isNaN(x))x=i.val;
+        x=Math.min(i.max,Math.max(i.min,x));
+        x=i.int?Math.round(x):Math.round(x/i.step)*i.step;
+        o[i.id]=x;
+      });
+      return o;
+    }
+    function render(){
+      const st=steps[k];
+      nodes.forEach(n=>n.classList.toggle("active",n.dataset.n===st.n));
+      const ls=st.l==null?[]:(Array.isArray(st.l)?st.l:[st.l]);
+      lines.forEach(l=>l.classList.toggle("cur",ls.includes(+l.dataset.l)));
+      msg.innerHTML=st.m;
+      cnt.textContent="Schritt "+(k+1)+" von "+steps.length;
+      const prev=k>0?steps[k-1].v:{};
+      const names=Object.keys(st.v);
+      vt.innerHTML=names.length?"<table>"+names.map(n=>`<tr class="${prev[n]!==st.v[n]?"chg":""}"><td>${n}</td><td>${esc(st.v[n])}</td></tr>`).join("")+"</table>":'<span class="empty">noch keine</span>';
+      const outs=[];steps.slice(0,k+1).forEach((s,j)=>{if(s.o!=null)outs.push({t:s.o,nw:j===k})});
+      ot.innerHTML=outs.length?outs.map(o=>`<div class="line${o.nw?" new":""}">${esc(o.t)}</div>`).join(""):'<div class="empty">(noch nichts)</div>';
+      bPrev.disabled=k===0;bNext.disabled=k===steps.length-1;
+    }
+    function rebuild(){steps=ex.run(readInputs());k=0;render()}
+    el.querySelectorAll(".inp input").forEach(f=>f.addEventListener("input",rebuild));
+    el.querySelector('[data-a="restart"]').addEventListener("click",()=>{k=0;render()});
+    bPrev.addEventListener("click",()=>{if(k>0){k--;render()}});
+    bNext.addEventListener("click",()=>{if(k<steps.length-1){k++;render()}});
+    rebuild();
+  }
+  document.querySelectorAll(".lab[data-ex]").forEach(buildLab);
+  document.querySelectorAll("[data-dg]").forEach(el=>{el.innerHTML=renderDiagram(D[el.dataset.dg],"Flussdiagramm")});
+
+  /* ---------- Symbolkarten ---------- */
+  const SYM=[
+    {type:"term",name:"Start / Ende",norm:"Grenzstelle",text:"Markiert, wo der Ablauf beginnt und wo er aufhört.",py:"# kein eigener Befehl"},
+    {type:"op",name:"Operation",norm:"Rechteck",text:"Eine Berechnung oder Zuweisung. Der Wert einer Variable ändert sich.",py:"flaeche = breite * hoehe"},
+    {type:"io",name:"Ein-/Ausgabe",norm:"Parallelogramm",text:"Daten kommen ins Programm oder werden angezeigt.",py:'name = input("Name: ")\nprint("Hallo", name)'},
+    {type:"dec",name:"Verzweigung",norm:"Raute",text:"Eine Ja/Nein-Frage mit zwei Ausgängen. Steht für die Bedingung von if, elif und while.",py:"if punkte >= 20:\nwhile n > 0:"},
+    {type:"sub",name:"Unterprogramm",norm:"Rechteck mit Doppelrand",text:"Ruft eine eigene Funktion auf, die anderswo genauer beschrieben ist.",py:"mwst = berechne_mwst(preis)"},
+    {type:"arrow",name:"Ablauflinie",norm:"Pfeil",text:"Verbindet die Symbole und zeigt, was als Nächstes passiert.",py:"# Reihenfolge der Zeilen"}
+  ];
+  document.getElementById("symbolGrid").innerHTML=SYM.map(s=>`<div class="sym"><div class="icon">${symbolIcon(s.type)}</div><h3>${s.name}</h3><p class="norm">${s.norm}</p><p>${s.text}</p><div class="py"><code>${hl(s.py)}</code></div></div>`).join("");
+
+  /* ---------- Quiz ---------- */
+  const OPTS=[["term","Start / Ende"],["op","Operation"],["io","Ein-/Ausgabe"],["dec","Verzweigung"],["sub","Unterprogramm"]];
+  const QUIZ=[
+    {p:'<code>name = input("Name: ")</code>',r:"io",why:"<code>input()</code> holt Daten von der Tastatur ins Programm. Das ist eine Eingabe, auch wenn das Resultat einer Variable zugewiesen wird."},
+    {p:"<code>zaehler = zaehler + 1</code>",r:"op",why:"Eine Berechnung mit Zuweisung, ohne Ein- oder Ausgabe: ein Rechteck."},
+    {p:"<code>if punkte >= 20:</code>",r:"dec",why:"Eine Bedingung mit den Antworten Ja und Nein wird zur Raute."},
+    {p:'<code>print("Hallo", name)</code>',r:"io",why:"<code>print()</code> zeigt etwas an. Ausgaben stehen wie Eingaben im Parallelogramm."},
+    {p:"<code>while versuche &lt; 3:</code>",r:"dec",why:"Auch eine Schleife beginnt mit einer Ja/Nein-Frage. Die Raute bekommt zusätzlich einen Rückpfeil."},
+    {p:"<code>mwst = berechne_mwst(preis)</code>, wobei <code>berechne_mwst</code> eine eigene Funktion ist",r:"sub",why:"Der Aufruf einer eigenen Funktion, deren Ablauf in einem separaten Diagramm steht, ist ein Unterprogramm."},
+    {p:"Das Programm ist fertig.",r:"term",why:"Anfang und Schluss zeichnet man mit dem abgerundeten Symbol, der Grenzstelle."}
+  ];
+  const box=document.getElementById("quizBox"),elScore=document.getElementById("score");
+  let answered=0,correct=0;
+  QUIZ.forEach((q,qi)=>{
+    const d=document.createElement("div");d.className="q";
+    d.innerHTML=`<h3>Frage ${qi+1}</h3><p class="prompt">${q.p}</p><div class="opts" role="group" aria-label="Symbole zu Frage ${qi+1}"></div><p class="fb" aria-live="polite" hidden></p>`;
+    const opts=d.querySelector(".opts"),fb=d.querySelector(".fb");
+    OPTS.forEach(([t,name])=>{
+      const b=document.createElement("button");b.type="button";b.className="opt";b.dataset.t=t;
+      b.innerHTML=symbolIcon(t)+"<span>"+name+"</span>";
+      b.addEventListener("click",()=>{
+        const all=opts.querySelectorAll(".opt");all.forEach(x=>x.disabled=true);
+        opts.querySelector(`[data-t="${q.r}"]`).classList.add("right");
+        const ok=t===q.r;if(!ok)b.classList.add("wrong");
+        fb.innerHTML=(ok?"<strong>✓ Richtig.</strong> ":"<strong>✗ Nicht ganz.</strong> ")+q.why;fb.hidden=false;
+        answered++;if(ok)correct++;
+        if(answered===QUIZ.length)elScore.textContent="Ergebnis: "+correct+" von "+QUIZ.length+" richtig.";
+      });
+      opts.appendChild(b);
+    });
+    box.appendChild(d);
+  });
+
+  /* ---------- Variante ---------- */
+  const vBtns=document.querySelectorAll("[data-set-variant]");
+  function setVariant(v){root.setAttribute("data-variant",v);vBtns.forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.setVariant===v)));store.set("fd-variant",v)}
+  vBtns.forEach(b=>b.addEventListener("click",()=>setVariant(b.dataset.setVariant)));
+  setVariant(root.getAttribute("data-variant")==="b"?"b":"a");
+})();
+</script>
+
+</body></html>

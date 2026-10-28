@@ -1,0 +1,744 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik (Python / TigerPython), Zielgruppe: Schüler:innen im Einstieg, Gerät: gemischt.
+  Anrede: Sie-Form.
+  Design: ein einziges dunkles Design (Nord, Polar Night), kein Umschalter, kein heller Modus.
+  Inhalt: Konzept Variable (Etikett an einem Wert), Zuweisung, Namensregeln, die vier Grundtypen int, float, str, bool
+          als Fliesstext-Abschnitte, Operationen je Datentyp (Tabellen + Operationen-Labor), Typumwandlung, type().
+  Funktionen: Schritt-für-Schritt-Simulation mit Vor/Zurück und Speichertabelle; Operationen-Labor (Wert, Operator, Wert wählen);
+              Übungen A Typ erraten, B Ausgabe vorhersagen, C Fehler finden, D Operationen (10 Fragen, Auswahl),
+              E Schreibaufgaben (Entwurf + Musterlösung, selbst abhaken).
+  Datenhaltung: pro Browser (localStorage, nur Komfort): Fortschritt und Entwürfe. Zurücksetzen-Knopf (zweistufig).
+  Export: keiner. Kopierknopf an Codeblöcken.
+-->
+<title>Variablen in Python</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: eine Lesespalte (~70 Zeichen), Abschnitte untereinander, Übungen als Karten */
+:root{
+  color-scheme:dark;
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);
+  --accent:var(--nord8);--accent-soft:var(--nord9);
+  --ok:var(--nord14);--warn:var(--nord13);--err:var(--nord11);--special:var(--nord15);--info:var(--nord8);
+
+  --code-bg:var(--nord0);--code-fg:var(--nord6);--code-border:var(--nord3);
+  --c-kw:var(--nord9);--c-fn:var(--nord8);--c-com:var(--nord4);--c-str:var(--nord14);--c-num:var(--nord15);
+
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  --radius:6px;--radius-s:4px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.6rem);font-weight:700}
+h2{font-size:1.55rem;font-weight:700}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0}
+code{font-family:var(--font-mono);font-size:.9em;background:var(--surface-2);padding:.05em .35em;border-radius:4px}
+strong{color:var(--nord6)}
+
+.wrap{max-width:800px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Kopf */
+header.top{background:var(--surface);border-bottom:3px solid var(--nord8)}
+header.top .wrap{padding-block:30px 26px;display:grid;gap:14px}
+.eyebrow{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.eyebrow::before{content:">>> ";color:var(--nord14)}
+.lead{color:var(--text-muted);max-width:64ch}
+.progress{display:flex;align-items:center;gap:12px;font-size:.9rem;color:var(--text-muted);flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;background:var(--nord2);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.progress strong{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.92rem}
+.toc a{color:var(--text);text-decoration-color:var(--nord9)}
+
+main .wrap{padding-block:12px 64px}
+section.part{padding-block:44px 8px;display:grid;gap:18px;border-top:1px solid var(--surface-2)}
+section.part:first-child{border-top:0}
+.num{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--accent);letter-spacing:.04em}
+.prose{display:grid;gap:14px;max-width:68ch}
+
+/* Code */
+.codebox{position:relative;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);min-width:0}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:.9em;line-height:1.5;color:var(--code-fg)}
+.codebox .copy{position:absolute;top:6px;right:6px;font-size:.75rem;padding:2px 8px;border-radius:4px;cursor:pointer;
+  background:var(--nord1);border:1px solid var(--code-border);color:var(--nord4);font-family:var(--font-mono)}
+.codebox .copy:hover{color:var(--nord6);border-color:var(--nord9)}
+.codebox .out{border-top:1px dashed var(--code-border);padding:8px 16px 10px;font-family:var(--font-mono);font-size:.85em;white-space:pre-wrap;color:var(--nord6)}
+.codebox .out::before{content:"Ausgabe";display:block;font-size:.72rem;letter-spacing:.05em;color:var(--nord4)}
+.tk-kw{color:var(--c-kw);font-weight:600}
+.tk-fn{color:var(--c-fn)}
+.tk-str{color:var(--c-str)}
+.tk-num{color:var(--c-num)}
+.tk-com{color:var(--c-com);font-style:italic}
+
+/* Etiketten-Bild */
+.labels{display:flex;flex-wrap:wrap;gap:14px 22px;padding:18px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--surface-2)}
+.lab{display:flex;align-items:center}
+.lab .tag{font-family:var(--font-mono);font-weight:600;padding:4px 10px 4px 14px;background:var(--nord13);color:var(--nord0);
+  clip-path:polygon(10px 0,100% 0,100% 100%,10px 100%,0 50%);font-size:.9rem}
+.lab .string{width:22px;height:2px;background:var(--nord4)}
+.lab .val{font-family:var(--font-mono);padding:6px 12px;border:2px solid var(--nord9);border-radius:var(--radius-s);background:var(--bg);font-size:.95rem}
+
+/* Hinweise */
+.note{border-left:4px solid var(--special);background:var(--surface);padding:12px 16px;display:grid;gap:6px;max-width:68ch}
+.note b.k{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.05em;color:var(--special)}
+.note.warn{border-left-color:var(--warn)} .note.warn b.k{color:var(--warn)}
+.note.info{border-left-color:var(--info)} .note.info b.k{color:var(--info)}
+
+/* Typen */
+.type{display:grid;gap:14px;padding:22px;background:var(--surface);border:1px solid var(--surface-2);border-left:4px solid var(--surface-2);border-radius:var(--radius)}
+.type > header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.badge{font-family:var(--font-mono);font-weight:600;padding:1px 9px;border-radius:var(--radius-s);color:var(--nord0);font-size:.95rem}
+.type .badge{font-size:1.05rem}
+.b-int{background:var(--nord8)} .b-float{background:var(--nord15)} .b-str{background:var(--nord14)} .b-bool{background:var(--nord13)}
+.t-int{border-left-color:var(--nord8)} .t-float{border-left-color:var(--nord15)} .t-str{border-left-color:var(--nord14)} .t-bool{border-left-color:var(--nord13)}
+.type .sub{color:var(--text-muted);font-size:.95rem;font-family:var(--font-mono)}
+
+/* Operationen-Tabellen */
+.ops{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.ops{grid-template-columns:minmax(0,1fr)}}
+.opcard{background:var(--surface);border:1px solid var(--surface-2);border-top:3px solid var(--surface-2);border-radius:var(--radius);padding:14px;display:grid;gap:10px;align-content:start;min-width:0}
+.opcard.t-int{border-top-color:var(--nord8)} .opcard.t-float{border-top-color:var(--nord15)}
+.opcard.t-str{border-top-color:var(--nord14)} .opcard.t-bool{border-top-color:var(--nord13)}
+.opcard h3{display:flex;gap:10px;align-items:center;font-size:1.05rem}
+.tbl{overflow-x:auto}
+.tbl table{width:100%;border-collapse:collapse;font-size:.88rem}
+.tbl th,.tbl td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--surface-2);vertical-align:top}
+.tbl th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--text-muted);font-weight:600}
+.tbl td.c{font-family:var(--font-mono);white-space:nowrap}
+.tbl td.r{font-family:var(--font-mono);white-space:nowrap;color:var(--nord13)}
+
+/* Labor */
+.lab-box{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:18px;display:grid;gap:14px}
+.lab-row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.lab-row label{display:grid;gap:4px;font-size:.78rem;color:var(--text-muted);font-family:var(--font-mono);letter-spacing:.03em}
+.lab-row select{font-family:var(--font-mono);font-size:1rem;padding:6px 10px;background:var(--bg);border:1px solid var(--nord3);border-radius:var(--radius-s);min-width:7.5em}
+.lab-res{display:grid;gap:8px}
+.lab-res .line{font-family:var(--font-mono);background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:10px 14px;overflow-x:auto;white-space:pre}
+.lab-res .val{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-family:var(--font-mono);font-size:1.15rem}
+.lab-res .err{color:var(--nord11);font-weight:600}
+.lab-res .why{color:var(--text-muted);font-size:.92rem}
+
+/* Simulation */
+.sim{display:grid;gap:14px;padding:18px;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius)}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px}
+@media (max-width:640px){.sim-grid{grid-template-columns:minmax(0,1fr)}}
+.sim-code{background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:10px 0;overflow-x:auto;font-family:var(--font-mono);font-size:.88em;line-height:1.5}
+.sim-code div{padding:2px 14px 2px 10px;white-space:pre;border-left:4px solid transparent;display:flex;gap:10px}
+.sim-code .ln{color:var(--nord3);min-width:1.2em;text-align:right;font-variant-numeric:tabular-nums}
+.sim-code div.done{opacity:.55}
+.sim-code div.cur{border-left-color:var(--nord13);background:rgba(235,203,139,.14)}
+.mem{display:grid;gap:6px;align-content:start;min-width:0}
+.mem h4{margin:0;font-family:var(--font-mono);font-size:.78rem;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.mem table{width:100%;border-collapse:collapse;font-size:.92rem;background:var(--bg)}
+.mem th,.mem td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--surface-2)}
+.mem th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.mem td{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.mem tr.chg td{background:rgba(235,203,139,.18)}
+.mem .empty td{font-family:var(--font);color:var(--text-muted);font-style:italic}
+.mem .flag{font-size:.7rem;font-weight:600;margin-left:6px;color:var(--nord13)}
+.sim-out{font-family:var(--font-mono);font-size:.9rem;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:8px 12px;min-height:2.3em}
+.sim-text{min-height:3.2em}
+.sim-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sim-ctrl .step{font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+
+.btn{border:1px solid var(--nord3);background:var(--nord2);padding:7px 14px;border-radius:var(--radius-s);cursor:pointer;font-weight:600;font-size:.92rem}
+.btn:hover{border-color:var(--nord9)}
+.btn.primary{background:var(--nord8);border-color:var(--nord8);color:var(--nord0)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.small{padding:4px 10px;font-size:.82rem}
+
+/* Übungen */
+.ex-group{display:grid;gap:14px;margin-top:30px}
+.ex-group:first-of-type{margin-top:0}
+.ex-group > header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ex-group h3 .k{font-family:var(--font-mono);color:var(--accent);margin-right:6px}
+.ex-count{font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.cards.wide{grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:14px;display:grid;gap:10px;align-content:start;min-width:0;position:relative}
+.card.is-done{border-color:var(--ok)}
+.card .tick{position:absolute;top:10px;right:12px;font-size:.72rem;font-weight:600;color:var(--nord0);background:var(--ok);padding:0 7px;border-radius:2px;font-family:var(--font-mono);display:none}
+.card.is-done .tick{display:inline-block}
+.card .qn{font-family:var(--font-mono);font-size:.75rem;color:var(--text-muted)}
+.card .q{font-family:var(--font-mono);font-size:1.05rem;padding:8px 10px;background:var(--code-bg);border-radius:var(--radius-s);border:1px solid var(--code-border);overflow-x:auto;white-space:pre}
+.choices{display:flex;flex-wrap:wrap;gap:6px}
+.choices button{font-family:var(--font-mono);font-size:.85rem;padding:4px 10px;border-radius:var(--radius-s);border:1px solid var(--nord3);background:var(--bg);cursor:pointer}
+.choices button:hover{border-color:var(--nord9)}
+.choices button.right{background:var(--ok);border-color:var(--ok);color:var(--nord0)}
+.choices button.wrong{background:var(--err);border-color:var(--err);color:var(--nord6)}
+.fb{font-size:.9rem;padding:8px 10px;border-left:4px solid var(--surface-2);background:var(--bg)}
+.fb.ok{border-left-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.no{border-left-color:var(--err)} .fb.no b{color:var(--nord11)}
+.fb b{display:block}
+.answer{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.answer input{flex:1;min-width:120px;font-family:var(--font-mono);padding:6px 10px;border:1px solid var(--nord3);border-radius:var(--radius-s);background:var(--bg)}
+textarea{width:100%;min-height:120px;font-family:var(--font-mono);font-size:.9rem;line-height:1.5;padding:10px;border:1px solid var(--nord3);border-radius:var(--radius-s);background:var(--bg);resize:vertical}
+.task{display:grid;gap:12px}
+.task .row{display:flex;gap:8px;flex-wrap:wrap}
+.reset{margin-top:30px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--text-muted);font-size:.9rem}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="eyebrow">Informatik · Python-Grundlagen</span>
+    <h1>Variablen in Python</h1>
+    <p class="lead">Ein Programm muss sich Dinge merken: einen Namen, eine Punktzahl, ob ein Spiel schon vorbei ist. Dafür gibt es Variablen. Auf dieser Seite lernen Sie, wie Variablen funktionieren, welche vier Arten von Werten Sie am häufigsten brauchen und was Sie mit jeder Art von Wert machen können.</p>
+    <div class="progress" aria-live="polite">
+      <span>Übungen erledigt</span>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+      <strong id="prog">0 / 0</strong>
+    </div>
+    <nav class="toc" aria-label="Inhalt">
+      <a href="#konzept">Das Konzept</a><a href="#ablauf">Schritt für Schritt</a><a href="#typen">Die vier Typen</a><a href="#operationen">Operationen</a><a href="#umwandeln">Umwandeln</a><a href="#uebungen">Übungen</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<!-- 1 Konzept -->
+<section class="part" id="konzept">
+  <span class="num"># Teil 1</span>
+  <h2>Was ist eine Variable?</h2>
+  <div class="prose">
+    <p>Stellen Sie sich vor, der Computer hat einen riesigen Speicher voller Werte: Zahlen, Wörter, Ja/Nein-Antworten. Damit Sie einen bestimmten Wert später wiederfinden, kleben Sie ihm ein <strong>Etikett</strong> mit einem Namen an. Genau das ist eine Variable: ein Name, der auf einen Wert zeigt.</p>
+    <p>In Python erstellen Sie eine Variable mit einem einzigen Gleichheitszeichen. Links steht der Name, rechts der Wert. Diese Zeile nennt man <strong>Zuweisung</strong>.</p>
+  </div>
+  <div class="codebox"><pre data-code>punkte = 12
+spieler = "Mia"
+print(spieler, "hat", punkte, "Punkte")</pre><div class="out">Mia hat 12 Punkte</div></div>
+  <div class="labels" aria-label="Darstellung: Etiketten zeigen auf Werte">
+    <div class="lab"><span class="tag">punkte</span><span class="string"></span><span class="val">12</span></div>
+    <div class="lab"><span class="tag">spieler</span><span class="string"></span><span class="val">"Mia"</span></div>
+  </div>
+  <div class="prose">
+    <p>Wichtig: Das <code>=</code> bedeutet in Python nicht «ist gleich» wie in der Mathematik. Es bedeutet «nimm den Wert rechts und häng das Etikett links daran». Deshalb ist eine Zeile wie <code>punkte = punkte + 1</code> völlig in Ordnung. Python rechnet zuerst die rechte Seite aus und hängt danach das Etikett an das Ergebnis.</p>
+  </div>
+  <div class="note warn">
+    <b class="k">Regeln für Namen</b>
+    <p>Ein Variablenname besteht aus Buchstaben, Ziffern und dem Unterstrich <code>_</code>, darf aber nicht mit einer Ziffer beginnen. Leerzeichen und Umlaute vermeiden Sie besser: Schreiben Sie <code>anzahl_aepfel</code> statt <code>Anzahl Äpfel</code>. Gross- und Kleinschreibung zählt, <code>Alter</code> und <code>alter</code> sind zwei verschiedene Variablen. Wählen Sie Namen, die verraten, was drinsteht: <code>preis</code> ist besser als <code>x</code>.</p>
+  </div>
+</section>
+
+<!-- 2 Simulation -->
+<section class="part" id="ablauf">
+  <span class="num"># Teil 2</span>
+  <h2>Schritt für Schritt: was im Speicher passiert</h2>
+  <p class="prose">Klicken Sie sich durch das kleine Programm. Rechts sehen Sie nach jeder Zeile, welche Etiketten es gibt, welcher Wert daran hängt und welchen Typ dieser Wert hat.</p>
+  <div class="sim">
+    <div class="sim-grid">
+      <div class="sim-code" id="simCode" aria-label="Programmcode"></div>
+      <div class="mem">
+        <h4>Speicher</h4>
+        <table><thead><tr><th>Name</th><th>Wert</th><th>Typ</th></tr></thead><tbody id="simMem"></tbody></table>
+        <h4 style="margin-top:8px">Ausgabe</h4>
+        <div class="sim-out" id="simOut"></div>
+      </div>
+    </div>
+    <p class="sim-text" id="simText" aria-live="polite"></p>
+    <div class="sim-ctrl">
+      <button class="btn" id="simPrev" type="button">← Zurück</button>
+      <button class="btn primary" id="simNext" type="button">Nächste Zeile →</button>
+      <button class="btn small" id="simReset" type="button">Neu starten</button>
+      <span class="step" id="simStep"></span>
+    </div>
+  </div>
+</section>
+
+<!-- 3 Typen -->
+<section class="part" id="typen">
+  <span class="num"># Teil 3</span>
+  <h2>Die vier Grundtypen</h2>
+  <div class="prose">
+    <p>Jeder Wert in Python hat einen <strong>Typ</strong>. Der Typ bestimmt, was Sie mit dem Wert machen können: Mit Zahlen können Sie rechnen, Text können Sie aneinanderhängen. Den Typ müssen Sie nicht angeben. Python erkennt ihn an der Schreibweise des Werts. Mit <code>type()</code> können Sie jederzeit nachfragen.</p>
+  </div>
+
+  <article class="type t-int">
+    <header><span class="badge b-int">int</span><h3>Ganze Zahlen</h3><span class="sub">integer</span></header>
+    <p>Ein <code>int</code> ist eine Zahl ohne Komma, also zum Beispiel ein Alter, eine Anzahl Leben im Spiel oder ein Jahrgang. Ganze Zahlen dürfen auch negativ sein und beliebig gross werden. Sie erkennen einen int daran, dass er nur aus Ziffern besteht, ohne Punkt und ohne Anführungszeichen.</p>
+    <div class="codebox"><pre data-code>leben = 3
+jahrgang = 2010
+temperatur = -4
+print(type(jahrgang))</pre><div class="out">&lt;class 'int'&gt;</div></div>
+  </article>
+
+  <article class="type t-float">
+    <header><span class="badge b-float">float</span><h3>Kommazahlen</h3><span class="sub">floating point</span></header>
+    <p>Ein <code>float</code> ist eine Zahl mit Nachkommastellen, etwa eine Körpergrösse, ein Preis oder eine Temperatur. In Python schreiben Sie das Komma als <strong>Punkt</strong>: <code>1.75</code>, nicht <code>1,75</code>. Sobald ein Punkt in der Zahl steht, ist sie ein float, auch wenn danach nur eine Null kommt.</p>
+    <div class="codebox"><pre data-code>groesse = 1.75
+preis = 4.0
+print(type(preis))</pre><div class="out">&lt;class 'float'&gt;</div></div>
+    <div class="note info"><b class="k">Gut zu wissen</b><p>Computer speichern Kommazahlen nur annähernd genau. Darum liefert <code>0.1 + 0.2</code> den Wert <code>0.30000000000000004</code>. Das ist kein Fehler von Ihnen, sondern eine Eigenheit aller Programmiersprachen.</p></div>
+  </article>
+
+  <article class="type t-str">
+    <header><span class="badge b-str">str</span><h3>Text</h3><span class="sub">string, Zeichenkette</span></header>
+    <p>Ein <code>str</code> ist Text, also eine Folge von Zeichen. Sie erkennen ihn an den Anführungszeichen, die einfach <code>'…'</code> oder doppelt <code>"…"</code> sein dürfen. Alles zwischen den Anführungszeichen gilt als Text, auch Ziffern: <code>"42"</code> ist keine Zahl, sondern die zwei Zeichen 4 und 2.</p>
+    <div class="codebox"><pre data-code>vorname = "Lea"
+plz = "8180"          # Postleitzahl: Text, denn damit rechnet niemand
+print(type(plz))</pre><div class="out">&lt;class 'str'&gt;</div></div>
+  </article>
+
+  <article class="type t-bool">
+    <header><span class="badge b-bool">bool</span><h3>Wahrheitswerte</h3><span class="sub">boolean</span></header>
+    <p>Ein <code>bool</code> kennt nur zwei Werte: <code>True</code> (wahr) und <code>False</code> (falsch). Sie werden immer mit grossem Anfangsbuchstaben und ohne Anführungszeichen geschrieben. Wahrheitswerte entstehen meistens durch Vergleiche. Später brauchen Sie sie für Entscheidungen mit <code>if</code>, zum Beispiel: Ist das Spiel vorbei? Hat die Person bezahlt?</p>
+    <div class="codebox"><pre data-code>alter = 16
+volljaehrig = alter >= 18
+spiel_vorbei = False
+print(volljaehrig)
+print(type(spiel_vorbei))</pre><div class="out">False
+&lt;class 'bool'&gt;</div></div>
+  </article>
+</section>
+
+<!-- 4 Operationen -->
+<section class="part" id="operationen">
+  <span class="num"># Teil 4</span>
+  <h2>Operationen: was Sie mit jedem Typ machen können</h2>
+  <div class="prose">
+    <p>Eine <strong>Operation</strong> verarbeitet einen oder mehrere Werte zu einem neuen Wert. Welche Operationen erlaubt sind und was dabei herauskommt, hängt vom Typ ab. Das Zeichen <code>+</code> zum Beispiel addiert zwei Zahlen, hängt aber zwei Texte aneinander. Die Tabellen zeigen die wichtigsten Operationen für jeden der vier Typen.</p>
+  </div>
+  <div class="ops" id="opsTables"></div>
+
+  <div class="prose">
+    <p>Spannend wird es, wenn Sie <strong>Typen mischen</strong>. Rechnen Sie mit einem int und einem float, wird das Ergebnis ein float: <code>3 + 0.5</code> ergibt <code>3.5</code>. Die Division mit <code>/</code> liefert sogar immer einen float, auch wenn sie aufgeht. Text und Zahl lassen sich dagegen nicht mit <code>+</code> verbinden, Python meldet dann einen <code>TypeError</code>. Eine Ausnahme ist <code>*</code>: Text mal ganze Zahl wiederholt den Text.</p>
+  </div>
+  <div class="note"><b class="k">Kuriosität</b><p>Für Python ist <code>True</code> eigentlich die Zahl 1 und <code>False</code> die Zahl 0. Deshalb ergibt <code>True + True</code> den Wert <code>2</code>. Im Alltag sollten Sie damit nicht rechnen, aber es erklärt einige überraschende Ergebnisse.</p></div>
+
+  <h3 style="margin-top:6px">Operationen-Labor</h3>
+  <p class="prose">Probieren Sie es aus: Wählen Sie zwei Werte und einen Operator. Das Labor zeigt, was Python ausgeben würde und welchen Typ das Ergebnis hat.</p>
+  <div class="lab-box">
+    <div class="lab-row">
+      <label for="labL">Wert links<select id="labL"></select></label>
+      <label for="labOp">Operator<select id="labOp"></select></label>
+      <label for="labR">Wert rechts<select id="labR"></select></label>
+    </div>
+    <div class="lab-res" aria-live="polite">
+      <div class="line" id="labLine"></div>
+      <div class="val" id="labVal"></div>
+      <p class="why" id="labWhy"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 Umwandeln -->
+<section class="part" id="umwandeln">
+  <span class="num"># Teil 5</span>
+  <h2>Typen umwandeln</h2>
+  <div class="prose">
+    <p>Manchmal haben Sie einen Wert im falschen Typ. Das passiert vor allem mit <code>input()</code>: Was die Benutzerin oder der Benutzer eintippt, kommt immer als Text an, auch bei einer Zahl. Um damit zu rechnen, wandeln Sie den Text mit <code>int()</code> oder <code>float()</code> in eine Zahl um. Umgekehrt macht <code>str()</code> aus einer Zahl Text, damit Sie sie mit <code>+</code> in einen Satz einbauen können.</p>
+  </div>
+  <div class="codebox"><pre data-code>eingabe = input("Wie alt sind Sie? ")   # z. B. 15, aber als Text "15"
+alter = int(eingabe)                   # jetzt die Zahl 15
+naechstes_jahr = alter + 1
+print("Nächstes Jahr sind Sie " + str(naechstes_jahr))</pre><div class="out">Wie alt sind Sie? 15
+Nächstes Jahr sind Sie 16</div></div>
+  <div class="note"><b class="k">Merke</b><p>Rechnen geht nur mit <code>int</code> und <code>float</code>. Wandeln Sie Text vorher um, sonst meldet Python einen <code>TypeError</code>.</p></div>
+</section>
+
+<!-- 6 Übungen -->
+<section class="part" id="uebungen">
+  <span class="num"># Teil 6</span>
+  <h2>Übungen</h2>
+  <p class="prose">Ihr Fortschritt wird in diesem Browser gespeichert. Erledigte Aufgaben erhalten ein grünes Häkchen.</p>
+
+  <div class="ex-group">
+    <header><h3><span class="k">A</span>Welcher Typ ist das?</h3><span class="ex-count" data-count="typ"></span></header>
+    <p class="prose">Klicken Sie auf den Typ, den der Wert hat. Sie erhalten sofort eine Rückmeldung.</p>
+    <div class="cards" id="typCards"></div>
+  </div>
+
+  <div class="ex-group">
+    <header><h3><span class="k">B</span>Was gibt das Programm aus?</h3><span class="ex-count" data-count="aus"></span></header>
+    <p class="prose">Überlegen Sie zuerst im Kopf, was passiert. Tippen Sie dann die Ausgabe genau so ein, wie sie erscheinen würde.</p>
+    <div class="cards wide" id="ausCards"></div>
+  </div>
+
+  <div class="ex-group">
+    <header><h3><span class="k">C</span>Fehler finden</h3><span class="ex-count" data-count="feh"></span></header>
+    <p class="prose">Welche Meldung zeigt Python bei diesem Code? Achtung, nicht jeder Code ist fehlerhaft.</p>
+    <div class="cards wide" id="fehCards"></div>
+  </div>
+
+  <div class="ex-group">
+    <header><h3><span class="k">D</span>Operationen anwenden</h3><span class="ex-count" data-count="ops"></span></header>
+    <p class="prose">Was ergibt der Ausdruck? Achten Sie auf den Typ: <code>3</code> und <code>3.0</code> sind nicht dasselbe.</p>
+    <div class="cards" id="opsCards"></div>
+  </div>
+
+  <div class="ex-group">
+    <header><h3><span class="k">E</span>Selbst programmieren</h3><span class="ex-count" data-count="sch"></span></header>
+    <p class="prose">Schreiben Sie die Programme in TigerPython und testen Sie sie dort. Ihr Entwurf hier bleibt gespeichert. Vergleichen Sie danach mit der Musterlösung und haken Sie die Aufgabe ab.</p>
+    <div class="cards wide" id="schCards"></div>
+  </div>
+
+  <div class="reset">
+    <button class="btn small" id="resetBtn" type="button">Fortschritt zurücksetzen</button>
+    <span id="resetHint"></span>
+  </div>
+</section>
+
+</div>
+</main>
+
+<script>
+(function(){
+/* ---------- Speicher (nur Komfort) ---------- */
+const KEY='pyvar-v1';
+let store={done:{},drafts:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){store.done=s.done||{};store.drafts=s.drafts||{};}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+const $=id=>document.getElementById(id);
+
+/* ---------- Syntaxhervorhebung ---------- */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function hl(src){
+  const re=/(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(True|False|None|and|or|not|in|if|else|elif|for|while|def|return)\b|\b([A-Za-z_]\w*)(?=\()/gm;
+  let out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    const t=esc(m[0]);
+    if(m[1])out+='<span class="tk-com">'+t+'</span>';
+    else if(m[2])out+='<span class="tk-str">'+t+'</span>';
+    else if(m[3])out+='<span class="tk-num">'+t+'</span>';
+    else if(m[4])out+='<span class="tk-kw">'+t+'</span>';
+    else out+='<span class="tk-fn">'+t+'</span>';
+    last=m.index+m[0].length;
+  }
+  return out+esc(src.slice(last));
+}
+function addCopy(box,src){
+  const b=document.createElement('button');b.type='button';b.className='copy';b.textContent='Kopieren';
+  b.addEventListener('click',()=>{
+    const ok=()=>{b.textContent='Kopiert';setTimeout(()=>b.textContent='Kopieren',1400)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(box.querySelector('pre'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Markiert';};
+    try{navigator.clipboard.writeText(src).then(ok,sel)}catch(e){sel()}
+  });
+  box.appendChild(b);
+}
+function codeBox(src,withCopy){
+  const box=document.createElement('div');box.className='codebox';
+  const pre=document.createElement('pre');pre.innerHTML=hl(src);box.appendChild(pre);
+  if(withCopy)addCopy(box,src);
+  return box;
+}
+document.querySelectorAll('pre[data-code]').forEach(pre=>{
+  const src=pre.textContent;pre.innerHTML=hl(src);addCopy(pre.parentElement,src);
+});
+
+/* ---------- Operationen-Tabellen ---------- */
+const OPS=[
+  ['int','Ganze Zahlen',[
+    ['Addition','7 + 2','9'],['Subtraktion','7 - 2','5'],['Multiplikation','7 * 2','14'],
+    ['Division (ergibt float)','7 / 2','3.5'],['Ganzzahlige Division','7 // 2','3'],['Rest (Modulo)','7 % 2','1'],
+    ['Potenz','7 ** 2','49'],['Vergleich','7 > 2','True']]],
+  ['float','Kommazahlen',[
+    ['Addition','2.5 + 1.5','4.0'],['Multiplikation','2.5 * 2','5.0'],['Division','2.5 / 2','1.25'],
+    ['Potenz','1.5 ** 2','2.25'],['Runden','round(2.567, 1)','2.6'],['Vergleich','2.5 < 3','True']]],
+  ['str','Text',[
+    ['Verketten','"Ba" + "sel"','Basel'],['Wiederholen','"la" * 3','lalala'],['Länge','len("Zürich")','6'],
+    ['Enthalten?','"ich" in "Zürich"','True'],['Zeichen holen','"Zürich"[0]','Z'],['Grossschreiben','"zug".upper()','ZUG'],
+    ['Vergleich','"a" == "A"','False']]],
+  ['bool','Wahrheitswerte',[
+    ['und: beide wahr?','True and False','False'],['oder: mindestens einer wahr?','True or False','True'],
+    ['nicht: umkehren','not True','False'],['Vergleich ergibt bool','3 == 3','True'],
+    ['kombiniert','3 > 1 and 2 > 5','False']]]
+];
+$('opsTables').innerHTML=OPS.map(([t,name,rows])=>
+  '<div class="opcard t-'+t+'"><h3><span class="badge b-'+t+'">'+t+'</span>'+name+'</h3><div class="tbl"><table><thead><tr><th>Operation</th><th>Beispiel</th><th>Ergebnis</th></tr></thead><tbody>'+
+  rows.map(r=>'<tr><td>'+r[0]+'</td><td class="c">'+hl(r[1])+'</td><td class="r">'+esc(r[2])+'</td></tr>').join('')+
+  '</tbody></table></div></div>').join('');
+
+/* ---------- Operationen-Labor ---------- */
+const VALS=[['7',{t:'int',v:7}],['2',{t:'int',v:2}],['2.5',{t:'float',v:2.5}],['"ab"',{t:'str',v:'ab'}],['"3"',{t:'str',v:'3'}],['True',{t:'bool',v:true}],['False',{t:'bool',v:false}]];
+const OPERS=['+','-','*','/','//','%','**','==','<','and','or'];
+function fill(sel,arr,def){sel.innerHTML=arr.map((a,i)=>'<option value="'+i+'">'+esc(a)+'</option>').join('');sel.value=def;}
+fill($('labL'),VALS.map(v=>v[0]),0);fill($('labOp'),OPERS,0);fill($('labR'),VALS.map(v=>v[0]),2);
+const isNum=x=>x.t==='int'||x.t==='float'||x.t==='bool';
+const nv=x=>x.t==='bool'?(x.v?1:0):x.v;
+function fmtF(n){return Number.isInteger(n)?n.toFixed(1):String(n);}
+function show(x){return x.t==='float'?fmtF(x.v):x.t==='bool'?(x.v?'True':'False'):String(x.v);}
+function numRes(a,b,val){return (a.t==='float'||b.t==='float')?{t:'float',v:val}:{t:'int',v:val};}
+function typeErr(a,b){return {err:'TypeError',why:'Die Typen '+a.t+' und '+b.t+' passen für diesen Operator nicht zusammen.'};}
+function evalOp(a,op,b){
+  if(op==='and'||op==='or'){
+    if(a.t!=='bool'||b.t!=='bool')return {info:'Üben Sie and und or mit den Wahrheitswerten True und False.'};
+    return {r:{t:'bool',v:op==='and'?(a.v&&b.v):(a.v||b.v)},why:op==='and'?'and ist nur True, wenn beide Seiten True sind.':'or ist True, sobald eine Seite True ist.'};
+  }
+  if(op==='=='){
+    let eq;
+    if(isNum(a)&&isNum(b))eq=nv(a)===nv(b);else if(a.t==='str'&&b.t==='str')eq=a.v===b.v;else eq=false;
+    return {r:{t:'bool',v:eq},why:(a.t==='str')!==(b.t==='str')?'Text ist nie gleich einer Zahl, auch "3" nicht gleich 3.':'Ein Vergleich ergibt immer einen Wahrheitswert.'};
+  }
+  if(op==='<'){
+    if(isNum(a)&&isNum(b))return {r:{t:'bool',v:nv(a)<nv(b)},why:'Ein Vergleich ergibt immer einen Wahrheitswert.'};
+    if(a.t==='str'&&b.t==='str')return {r:{t:'bool',v:a.v<b.v},why:'Texte werden Zeichen für Zeichen verglichen, ähnlich wie im Wörterbuch.'};
+    return typeErr(a,b);
+  }
+  if(op==='+'){
+    if(a.t==='str'&&b.t==='str')return {r:{t:'str',v:a.v+b.v},why:'+ hängt zwei Texte aneinander.'};
+    if(a.t==='str'||b.t==='str')return typeErr(a,b);
+    const r=numRes(a,b,nv(a)+nv(b));
+    return {r,why:mixWhy(a,b,r)};
+  }
+  if(op==='*'){
+    const s=a.t==='str'?a:(b.t==='str'?b:null),o=s===a?b:a;
+    if(s){
+      if(o.t==='int'||o.t==='bool')return {r:{t:'str',v:s.v.repeat(Math.max(0,nv(o)))},why:'Text mal ganze Zahl wiederholt den Text.'};
+      return typeErr(a,b);
+    }
+    const r=numRes(a,b,nv(a)*nv(b));return {r,why:mixWhy(a,b,r)};
+  }
+  if(a.t==='str'||b.t==='str')return typeErr(a,b);
+  const x=nv(a),y=nv(b);
+  if((op==='/'||op==='//'||op==='%')&&y===0)return {err:'ZeroDivisionError',why:'Durch 0 kann man nicht teilen (False zählt als 0).'};
+  if(op==='-'){const r=numRes(a,b,x-y);return {r,why:mixWhy(a,b,r)};}
+  if(op==='/')return {r:{t:'float',v:x/y},why:'Die Division mit / ergibt immer einen float.'};
+  if(op==='//'){const r=numRes(a,b,Math.floor(x/y));return {r,why:'// teilt und schneidet die Nachkommastellen ab.'+(r.t==='float'?' Mit einem float im Spiel bleibt das Ergebnis ein float.':'')};}
+  if(op==='%'){const r=numRes(a,b,x-y*Math.floor(x/y));return {r,why:'% liefert den Rest der Division.'};}
+  if(op==='**'){const r=numRes(a,b,Math.pow(x,y));return {r,why:'** rechnet hoch: '+show(a)+' hoch '+show(b)+'.'};}
+}
+function mixWhy(a,b,r){
+  if(a.t==='bool'||b.t==='bool')return 'True zählt beim Rechnen als 1, False als 0.';
+  if(a.t!==b.t)return 'int und float gemischt ergibt einen float.';
+  return 'Zwei Werte vom Typ '+a.t+' ergeben wieder einen '+r.t+'.';
+}
+function runLab(){
+  const a=VALS[$('labL').value],op=OPERS[$('labOp').value],b=VALS[$('labR').value];
+  $('labLine').innerHTML=hl('print('+a[0]+' '+op+' '+b[0]+')');
+  const res=evalOp(a[1],op,b[1]);
+  if(res.info){$('labVal').innerHTML='<span class="why">–</span>';$('labWhy').textContent=res.info;return;}
+  if(res.err){$('labVal').innerHTML='<span class="err">✗ '+res.err+'</span>';$('labWhy').textContent=res.why;return;}
+  $('labVal').innerHTML='<span>'+esc(show(res.r))+'</span><span class="badge b-'+res.r.t+'">'+res.r.t+'</span>';
+  $('labWhy').textContent=res.why;
+}
+['labL','labOp','labR'].forEach(id=>$(id).addEventListener('change',runLab));
+runLab();
+
+/* ---------- Simulation ---------- */
+const lines=['alter = 15','name = "Lea"','alter = alter + 1','groesse = 1.68','volljaehrig = alter >= 18','print(name, "ist", alter, "Jahre alt")'];
+const steps=[
+  {mem:[],chg:null,out:'',text:'Noch ist nichts passiert. Der Speicher ist leer. Klicken Sie auf «Nächste Zeile».'},
+  {mem:[['alter','15','int']],chg:'alter',flag:'neu',out:'',text:'Python legt den Wert 15 ab und klebt das Etikett alter daran. 15 hat kein Komma und keine Anführungszeichen, also ist es ein int.'},
+  {mem:[['alter','15','int'],['name','"Lea"','str']],chg:'name',flag:'neu',out:'',text:'Der Wert steht in Anführungszeichen, also ist er Text (str). Das neue Etikett heisst name.'},
+  {mem:[['alter','16','int'],['name','"Lea"','str']],chg:'alter',flag:'geändert',out:'',text:'Zuerst wird rechts gerechnet: alter ist noch 15, also 15 + 1 = 16. Dann wird das Etikett alter an den neuen Wert 16 gehängt. Die 15 ist vergessen.'},
+  {mem:[['alter','16','int'],['name','"Lea"','str'],['groesse','1.68','float']],chg:'groesse',flag:'neu',out:'',text:'1.68 hat einen Punkt als Dezimaltrennzeichen, also ist es ein float.'},
+  {mem:[['alter','16','int'],['name','"Lea"','str'],['groesse','1.68','float'],['volljaehrig','False','bool']],chg:'volljaehrig',flag:'neu',out:'',text:'Python prüft den Vergleich 16 >= 18. Das stimmt nicht, also entsteht der Wahrheitswert False (bool).'},
+  {mem:[['alter','16','int'],['name','"Lea"','str'],['groesse','1.68','float'],['volljaehrig','False','bool']],chg:null,out:'Lea ist 16 Jahre alt',text:'print() schaut nach, welche Werte an den Etiketten name und alter hängen, und gibt sie aus. Der Speicher ändert sich dabei nicht.'}
+];
+let si=0;
+function renderSim(){
+  $('simCode').innerHTML=lines.map((l,i)=>{
+    const cls=i===si-1?'cur':(i<si-1?'done':'');
+    return '<div class="'+cls+'"><span class="ln">'+(i+1)+'</span><span>'+hl(l)+'</span></div>';
+  }).join('');
+  const s=steps[si];
+  $('simMem').innerHTML=s.mem.length?s.mem.map(r=>'<tr class="'+(r[0]===s.chg?'chg':'')+'"><td>'+r[0]+(r[0]===s.chg?'<span class="flag">'+s.flag+'</span>':'')+'</td><td>'+esc(r[1])+'</td><td>'+r[2]+'</td></tr>').join(''):'<tr class="empty"><td colspan="3">leer</td></tr>';
+  $('simOut').textContent=s.out;
+  $('simText').textContent=s.text;
+  $('simStep').textContent='Schritt '+si+' / '+(steps.length-1);
+  $('simPrev').disabled=si===0;$('simNext').disabled=si===steps.length-1;
+}
+$('simPrev').onclick=()=>{if(si>0){si--;renderSim();}};
+$('simNext').onclick=()=>{if(si<steps.length-1){si++;renderSim();}};
+$('simReset').onclick=()=>{si=0;renderSim();};
+renderSim();
+
+/* ---------- Übungen: Daten ---------- */
+const TYP=[
+  ['42','int','Eine Zahl ohne Komma und ohne Anführungszeichen ist ein int.'],
+  ['3.14','float','Der Punkt macht sie zur Kommazahl.'],
+  ['"Hallo"','str','Anführungszeichen bedeuten Text.'],
+  ['True','bool','True und False sind die beiden Wahrheitswerte.'],
+  ['"42"','str','Die Anführungszeichen machen auch Ziffern zu Text.'],
+  ['-7','int','Negative ganze Zahlen sind ebenfalls int.'],
+  ['2.0','float','Sobald ein Punkt dasteht, ist es ein float, auch mit .0 am Ende.'],
+  ['"False"','str','In Anführungszeichen ist False nur ein Wort, also Text.'],
+  ['10 / 2','float','Die Division mit / ergibt immer einen float, hier 5.0.'],
+  ['5 > 3','bool','Ein Vergleich ergibt einen Wahrheitswert, hier True.']
+];
+const AUS=[
+  ['x = 5\nx = x + 3\nprint(x)','8','Rechts wird zuerst gerechnet: 5 + 3 = 8. Danach hängt das Etikett x an der 8.'],
+  ['a = "3"\nb = "4"\nprint(a + b)','34','Beides ist Text. + hängt Texte aneinander, es wird nicht gerechnet.'],
+  ['print(7 / 2)','3.5','Die Division mit / liefert einen float.'],
+  ['z = 10\nprint(z > 3)','True','10 ist grösser als 3, der Vergleich ergibt True.'],
+  ['wort = "ha"\nprint(wort * 3)','hahaha','Text mal Zahl wiederholt den Text.'],
+  ['n = 7\nn = n * 2\nn = n - 4\nprint(n)','10','Zuerst 7 * 2 = 14, dann 14 - 4 = 10. Das Etikett n wandert jedes Mal weiter.']
+];
+const FEH=[
+  ['print("Ich bin " + 15 + " Jahre alt")','TypeError','Text und Zahl lassen sich nicht mit + verbinden. Korrektur: str(15) verwenden oder die Zahl in Anführungszeichen schreiben.','print("Ich bin " + str(15) + " Jahre alt")'],
+  ['2tage = 48\nprint(2tage)','SyntaxError','Variablennamen dürfen nicht mit einer Ziffer beginnen.','zwei_tage = 48\nprint(zwei_tage)'],
+  ['preis = 4.50\nprint(Preis)','NameError','Python unterscheidet Gross- und Kleinschreibung. Preis wurde nie erstellt, nur preis.','preis = 4.50\nprint(preis)'],
+  ['x = "5"\nprint(x * 2)','kein Fehler','Kein Fehler: Text mal Zahl ist erlaubt. Ausgegeben wird aber 55, nicht 10, weil x Text ist.','x = 5\nprint(x * 2)   # gibt 10 aus'],
+  ['alter = input("Alter? ")\nprint(alter + 1)','TypeError','input() liefert immer Text. Text plus Zahl geht nicht. Zuerst mit int() umwandeln.','alter = int(input("Alter? "))\nprint(alter + 1)']
+];
+const FEH_OPT=['SyntaxError','NameError','TypeError','kein Fehler'];
+const OPQ=[
+  ['17 % 5',['3','2','3.4','2.0'],'2','% liefert den Rest: 5 passt dreimal in 17, es bleiben 2 übrig.'],
+  ['2 ** 3',['6','8','9','5'],'8','** bedeutet hoch: 2 · 2 · 2 = 8.'],
+  ['9 // 2',['4.5','4','5','4.0'],'4','// teilt ganzzahlig und schneidet die Nachkommastellen ab. Zwei ints ergeben einen int.'],
+  ['9 / 3',['3','3.0','"3"','TypeError'],'3.0','Die Division mit / ergibt immer einen float, auch wenn sie aufgeht.'],
+  ['3 + 2.5',['5','5.5','"32.5"','TypeError'],'5.5','int und float gemischt ergibt einen float.'],
+  ['"Ja" + "Nein"',['Ja Nein','JaNein','TypeError','"Ja" "Nein"'],'JaNein','+ hängt die Texte ohne Leerzeichen aneinander.'],
+  ['len("Python")',['5','6','7','"6"'],'6','len() zählt die Zeichen: P-y-t-h-o-n sind 6. Das Ergebnis ist ein int.'],
+  ['"5" + 5',['10','55','"55"','TypeError'],'TypeError','Text und Zahl lassen sich nicht mit + verbinden.'],
+  ['True and False',['True','False','1','TypeError'],'False','and ist nur True, wenn beide Seiten True sind.'],
+  ['not (3 > 5)',['True','False','-2','TypeError'],'True','3 > 5 ist False. not kehrt das um zu True.']
+];
+const SCH=[
+  ['Rechteck','Erstellen Sie zwei Variablen <code>breite</code> und <code>hoehe</code> mit Werten Ihrer Wahl. Berechnen Sie die Fläche in einer dritten Variable <code>flaeche</code> und geben Sie sie aus.',
+   'breite = 7\nhoehe = 4\nflaeche = breite * hoehe\nprint("Die Fläche ist", flaeche)'],
+  ['Steckbrief','Legen Sie für sich (oder eine erfundene Person) vier Variablen an: einen Namen (str), ein Alter (int), eine Grösse in Metern (float) und ob die Person ein Haustier hat (bool). Geben Sie alle vier aus und zusätzlich mit <code>type()</code> den Typ jeder Variable.',
+   'name = "Noah"\nalter = 15\ngroesse = 1.72\nhat_haustier = True\n\nprint(name, alter, groesse, hat_haustier)\nprint(type(name))\nprint(type(alter))\nprint(type(groesse))\nprint(type(hat_haustier))'],
+  ['Temperatur umrechnen','Fragen Sie mit <code>input()</code> nach einer Temperatur in Grad Celsius. Rechnen Sie sie in Fahrenheit um (Formel: F = C · 1.8 + 32) und geben Sie das Ergebnis in einem Satz aus. Denken Sie an die Umwandlung!',
+   'celsius = float(input("Temperatur in °C: "))\nfahrenheit = celsius * 1.8 + 32\nprint(str(celsius) + " °C sind " + str(fahrenheit) + " °F")']
+];
+
+/* ---------- Fortschritt ---------- */
+const groups={typ:TYP.length,aus:AUS.length,feh:FEH.length,ops:OPQ.length,sch:SCH.length};
+const total=Object.values(groups).reduce((a,b)=>a+b,0);
+function doneCount(prefix){return Object.keys(store.done).filter(k=>!prefix||k.startsWith(prefix+'-')).filter(k=>k.split('-')[0] in groups).length;}
+function markDone(id,val){
+  if(val)store.done[id]=true;else delete store.done[id];
+  save();
+  const c=document.querySelector('[data-id="'+id+'"]');if(c)c.classList.toggle('is-done',!!val);
+  updateProgress();
+}
+function updateProgress(){
+  const n=doneCount();
+  $('prog').textContent=n+' / '+total;
+  $('bar').style.width=(n/total*100)+'%';
+  for(const g in groups){const el=document.querySelector('[data-count="'+g+'"]');if(el)el.textContent=doneCount(g)+' / '+groups[g]+' erledigt';}
+}
+function card(id,label){
+  const c=document.createElement('div');c.className='card';c.dataset.id=id;
+  if(store.done[id])c.classList.add('is-done');
+  const t=document.createElement('span');t.className='tick';t.textContent='✓ erledigt';c.appendChild(t);
+  if(label){const q=document.createElement('span');q.className='qn';q.textContent=label;c.appendChild(q);}
+  return c;
+}
+function feedback(ok,title,text){
+  const d=document.createElement('div');d.className='fb '+(ok?'ok':'no');d.setAttribute('role','status');
+  d.innerHTML='<b>'+(ok?'✓ ':'✗ ')+title+'</b>'+text;return d;
+}
+function choiceCard(id,label,qHtml,opts,correct,explain,hint,container,extra){
+  const c=card(id,label);
+  if(qHtml instanceof Node)c.appendChild(qHtml);else{const q=document.createElement('div');q.className='q';q.innerHTML=qHtml;c.appendChild(q);}
+  const ch=document.createElement('div');ch.className='choices';let fb=null;
+  opts.forEach(o=>{
+    const b=document.createElement('button');b.type='button';b.textContent=o;
+    b.addEventListener('click',()=>{
+      ch.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));
+      const ok=o===correct;b.classList.add(ok?'right':'wrong');
+      if(fb)fb.remove();
+      fb=feedback(ok,ok?'Richtig.':'Leider nicht.',' '+(ok?explain:hint));
+      if(ok&&extra)fb.appendChild(extra());
+      c.appendChild(fb);
+      if(ok)markDone(id,true);
+    });
+    ch.appendChild(b);
+  });
+  c.appendChild(ch);container.appendChild(c);
+}
+
+/* A: Typ */
+TYP.forEach((it,i)=>choiceCard('typ-'+i,'A'+(i+1),hl(it[0]),['int','float','str','bool'],it[1],it[2],
+  'Versuchen Sie es nochmals. Achten Sie auf Punkt, Anführungszeichen und Vergleichszeichen.',$('typCards')));
+
+/* B: Ausgabe */
+AUS.forEach((it,i)=>{
+  const id='aus-'+i,c=card(id,'B'+(i+1));
+  c.appendChild(codeBox(it[0],false));
+  const row=document.createElement('div');row.className='answer';
+  const inp=document.createElement('input');inp.id='aus-in-'+i;inp.type='text';inp.placeholder='Ausgabe eintippen';inp.setAttribute('aria-label','Ihre Antwort zu Aufgabe B'+(i+1));
+  const check=document.createElement('button');check.type='button';check.className='btn small primary';check.textContent='Prüfen';
+  const sol=document.createElement('button');sol.type='button';sol.className='btn small';sol.textContent='Lösung zeigen';
+  row.append(inp,check,sol);c.appendChild(row);
+  let fb=null;
+  const norm=s=>s.trim().replace(/^["']|["']$/g,'').replace(/\s+/g,' ');
+  function doCheck(){
+    if(!inp.value.trim())return;
+    const ok=norm(inp.value)===it[1];
+    if(fb)fb.remove();
+    fb=feedback(ok,ok?'Richtig.':'Noch nicht.',' '+(ok?it[2]:'Gehen Sie das Programm Zeile für Zeile durch und notieren Sie den Wert jeder Variable.'));
+    c.appendChild(fb);if(ok)markDone(id,true);
+  }
+  check.onclick=doCheck;inp.addEventListener('keydown',e=>{if(e.key==='Enter')doCheck();});
+  sol.onclick=()=>{if(fb)fb.remove();fb=feedback(true,'Lösung: '+esc(it[1]),' '+it[2]);c.appendChild(fb);};
+  $('ausCards').appendChild(c);
+});
+
+/* C: Fehler */
+FEH.forEach((it,i)=>choiceCard('feh-'+i,'C'+(i+1),codeBox(it[0],false),FEH_OPT,it[1],it[2],
+  'Lesen Sie den Code nochmals genau: Stimmen die Namen? Passen die Typen zusammen?',$('fehCards'),
+  ()=>{const d=document.createElement('div');d.style.marginTop='8px';d.innerHTML='<b style="color:var(--text)">So funktioniert es:</b>';d.appendChild(codeBox(it[3],false));return d;}));
+
+/* D: Operationen */
+OPQ.forEach((it,i)=>choiceCard('ops-'+i,'D'+(i+1),hl(it[0]),it[1],it[2],it[3],
+  'Schauen Sie in der Tabelle zum passenden Typ nach oder probieren Sie es im Operationen-Labor aus.',$('opsCards')));
+
+/* E: Schreiben */
+SCH.forEach((it,i)=>{
+  const id='sch-'+i,c=card(id);
+  const wrap=document.createElement('div');wrap.className='task';
+  wrap.innerHTML='<h3 style="font-size:1.05rem"><span style="font-family:var(--font-mono);color:var(--accent)">E'+(i+1)+'</span> '+it[0]+'</h3><p>'+it[1]+'</p>';
+  const ta=document.createElement('textarea');ta.id='sch-ta-'+i;ta.spellcheck=false;ta.placeholder='# Ihr Code';
+  ta.setAttribute('aria-label','Ihr Code zu Aufgabe '+it[0]);
+  ta.value=store.drafts[id]||'';
+  ta.addEventListener('input',()=>{store.drafts[id]=ta.value;save();});
+  const row=document.createElement('div');row.className='row';
+  const showBtn=document.createElement('button');showBtn.type='button';showBtn.className='btn small';showBtn.textContent='Musterlösung zeigen';
+  const done=document.createElement('button');done.type='button';done.className='btn small primary';done.dataset.done='1';
+  const setLabel=()=>done.textContent=store.done[id]?'Als offen markieren':'Erledigt';
+  setLabel();
+  let sol=null;
+  showBtn.onclick=()=>{
+    if(sol){sol.remove();sol=null;showBtn.textContent='Musterlösung zeigen';return;}
+    const box=document.createElement('div');box.style.display='grid';box.style.gap='6px';
+    const note=document.createElement('p');note.style.fontSize='.88rem';note.style.color='var(--text-muted)';
+    note.textContent='Ihre Lösung darf anders aussehen. Wichtig ist, dass sie funktioniert und die richtigen Typen verwendet.';
+    box.append(codeBox(it[2],true),note);sol=box;wrap.appendChild(sol);showBtn.textContent='Musterlösung ausblenden';
+  };
+  done.onclick=()=>{markDone(id,!store.done[id]);setLabel();};
+  row.append(showBtn,done);
+  wrap.append(ta,row);c.appendChild(wrap);
+  $('schCards').appendChild(c);
+});
+
+/* Zurücksetzen (zweistufig) */
+let armed=false,armTimer=null;
+$('resetBtn').onclick=()=>{
+  if(!armed){armed=true;$('resetBtn').textContent='Wirklich alles zurücksetzen?';$('resetHint').textContent='Zum Bestätigen nochmals klicken.';
+    armTimer=setTimeout(()=>{armed=false;$('resetBtn').textContent='Fortschritt zurücksetzen';$('resetHint').textContent='';},4000);return;}
+  clearTimeout(armTimer);armed=false;
+  store.done={};store.drafts={};save();
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('is-done'));
+  document.querySelectorAll('.choices button').forEach(b=>b.classList.remove('right','wrong'));
+  document.querySelectorAll('.fb').forEach(f=>f.remove());
+  document.querySelectorAll('textarea,.answer input').forEach(t=>t.value='');
+  document.querySelectorAll('[data-done]').forEach(b=>b.textContent='Erledigt');
+  $('resetBtn').textContent='Fortschritt zurücksetzen';$('resetHint').textContent='Zurückgesetzt.';
+  updateProgress();
+};
+
+updateProgress();
+})();
+</script>
+
+</body></html>

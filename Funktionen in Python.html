@@ -1,0 +1,600 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik (Python / TigerPython), Zielgruppe: Schüler:innen im Einstieg, Gerät: gemischt.
+  Anrede: Sie-Form. Design: ein einziges dunkles Design (Nord), kein Umschalter, kein heller Modus.
+  Aufbau: Warum Funktionen? -> def ohne Parameter -> def mit Parametern -> Stolpersteine -> Ausblick return -> Übungen.
+  Funktionen: zwei Schritt-für-Schritt-Simulationen (Vor/Zurück) mit Sprung in die Funktion, Aufrufstapel und Parametertabelle;
+              Zuordnung Argument -> Parameter als Grafik;
+              Übungen A Grundlagen (Auswahl), B Ausgabe ohne Parameter, C Ausgabe mit Parametern (Eingabe wird geprüft, Lösung einblendbar),
+              D Fehler finden (Auswahl + Korrektur), E Parameter zuordnen (Auswahl), F Schreibaufgaben (Entwurf + Musterlösung, selbst abhaken).
+  Nicht behandelt: return (nur als Ausblick erwähnt).
+  Datenhaltung: pro Browser (localStorage, nur Komfort): Fortschritt und Entwürfe. Zurücksetzen-Knopf (zweistufig).
+  Export: keiner. Kopierknopf an Codeblöcken.
+-->
+<title>Funktionen in Python</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: eine Lesespalte, Simulationen als Labor-Kästen, Übungen als Karten */
+:root{
+  color-scheme:dark;
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);
+  --accent:var(--nord8);--accent-soft:var(--nord9);
+  --ok:var(--nord14);--warn:var(--nord13);--err:var(--nord11);--special:var(--nord15);--info:var(--nord8);
+
+  --code-bg:var(--nord0);--code-fg:var(--nord6);--code-border:var(--nord3);
+  --c-kw:var(--nord9);--c-fn:var(--nord8);--c-com:var(--nord4);--c-str:var(--nord14);--c-num:var(--nord15);
+
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  --radius:6px;--radius-s:4px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.6rem);font-weight:700}
+h2{font-size:1.55rem;font-weight:700}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0}
+code{font-family:var(--font-mono);font-size:.9em;background:var(--surface-2);padding:.05em .35em;border-radius:4px}
+
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{background:var(--surface);border-bottom:3px solid var(--nord8)}
+header.top .wrap{padding-block:30px 26px;display:grid;gap:14px}
+.eyebrow{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.eyebrow::before{content:">>> ";color:var(--nord14)}
+.lead{color:var(--text-muted);max-width:64ch}
+.progress{display:flex;align-items:center;gap:12px;font-size:.9rem;color:var(--text-muted);flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;background:var(--nord2);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.progress strong{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text)}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.92rem}
+.toc a{color:var(--text);text-decoration-color:var(--nord9)}
+
+main .wrap{padding-block:12px 64px}
+section.part{padding-block:44px 8px;display:grid;gap:18px;border-top:1px solid var(--surface-2)}
+section.part:first-child{border-top:0}
+.num{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--accent);letter-spacing:.04em}
+.prose{display:grid;gap:14px;max-width:68ch}
+
+/* Code */
+.codebox{position:relative;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);min-width:0}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:.9em;line-height:1.5;color:var(--code-fg)}
+.codebox .copy{position:absolute;top:6px;right:6px;font-size:.75rem;padding:2px 8px;border-radius:4px;cursor:pointer;
+  background:var(--nord1);border:1px solid var(--code-border);color:var(--nord4);font-family:var(--font-mono)}
+.codebox .copy:hover{color:var(--nord6);border-color:var(--nord9)}
+.codebox .out{border-top:1px dashed var(--code-border);padding:8px 16px 10px;font-family:var(--font-mono);font-size:.85em;white-space:pre-wrap}
+.codebox .out::before{content:"Ausgabe";display:block;font-size:.72rem;letter-spacing:.05em;color:var(--nord4)}
+.tk-kw{color:var(--c-kw);font-weight:600}
+.tk-fn{color:var(--c-fn)}
+.tk-str{color:var(--c-str)}
+.tk-num{color:var(--c-num)}
+.tk-com{color:var(--c-com);font-style:italic}
+
+.note{border-left:4px solid var(--special);background:var(--surface);padding:12px 16px;display:grid;gap:6px;max-width:68ch}
+.note b.k{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.05em;color:var(--special)}
+.note.warn{border-left-color:var(--warn)} .note.warn b.k{color:var(--warn)}
+.note.info{border-left-color:var(--info)} .note.info b.k{color:var(--info)}
+
+/* Vorteile */
+.why{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:640px){.why{grid-template-columns:minmax(0,1fr)}}
+.why div{background:var(--surface);border:1px solid var(--surface-2);border-top:3px solid var(--nord8);border-radius:var(--radius);padding:14px;display:grid;gap:6px}
+.why div:nth-child(2){border-top-color:var(--nord14)} .why div:nth-child(3){border-top-color:var(--nord13)} .why div:nth-child(4){border-top-color:var(--nord15)}
+.why h3{font-size:1rem}
+.why p{font-size:.95rem;color:var(--text-muted)}
+
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:680px){.pair{grid-template-columns:minmax(0,1fr)}}
+.pair figure{margin:0;min-width:0;display:grid;gap:6px;align-content:start}
+.pair figcaption{font-size:.85rem;color:var(--text-muted);font-family:var(--font-mono)}
+
+/* Anatomie */
+.anatomy{display:grid;gap:8px;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:16px}
+.anatomy .row{display:flex;gap:12px;align-items:baseline}
+.anatomy .pin{font-family:var(--font-mono);font-size:.75rem;font-weight:600;color:var(--nord0);background:var(--nord13);padding:0 6px;border-radius:2px;min-width:1.6em;text-align:center;flex:none}
+.anatomy p{font-size:.95rem}
+
+/* Zuordnung Argument -> Parameter */
+.map{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:18px;display:grid;gap:4px;overflow-x:auto}
+.map .ln{font-family:var(--font-mono);font-size:1.02rem;white-space:nowrap;display:flex;align-items:center;gap:0}
+.map .lbl{font-family:var(--font);font-size:.75rem;color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase;min-width:7.5em;flex:none}
+.map .chip{padding:1px 8px;border-radius:3px;color:var(--nord0);font-weight:600}
+.map .c1{background:var(--nord13)} .map .c2{background:var(--nord15)}
+.map .arrows{font-family:var(--font-mono);color:var(--text-muted);font-size:.85rem;padding-left:7.5em;white-space:nowrap}
+
+/* Simulation */
+.sim{display:grid;gap:14px;padding:16px;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius)}
+.sim-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:700px){.sim-grid{grid-template-columns:minmax(0,1fr)}}
+.sim-code{background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:10px 0;overflow-x:auto;font-family:var(--font-mono);font-size:.86em;line-height:1.55}
+.sim-code div{display:flex;gap:10px;padding:2px 12px 2px 8px;white-space:pre;border-left:4px solid transparent;min-height:1.55em}
+.sim-code .ln{color:var(--nord3);min-width:1.2em;text-align:right;font-variant-numeric:tabular-nums}
+.sim-code div.cur{border-left-color:var(--nord13);background:rgba(235,203,139,.16)}
+.sim-code div.known{border-left-color:var(--nord15)}
+.side{display:grid;gap:10px;min-width:0}
+.side h4{margin:0;font-family:var(--font-mono);font-size:.74rem;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.stack{display:grid;gap:4px}
+.stack div{font-family:var(--font-mono);font-size:.85rem;padding:5px 10px;border-radius:var(--radius-s);background:var(--bg);border:1px solid var(--surface-2)}
+.stack div.top{border-color:var(--nord13);background:rgba(235,203,139,.14)}
+.side table{width:100%;border-collapse:collapse;font-size:.88rem;background:var(--bg)}
+.side th,.side td{text-align:left;padding:5px 10px;border-bottom:1px solid var(--surface-2)}
+.side th{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.side td{font-family:var(--font-mono)}
+.side .empty td{font-family:var(--font);color:var(--text-muted);font-style:italic}
+.side pre{margin:0;font-family:var(--font-mono);font-size:.88rem;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:8px 12px;min-height:2.3em;white-space:pre-wrap}
+.sim-text{min-height:3.2em}
+.sim-ctrl{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sim-ctrl .step{font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+
+.btn{border:1px solid var(--nord3);background:var(--nord2);padding:7px 14px;border-radius:var(--radius-s);cursor:pointer;font-weight:600;font-size:.92rem}
+.btn:hover{border-color:var(--nord9)}
+.btn.primary{background:var(--nord8);border-color:var(--nord8);color:var(--nord0)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.small{padding:4px 10px;font-size:.82rem}
+
+/* Übungen */
+.ex-group{display:grid;gap:14px;margin-top:32px}
+.ex-group:first-of-type{margin-top:0}
+.ex-group > header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ex-group h3 .k{font-family:var(--font-mono);color:var(--accent);margin-right:6px}
+.ex-count{font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.cards.wide{grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:14px;display:grid;gap:10px;align-content:start;min-width:0;position:relative}
+.card.is-done{border-color:var(--ok)}
+.card .tick{position:absolute;top:10px;right:12px;font-size:.72rem;font-weight:600;color:var(--nord0);background:var(--ok);padding:0 7px;border-radius:2px;font-family:var(--font-mono);display:none}
+.card.is-done .tick{display:inline-block}
+.card .qn{font-family:var(--font-mono);font-size:.75rem;color:var(--text-muted)}
+.card .qt{font-size:.95rem}
+.choices{display:flex;flex-wrap:wrap;gap:6px}
+.choices button{font-size:.88rem;padding:4px 10px;border-radius:var(--radius-s);border:1px solid var(--nord3);background:var(--bg);cursor:pointer;text-align:left}
+.choices.mono button{font-family:var(--font-mono);font-size:.85rem}
+.choices button:hover{border-color:var(--nord9)}
+.choices button.right{background:var(--ok);border-color:var(--ok);color:var(--nord0)}
+.choices button.wrong{background:var(--err);border-color:var(--err);color:var(--nord6)}
+.fb{font-size:.9rem;padding:8px 10px;border-left:4px solid var(--surface-2);background:var(--bg)}
+.fb.ok{border-left-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.no{border-left-color:var(--err)} .fb.no b{color:var(--nord11)}
+.fb b{display:block}
+.fb .codebox{margin-top:8px}
+.answer{display:grid;gap:8px}
+.answer .row{display:flex;gap:8px;flex-wrap:wrap}
+textarea{width:100%;font-family:var(--font-mono);font-size:.9rem;line-height:1.5;padding:8px 10px;border:1px solid var(--nord3);border-radius:var(--radius-s);background:var(--bg);resize:vertical}
+textarea.code{min-height:150px}
+.task{display:grid;gap:12px}
+.task .row{display:flex;gap:8px;flex-wrap:wrap}
+.reset{margin-top:30px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--text-muted);font-size:.9rem}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="eyebrow">Informatik · Python-Grundlagen</span>
+    <h1>Funktionen in Python</h1>
+    <p class="lead">Mit <code>def</code> geben Sie einem Stück Code einen Namen und können es danach so oft verwenden, wie Sie wollen. Sie lernen zuerst Funktionen ohne Parameter kennen und danach Funktionen, denen Sie Werte mitgeben.</p>
+    <div class="progress" aria-live="polite">
+      <span>Übungen erledigt</span>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+      <strong id="prog">0 / 0</strong>
+    </div>
+    <nav class="toc" aria-label="Inhalt">
+      <a href="#warum">Warum Funktionen?</a><a href="#ohne">Ohne Parameter</a><a href="#mit">Mit Parametern</a><a href="#stolpersteine">Stolpersteine</a><a href="#uebungen">Übungen</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<!-- 1 Warum -->
+<section class="part" id="warum">
+  <span class="num"># Teil 1</span>
+  <h2>Warum Funktionen sinnvoll sind</h2>
+  <div class="prose">
+    <p>Stellen Sie sich vor, Ihr Programm soll an mehreren Stellen denselben Willkommensrahmen ausgeben. Ohne Funktionen kopieren Sie die gleichen Zeilen immer wieder. Das funktioniert, wird aber schnell unübersichtlich. Und wenn Sie den Rahmen später ändern möchten, müssen Sie jede Kopie einzeln anpassen und hoffen, dass Sie keine vergessen.</p>
+    <p>Eine <strong>Funktion</strong> löst dieses Problem. Sie schreiben den Code einmal, geben ihm einen Namen und rufen ihn danach über diesen Namen auf, so oft Sie wollen.</p>
+  </div>
+  <div class="pair">
+    <figure><figcaption>ohne Funktion: dreimal dieselben Zeilen</figcaption>
+      <div class="codebox"><pre data-code>print("*****************")
+print("*  Willkommen!  *")
+print("*****************")
+print("Spiel 1 startet")
+print("*****************")
+print("*  Willkommen!  *")
+print("*****************")
+print("Spiel 2 startet")</pre></div></figure>
+    <figure><figcaption>mit Funktion: einmal schreiben, mehrfach nutzen</figcaption>
+      <div class="codebox"><pre data-code>def willkommen():
+    print("*****************")
+    print("*  Willkommen!  *")
+    print("*****************")
+
+willkommen()
+print("Spiel 1 startet")
+willkommen()
+print("Spiel 2 startet")</pre></div></figure>
+  </div>
+  <div class="why">
+    <div><h3>Weniger Wiederholung</h3><p>Code, den Sie mehrmals brauchen, steht nur an einer Stelle.</p></div>
+    <div><h3>Einfacher ändern</h3><p>Eine Korrektur in der Funktion wirkt sofort bei jedem Aufruf.</p></div>
+    <div><h3>Bessere Übersicht</h3><p>Ein guter Name wie <code>willkommen()</code> sagt, was passiert, ohne dass man den Code lesen muss.</p></div>
+    <div><h3>Probleme zerlegen</h3><p>Eine grosse Aufgabe lässt sich in kleine Funktionen aufteilen, die man einzeln testen kann.</p></div>
+  </div>
+  <div class="note info"><b class="k">Sie kennen schon Funktionen</b><p><code>print()</code>, <code>input()</code>, <code>len()</code> und <code>int()</code> sind Funktionen, die Python mitbringt. Mit <code>def</code> schreiben Sie nun Ihre eigenen.</p></div>
+</section>
+
+<!-- 2 Ohne Parameter -->
+<section class="part" id="ohne">
+  <span class="num"># Teil 2</span>
+  <h2>Funktionen ohne Parameter</h2>
+  <div class="prose">
+    <p>Eine Funktion entsteht in zwei Schritten. Zuerst <strong>definieren</strong> Sie sie mit <code>def</code>: Sie legen fest, wie sie heisst und was sie tut. Danach <strong>rufen</strong> Sie sie <strong>auf</strong>, indem Sie ihren Namen mit runden Klammern schreiben. Erst beim Aufruf wird der Code in der Funktion tatsächlich ausgeführt.</p>
+  </div>
+  <div class="anatomy">
+    <div class="codebox"><pre data-code="nocopy">def trennlinie():
+    print("----------")
+
+trennlinie()</pre></div>
+    <div class="row"><span class="pin">1</span><p><code>def</code> (von «define», festlegen), dann der Name, leere Klammern und ein <strong>Doppelpunkt</strong>. Für den Namen gelten dieselben Regeln wie bei Variablen.</p></div>
+    <div class="row"><span class="pin">2</span><p>Der <strong>Funktionskörper</strong> ist eingerückt, wie bei <code>if</code>. Alles Eingerückte gehört zur Funktion.</p></div>
+    <div class="row"><span class="pin">3</span><p>Der <strong>Aufruf</strong>: Name mit Klammern, ohne <code>def</code> und ohne Einrückung. Ohne Klammern passiert nichts.</p></div>
+  </div>
+  <p class="prose">Klicken Sie sich durch das Programm und beobachten Sie, wie Python bei jedem Aufruf in die Funktion springt und danach zurückkehrt.</p>
+  <div class="sim" id="sim1"></div>
+  <div class="note"><b class="k">Merke</b><p>Die Definition muss im Programm <strong>vor</strong> dem ersten Aufruf stehen. Python liest von oben nach unten und kennt eine Funktion erst, wenn es an ihrem <code>def</code> vorbeigekommen ist.</p></div>
+</section>
+
+<!-- 3 Mit Parametern -->
+<section class="part" id="mit">
+  <span class="num"># Teil 3</span>
+  <h2>Funktionen mit Parametern</h2>
+  <div class="prose">
+    <p>Eine Funktion ohne Parameter macht jedes Mal genau dasselbe. Oft soll sie aber etwas leicht Verschiedenes tun: eine Person mit ihrem Namen begrüssen oder eine Linie aus unterschiedlich vielen Zeichen zeichnen. Dafür geben Sie der Funktion beim Aufruf Werte mit.</p>
+    <p>In der Definition schreiben Sie in die Klammern einen <strong>Parameter</strong>. Das ist eine Variable, die nur innerhalb der Funktion existiert und als Platzhalter dient. Beim Aufruf schreiben Sie in die Klammern ein <strong>Argument</strong>, also den konkreten Wert. Python setzt das Argument in den Parameter ein und führt dann die Funktion aus.</p>
+  </div>
+  <div class="codebox"><pre data-code>def gruss(name):
+    print("Hallo", name, "– schön, dass Sie da sind!")
+
+gruss("Mia")
+gruss("Ben")</pre><div class="out">Hallo Mia – schön, dass Sie da sind!
+Hallo Ben – schön, dass Sie da sind!</div></div>
+  <div class="prose">
+    <p>Eine Funktion kann auch <strong>mehrere Parameter</strong> haben, getrennt durch Kommas. Die Argumente werden dann der Reihe nach zugeordnet: das erste Argument zum ersten Parameter, das zweite zum zweiten. Die Reihenfolge ist also wichtig, und die Anzahl muss stimmen.</p>
+  </div>
+  <div class="map" aria-label="Zuordnung der Argumente zu den Parametern">
+    <div class="ln"><span class="lbl">Definition</span>def linie(<span class="chip c1">zeichen</span>, <span class="chip c2">anzahl</span>):</div>
+    <div class="arrows">gleiche Farbe = gleiche Position</div>
+    <div class="ln"><span class="lbl">Aufruf</span>linie(<span class="chip c1">"="</span>, <span class="chip c2">12</span>)</div>
+  </div>
+  <div class="codebox"><pre data-code>def linie(zeichen, anzahl):
+    print(zeichen * anzahl)
+
+linie("=", 12)
+linie("-", 5)
+linie("*", 8)</pre><div class="out">============
+-----
+********</div></div>
+  <p class="prose">In der zweiten Simulation sehen Sie, wie bei jedem Aufruf die Parameter neue Werte bekommen und nach dem Aufruf wieder verschwinden.</p>
+  <div class="sim" id="sim2"></div>
+  <div class="note warn"><b class="k">Parameter gelten nur in der Funktion</b><p>Ein Parameter existiert nur, solange die Funktion läuft. Ausserhalb der Funktion kennt Python ihn nicht. <code>print(name)</code> nach dem Aufruf führt deshalb zu einem <code>NameError</code>.</p></div>
+  <div class="prose">
+    <p>Als Argument dürfen Sie alles verwenden, was einen Wert ergibt: eine Zahl, einen Text, eine Variable oder eine ganze Rechnung wie <code>linie("-", 3 * 4)</code>. Python rechnet das Argument zuerst aus und übergibt dann das Ergebnis.</p>
+  </div>
+</section>
+
+<!-- 4 Stolpersteine -->
+<section class="part" id="stolpersteine">
+  <span class="num"># Teil 4</span>
+  <h2>Stolpersteine</h2>
+  <div class="prose">
+    <p>Wird die Funktion aufgerufen, bevor sie definiert ist, meldet Python einen <code>NameError</code>. Fehlt der Doppelpunkt nach den Klammern, gibt es einen <code>SyntaxError</code>, fehlt die Einrückung einen <code>IndentationError</code>.</p>
+    <p>Bei Parametern ist der häufigste Fehler eine falsche Anzahl Argumente. Ruft man <code>gruss()</code> ohne Argument auf, obwohl die Funktion einen Parameter erwartet, oder gibt man zu viele Argumente mit, meldet Python einen <code>TypeError</code>. Und ein Aufruf ohne Klammern, etwa nur <code>gruss</code>, löst zwar keinen Fehler aus, führt die Funktion aber auch nicht aus. Das Programm tut dann einfach nichts, was die Fehlersuche schwierig macht.</p>
+  </div>
+  <div class="note info"><b class="k">Ausblick</b><p>Ihre Funktionen geben bisher mit <code>print()</code> etwas aus. Später lernen Sie <code>return</code> kennen. Damit liefert eine Funktion ein Ergebnis zurück, mit dem das Programm weiterrechnen kann, so wie <code>len()</code> eine Zahl zurückgibt.</p></div>
+</section>
+
+<!-- 5 Übungen -->
+<section class="part" id="uebungen">
+  <span class="num"># Teil 5</span>
+  <h2>Übungen</h2>
+  <p class="prose">Ihr Fortschritt wird in diesem Browser gespeichert. Bei den Ausgabe-Aufgaben schreiben Sie jede Ausgabezeile auf eine eigene Zeile.</p>
+
+  <div class="ex-group"><header><h3><span class="k">A</span>Grundlagen</h3><span class="ex-count" data-count="a"></span></header><div class="cards" id="cardsA"></div></div>
+  <div class="ex-group"><header><h3><span class="k">B</span>Ausgabe vorhersagen: ohne Parameter</h3><span class="ex-count" data-count="b"></span></header><div class="cards" id="cardsB"></div></div>
+  <div class="ex-group"><header><h3><span class="k">C</span>Ausgabe vorhersagen: mit Parametern</h3><span class="ex-count" data-count="c"></span></header><div class="cards" id="cardsC"></div></div>
+  <div class="ex-group"><header><h3><span class="k">D</span>Fehler finden</h3><span class="ex-count" data-count="d"></span></header>
+    <p class="prose">Welche Meldung zeigt Python bei diesem Code? Achtung, nicht jeder Code ist fehlerhaft.</p>
+    <div class="cards" id="cardsD"></div></div>
+  <div class="ex-group"><header><h3><span class="k">E</span>Parameter und Argumente zuordnen</h3><span class="ex-count" data-count="e"></span></header><div class="cards" id="cardsE"></div></div>
+  <div class="ex-group"><header><h3><span class="k">F</span>Selbst programmieren</h3><span class="ex-count" data-count="f"></span></header>
+    <p class="prose">Schreiben Sie die Programme in TigerPython und testen Sie sie dort. Die ersten beiden Aufgaben kommen ohne Parameter aus, danach wird es schrittweise anspruchsvoller. Ihr Entwurf hier bleibt gespeichert.</p>
+    <div class="cards wide" id="cardsF"></div></div>
+
+  <div class="reset">
+    <button class="btn small" id="resetBtn" type="button">Fortschritt zurücksetzen</button>
+    <span id="resetHint"></span>
+  </div>
+</section>
+
+</div>
+</main>
+
+<script>
+(function(){
+const KEY='pydef-v1';
+let store={done:{},drafts:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){store.done=s.done||{};store.drafts=s.drafts||{};}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function hl(src){
+  const re=/(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(True|False|None|and|or|not|in|if|else|elif|for|while|def|return)\b|\b([A-Za-z_]\w*)(?=\()/gm;
+  let out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    const t=esc(m[0]);
+    if(m[1])out+='<span class="tk-com">'+t+'</span>';
+    else if(m[2])out+='<span class="tk-str">'+t+'</span>';
+    else if(m[3])out+='<span class="tk-num">'+t+'</span>';
+    else if(m[4])out+='<span class="tk-kw">'+t+'</span>';
+    else out+='<span class="tk-fn">'+t+'</span>';
+    last=m.index+m[0].length;
+  }
+  return out+esc(src.slice(last));
+}
+function addCopy(box,src){
+  const b=document.createElement('button');b.type='button';b.className='copy';b.textContent='Kopieren';
+  b.addEventListener('click',()=>{
+    const ok=()=>{b.textContent='Kopiert';setTimeout(()=>b.textContent='Kopieren',1400)};
+    const sel=()=>{const r=document.createRange();r.selectNodeContents(box.querySelector('pre'));const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Markiert';};
+    try{navigator.clipboard.writeText(src).then(ok,sel)}catch(e){sel()}
+  });
+  box.appendChild(b);
+}
+function codeBox(src,copy){
+  const box=document.createElement('div');box.className='codebox';
+  const pre=document.createElement('pre');pre.innerHTML=hl(src);box.appendChild(pre);
+  if(copy)addCopy(box,src);return box;
+}
+document.querySelectorAll('pre[data-code]').forEach(pre=>{
+  const src=pre.textContent;pre.innerHTML=hl(src);if(pre.dataset.code!=='nocopy')addCopy(pre.parentElement,src);
+});
+
+/* ---------- Simulationen ---------- */
+function makeSim(rootId,lines,steps){
+  const root=$(rootId);
+  root.innerHTML='<div class="sim-grid"><div class="sim-code" id="'+rootId+'-c" aria-label="Programmcode"></div>'+
+    '<div class="side"><h4>Aufrufstapel</h4><div class="stack" id="'+rootId+'-st"></div>'+
+    '<h4>Parameter in der Funktion</h4><table><thead><tr><th>Name</th><th>Wert</th></tr></thead><tbody id="'+rootId+'-p"></tbody></table>'+
+    '<h4>Ausgabe</h4><pre id="'+rootId+'-o"></pre></div></div>'+
+    '<p class="sim-text" id="'+rootId+'-t" aria-live="polite"></p>'+
+    '<div class="sim-ctrl"><button class="btn" type="button" id="'+rootId+'-prev">← Zurück</button><button class="btn primary" type="button" id="'+rootId+'-next">Nächster Schritt →</button><button class="btn small" type="button" id="'+rootId+'-reset">Neu starten</button><span class="step" id="'+rootId+'-s"></span></div>';
+  let i=0;
+  function render(){
+    const s=steps[i];
+    $(rootId+'-c').innerHTML=lines.map((l,k)=>{
+      const cls=k===s.cur?'cur':((s.known||[]).includes(k)?'known':'');
+      return '<div class="'+cls+'"><span class="ln">'+(k+1)+'</span><span>'+hl(l)+'</span></div>';
+    }).join('');
+    const stack=['Hauptprogramm'].concat(s.frame?[s.frame]:[]);
+    $(rootId+'-st').innerHTML=stack.map((f,k)=>'<div class="'+(k===stack.length-1?'top':'')+'">'+esc(f)+'</div>').join('');
+    $(rootId+'-p').innerHTML=s.params&&s.params.length?s.params.map(p=>'<tr><td>'+esc(p[0])+'</td><td>'+esc(p[1])+'</td></tr>').join(''):'<tr class="empty"><td colspan="2">'+(s.frame?'keine Parameter':'keine Funktion aktiv')+'</td></tr>';
+    $(rootId+'-o').textContent=s.out.join('\n');
+    $(rootId+'-t').textContent=s.text;
+    $(rootId+'-s').textContent='Schritt '+i+' / '+(steps.length-1);
+    $(rootId+'-prev').disabled=i===0;$(rootId+'-next').disabled=i===steps.length-1;
+  }
+  $(rootId+'-prev').onclick=()=>{if(i>0){i--;render();}};
+  $(rootId+'-next').onclick=()=>{if(i<steps.length-1){i++;render();}};
+  $(rootId+'-reset').onclick=()=>{i=0;render();};
+  render();
+}
+const L='----------';
+makeSim('sim1',
+  ['def trennlinie():','    print("----------")','','print("Rangliste")','trennlinie()','print("1. Mia")','print("2. Noah")','trennlinie()'],
+  [
+   {cur:-1,out:[],text:'Das Programm startet ganz oben. Klicken Sie auf «Nächster Schritt».'},
+   {cur:0,known:[0,1],out:[],text:'Python liest die Definition und merkt sich die Funktion trennlinie. Der eingerückte Teil wird jetzt noch nicht ausgeführt.'},
+   {cur:3,known:[0,1],out:['Rangliste'],text:'Das Hauptprogramm beginnt bei der ersten Zeile, die nicht zur Funktion gehört.'},
+   {cur:4,known:[0,1],frame:'trennlinie()',out:['Rangliste'],text:'Aufruf! Python unterbricht das Hauptprogramm, merkt sich die Stelle und springt in die Funktion.'},
+   {cur:1,known:[0,1],frame:'trennlinie()',out:['Rangliste',L],text:'Jetzt wird der Funktionskörper ausgeführt: Die Linie erscheint.'},
+   {cur:5,known:[0,1],out:['Rangliste',L,'1. Mia'],text:'Die Funktion ist fertig. Python springt zurück und macht direkt nach dem Aufruf weiter.'},
+   {cur:6,known:[0,1],out:['Rangliste',L,'1. Mia','2. Noah'],text:'Ganz normale Zeile im Hauptprogramm.'},
+   {cur:7,known:[0,1],frame:'trennlinie()',out:['Rangliste',L,'1. Mia','2. Noah'],text:'Zweiter Aufruf derselben Funktion. Python springt wieder hinein.'},
+   {cur:1,known:[0,1],frame:'trennlinie()',out:['Rangliste',L,'1. Mia','2. Noah',L],text:'Dieselben Zeilen laufen ein zweites Mal.'},
+   {cur:-1,known:[0,1],out:['Rangliste',L,'1. Mia','2. Noah',L],text:'Fertig. Die Funktion wurde einmal geschrieben und zweimal ausgeführt.'}
+  ]);
+makeSim('sim2',
+  ['def gruss(name, sprache):','    if sprache == "de":','        print("Hallo", name)','    else:','        print("Bonjour", name)','','gruss("Lea", "de")','gruss("Luca", "fr")'],
+  [
+   {cur:-1,out:[],text:'Das Programm startet ganz oben.'},
+   {cur:0,known:[0,1,2,3,4],out:[],text:'Python merkt sich die Funktion gruss mit den beiden Parametern name und sprache. Ausgeführt wird noch nichts.'},
+   {cur:6,known:[0,1,2,3,4],frame:'gruss("Lea", "de")',params:[['name','"Lea"'],['sprache','"de"']],out:[],text:'Aufruf mit zwei Argumenten. Das erste ("Lea") landet im ersten Parameter name, das zweite ("de") im zweiten Parameter sprache.'},
+   {cur:1,known:[0,1,2,3,4],frame:'gruss("Lea", "de")',params:[['name','"Lea"'],['sprache','"de"']],out:[],text:'In der Funktion: sprache == "de" ergibt True.'},
+   {cur:2,known:[0,1,2,3,4],frame:'gruss("Lea", "de")',params:[['name','"Lea"'],['sprache','"de"']],out:['Hallo Lea'],text:'Python setzt für name den Wert "Lea" ein und gibt die Begrüssung aus.'},
+   {cur:7,known:[0,1,2,3,4],frame:'gruss("Luca", "fr")',params:[['name','"Luca"'],['sprache','"fr"']],out:['Hallo Lea'],text:'Der erste Aufruf ist fertig, seine Parameter sind verschwunden. Der zweite Aufruf bringt neue Werte mit.'},
+   {cur:1,known:[0,1,2,3,4],frame:'gruss("Luca", "fr")',params:[['name','"Luca"'],['sprache','"fr"']],out:['Hallo Lea'],text:'Diesmal ergibt sprache == "de" den Wert False.'},
+   {cur:4,known:[0,1,2,3,4],frame:'gruss("Luca", "fr")',params:[['name','"Luca"'],['sprache','"fr"']],out:['Hallo Lea','Bonjour Luca'],text:'Darum läuft der else-Block. Dieselbe Funktion hat mit anderen Argumenten etwas anderes ausgegeben.'},
+   {cur:-1,known:[0,1,2,3,4],out:['Hallo Lea','Bonjour Luca'],text:'Fertig. Ausserhalb der Funktion gibt es weder name noch sprache.'}
+  ]);
+
+/* ---------- Übungen ---------- */
+const EX={
+  a:[
+   {t:'Was passiert, wenn Python eine Zeile mit def und den eingerückten Block darunter liest?',opts:['Python merkt sich die Funktion, führt sie aber noch nicht aus','Python führt den Block sofort einmal aus','Python gibt den Namen der Funktion aus','Nichts, def wird übersprungen'],a:0,e:'Die Definition speichert die Funktion nur. Ausgeführt wird sie erst beim Aufruf.'},
+   {t:'Wie rufen Sie die Funktion hallo auf?',mono:1,opts:['hallo()','hallo','def hallo()','call hallo'],a:0,e:'Ein Aufruf besteht aus dem Namen und runden Klammern.'},
+   {t:'Welche Definition ist korrekt geschrieben?',mono:1,opts:['def melde():','def melde()','def melde:','define melde():'],a:0,e:'def, Name, Klammern und am Schluss ein Doppelpunkt.'},
+   {t:'Wie oft darf eine Funktion aufgerufen werden?',opts:['beliebig oft','genau einmal','höchstens zweimal','so oft, wie sie definiert wurde'],a:0,e:'Einmal definiert, kann eine Funktion beliebig oft aufgerufen werden. Genau das macht sie so nützlich.'},
+   {t:'Welcher Satz beschreibt einen echten Vorteil von Funktionen?',opts:['Eine Änderung in der Funktion wirkt bei allen Aufrufen','Das Programm wird dadurch immer schneller','Man braucht keine Einrückung mehr','Variablen werden überflüssig'],a:0,e:'Weil der Code nur an einer Stelle steht, genügt eine Änderung dort.'},
+   {t:'In def gruss(name): ist name ein …',opts:['Parameter','Argument','Funktionsname','Kommentar'],a:0,e:'In der Definition steht der Parameter, der Platzhalter.'},
+   {t:'Im Aufruf gruss("Mia") ist "Mia" ein …',opts:['Argument','Parameter','Funktionsname','Typ'],a:0,e:'Beim Aufruf übergeben Sie ein Argument, also einen konkreten Wert.'},
+   {t:'Wo muss die Definition einer Funktion im Programm stehen?',opts:['vor dem ersten Aufruf','nach dem letzten Aufruf','irgendwo, das spielt keine Rolle','in einer eigenen Datei'],a:0,e:'Python liest von oben nach unten und kennt die Funktion erst nach ihrem def.'}
+  ],
+  b:[
+   {q:'def hallo():\n    print("Hallo")\n\nhallo()\nhallo()',a:'Hallo\nHallo',e:'Zwei Aufrufe, also zweimal «Hallo».'},
+   {q:'def hallo():\n    print("Hallo")\n\nprint("Start")',a:'Start',e:'Die Funktion wird nie aufgerufen, deshalb erscheint «Hallo» nicht.'},
+   {q:'def a():\n    print("A")\n\ndef b():\n    print("B")\n\nb()\na()\nb()',a:'B\nA\nB',e:'Massgebend ist die Reihenfolge der Aufrufe, nicht die der Definitionen.'},
+   {q:'def sterne():\n    print("*" * 3)\n\nprint("Anfang")\nsterne()\nprint("Ende")',a:'Anfang\n***\nEnde',e:'"*" * 3 ergibt drei Sterne. Die Funktion läuft zwischen den beiden anderen Ausgaben.'},
+   {q:'def linie():\n    print("---")\n\ndef kasten():\n    linie()\n    print("| |")\n    linie()\n\nkasten()',a:'---\n| |\n---',e:'Eine Funktion darf andere Funktionen aufrufen. kasten() ruft linie() zweimal auf.'},
+   {q:'def info():\n    print("eins")\nprint("zwei")\n\ninfo()',a:'zwei\neins',e:'print("zwei") ist nicht eingerückt und gehört damit zum Hauptprogramm. Es läuft vor dem Aufruf info().'}
+  ],
+  c:[
+   {q:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia")\ngruss("Ben")',a:'Hallo Mia\nHallo Ben',e:'Bei jedem Aufruf bekommt name einen anderen Wert.'},
+   {q:'def doppelt(x):\n    print(x * 2)\n\ndoppelt(4)\ndoppelt("ha")',a:'8\nhaha',e:'Mit einer Zahl wird gerechnet, mit Text wird wiederholt. Die Funktion arbeitet mit dem Typ, den das Argument hat.'},
+   {q:'def info(name, alter):\n    print(name, "ist", alter)\n\ninfo(15, "Lea")',a:'15 ist Lea',e:'Die Argumente werden der Reihe nach zugeordnet: name bekommt 15, alter bekommt "Lea". Die Reihenfolge ist hier vertauscht.'},
+   {q:'def linie(zeichen, anzahl):\n    print(zeichen * anzahl)\n\nlinie("=", 5)\nlinie("-", 3)',a:'=====\n---',e:'zeichen * anzahl wiederholt das Zeichen entsprechend oft.'},
+   {q:'def ampel(farbe):\n    if farbe == "rot":\n        print("Stopp")\n    else:\n        print("Fahren")\n\nampel("grün")\nampel("rot")',a:'Fahren\nStopp',e:'Beim ersten Aufruf ist die Bedingung False, beim zweiten True.'},
+   {q:'def preis(betrag, rabatt):\n    print(betrag - betrag * rabatt / 100)\n\npreis(80, 25)',a:'60.0',e:'80 - 80 * 25 / 100 = 60. Wegen der Division mit / ist das Ergebnis ein float.'},
+   {q:'def quadrat(x):\n    print(x * x)\n\nzahl = 3\nquadrat(zahl)\nquadrat(zahl + 1)',a:'9\n16',e:'Zuerst wird das Argument ausgewertet: zahl ist 3, zahl + 1 ist 4.'}
+  ],
+  d:[
+   {q:'hallo()\n\ndef hallo():\n    print("Hallo")',a:'NameError',e:'Der Aufruf steht vor der Definition. Zu diesem Zeitpunkt kennt Python hallo noch nicht.',fix:'def hallo():\n    print("Hallo")\n\nhallo()'},
+   {q:'def hallo()\n    print("Hallo")\n\nhallo()',a:'SyntaxError',e:'Nach den Klammern fehlt der Doppelpunkt.',fix:'def hallo():\n    print("Hallo")\n\nhallo()'},
+   {q:'def hallo():\nprint("Hallo")\n\nhallo()',a:'IndentationError',e:'Der Funktionskörper muss eingerückt sein.',fix:'def hallo():\n    print("Hallo")\n\nhallo()'},
+   {q:'def gruss(name):\n    print("Hallo", name)\n\ngruss()',a:'TypeError',e:'Die Funktion erwartet ein Argument für name, der Aufruf liefert keines.',fix:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia")'},
+   {q:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia", "Ben")',a:'TypeError',e:'Zu viele Argumente: Die Funktion hat nur einen Parameter.',fix:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia")\ngruss("Ben")'},
+   {q:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia")\nprint(name)',a:'NameError',e:'«Hallo Mia» erscheint noch, dann folgt der Fehler: name existiert nur innerhalb der Funktion.',fix:'def gruss(name):\n    print("Hallo", name)\n\nname = "Mia"\ngruss(name)\nprint(name)'},
+   {q:'def hallo():\n    print("Hallo")\n\nhallo',a:'kein Fehler',e:'Python meldet keinen Fehler, gibt aber auch nichts aus. Ohne Klammern wird die Funktion nicht aufgerufen.',fix:'def hallo():\n    print("Hallo")\n\nhallo()'}
+  ],
+  e:[
+   {t:'Welchen Wert hat der Parameter hoehe beim Aufruf rechteck(3, 5)?',code:'def rechteck(breite, hoehe):\n    print(breite * hoehe)',mono:1,opts:['5','3','15','"hoehe"'],a:0,e:'Das zweite Argument (5) landet im zweiten Parameter (hoehe).'},
+   {t:'Welcher Aufruf gibt «hihihi» aus?',code:'def notiz(text, anzahl):\n    print(text * anzahl)',mono:1,opts:['notiz("hi", 3)','notiz("hihihi")','notiz("hi" 3)','notiz(hi, 3)'],a:0,e:'Zwei Argumente, durch ein Komma getrennt, Text in Anführungszeichen. Die anderen Aufrufe führen zu TypeError, SyntaxError und NameError.'},
+   {t:'Wie viele Argumente braucht ein Aufruf dieser Funktion?',code:'def bestellung(gericht, menge, extra):\n    print(menge, "x", gericht, "mit", extra)',opts:['3','1','2','beliebig viele'],a:0,e:'Drei Parameter, also drei Argumente.'},
+   {t:'Was gibt bestellung("Pizza", 2, "Oliven") aus?',code:'def bestellung(gericht, menge, extra):\n    print(menge, "x", gericht, "mit", extra)',mono:1,opts:['2 x Pizza mit Oliven','Pizza x 2 mit Oliven','2 x Oliven mit Pizza','TypeError'],a:0,e:'gericht = "Pizza", menge = 2, extra = "Oliven". print setzt Leerzeichen zwischen die Teile.'},
+   {t:'In allen Begrüssungen soll künftig «Grüezi» statt «Hallo» stehen. Was müssen Sie ändern?',code:'def gruss(name):\n    print("Hallo", name)\n\ngruss("Mia")\ngruss("Ben")\ngruss("Lea")',opts:['nur die Zeile in der Funktion','jeden der drei Aufrufe','den Funktionsnamen','die Funktion und alle Aufrufe'],a:0,e:'Genau das ist der Vorteil einer Funktion: eine Änderung an einer Stelle.'}
+  ],
+  f:[
+   {t:'Begrüssung (ohne Parameter)',d:'Schreiben Sie eine Funktion <code>begruessung()</code>, die zwei Zeilen ausgibt: «Willkommen im Informatikunterricht!» und «Heute: Funktionen». Rufen Sie die Funktion zweimal auf.',
+    s:'def begruessung():\n    print("Willkommen im Informatikunterricht!")\n    print("Heute: Funktionen")\n\nbegruessung()\nbegruessung()'},
+   {t:'Einkaufsliste mit Trennlinien (ohne Parameter)',d:'Schreiben Sie eine Funktion <code>trennlinie()</code>, die 30 Bindestriche ausgibt. Geben Sie danach eine kleine Einkaufsliste mit drei Artikeln aus und setzen Sie vor, zwischen und nach die Artikel jeweils eine Trennlinie.',
+    s:'def trennlinie():\n    print("-" * 30)\n\ntrennlinie()\nprint("Brot")\ntrennlinie()\nprint("Käse")\ntrennlinie()\nprint("Äpfel")\ntrennlinie()'},
+   {t:'Persönlicher Gruss (ein Parameter)',d:'Schreiben Sie eine Funktion <code>gruss(name)</code>, die «Hallo NAME, schön, dass Sie da sind!» ausgibt. Rufen Sie sie für drei verschiedene Namen auf.',
+    s:'def gruss(name):\n    print("Hallo " + name + ", schön, dass Sie da sind!")\n\ngruss("Mia")\ngruss("Ben")\ngruss("Lea")'},
+   {t:'Linie nach Mass (zwei Parameter)',d:'Schreiben Sie eine Funktion <code>linie(zeichen, anzahl)</code>, die das Zeichen <code>anzahl</code>-mal nebeneinander ausgibt. Zeichnen Sie damit drei verschieden lange Linien aus verschiedenen Zeichen.',
+    s:'def linie(zeichen, anzahl):\n    print(zeichen * anzahl)\n\nlinie("=", 20)\nlinie("*", 10)\nlinie("~", 5)'},
+   {t:'Rechteck berechnen (zwei Parameter)',d:'Schreiben Sie eine Funktion <code>rechteck(breite, hoehe)</code>, die Fläche und Umfang des Rechtecks ausgibt. Testen Sie sie mit mindestens zwei Rechtecken, eines davon mit Kommazahlen.',
+    s:'def rechteck(breite, hoehe):\n    print("Fläche:", breite * hoehe)\n    print("Umfang:", 2 * (breite + hoehe))\n\nrechteck(4, 3)\nrechteck(2.5, 1.2)'},
+   {t:'Note in Worten (Parameter + if-elif-else)',d:'Schreiben Sie eine Funktion <code>note_in_worten(note)</code>. Ab 5.5 gibt sie «sehr gut» aus, ab 4.5 «gut», ab 4 «genügend» und sonst «ungenügend». Lesen Sie danach eine Note mit <code>input()</code> ein und rufen Sie die Funktion damit auf.',
+    s:'def note_in_worten(note):\n    if note >= 5.5:\n        print("sehr gut")\n    elif note >= 4.5:\n        print("gut")\n    elif note >= 4:\n        print("genügend")\n    else:\n        print("ungenügend")\n\neingabe = float(input("Note: "))\nnote_in_worten(eingabe)'},
+   {t:'Visitenkarte (Funktion ruft Funktion)',d:'Schreiben Sie eine Funktion <code>visitenkarte(name, klasse, hobby)</code>, die eine kleine Karte ausgibt: oben und unten eine Linie, dazwischen die drei Angaben. Verwenden Sie für die Linien Ihre Funktion <code>linie</code> aus Aufgabe F4. Erstellen Sie zwei Visitenkarten.',
+    s:'def linie(zeichen, anzahl):\n    print(zeichen * anzahl)\n\ndef visitenkarte(name, klasse, hobby):\n    linie("=", 25)\n    print("Name:  ", name)\n    print("Klasse:", klasse)\n    print("Hobby: ", hobby)\n    linie("=", 25)\n\nvisitenkarte("Mia Keller", "3c", "Volleyball")\nvisitenkarte("Ben Frei", "3d", "Gitarre")'}
+  ]
+};
+const D_OPT=['SyntaxError','IndentationError','NameError','TypeError','kein Fehler'];
+const total=Object.values(EX).reduce((n,a)=>n+a.length,0);
+
+function doneCount(g){return Object.keys(store.done).filter(k=>g?k.startsWith(g+'-'):k.split('-')[0] in EX).length;}
+function updateProgress(){
+  const n=doneCount();$('prog').textContent=n+' / '+total;$('bar').style.width=(n/total*100)+'%';
+  for(const g in EX){const el=document.querySelector('[data-count="'+g+'"]');if(el)el.textContent=doneCount(g)+' / '+EX[g].length+' erledigt';}
+}
+function markDone(id,val){
+  if(val)store.done[id]=true;else delete store.done[id];save();
+  const c=document.querySelector('[data-id="'+id+'"]');if(c)c.classList.toggle('is-done',!!val);updateProgress();
+}
+function card(id,label){
+  const c=document.createElement('div');c.className='card';c.dataset.id=id;if(store.done[id])c.classList.add('is-done');
+  c.innerHTML='<span class="tick">✓ erledigt</span><span class="qn">'+label+'</span>';return c;
+}
+function fbEl(ok,title,text){const d=document.createElement('div');d.className='fb '+(ok?'ok':'no');d.setAttribute('role','status');d.innerHTML='<b>'+(ok?'✓ ':'✗ ')+title+'</b>'+esc(text);return d;}
+/* Antwortoptionen mischen, aber pro Seite stabil */
+function shuffled(arr,seed){const a=arr.map((x,i)=>[x,i]);let s=seed*9301+49297;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function mc(id,c,opts,correctIdx,expl,hint,mono,extra,seed){
+  const ch=document.createElement('div');ch.className='choices'+(mono?' mono':'');let fb=null;
+  const list=seed===false?opts.map((x,i)=>[x,i]):shuffled(opts,seed);
+  list.forEach(([o,idx])=>{
+    const b=document.createElement('button');b.type='button';b.textContent=o;
+    b.onclick=()=>{
+      ch.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));
+      const ok=idx===correctIdx;b.classList.add(ok?'right':'wrong');if(fb)fb.remove();
+      fb=fbEl(ok,ok?'Richtig.':'Leider nicht.',' '+(ok?expl:hint));
+      if(ok&&extra){const x=extra();if(x)fb.appendChild(x);}
+      c.appendChild(fb);if(ok)markDone(id,true);
+    };ch.appendChild(b);
+  });
+  c.appendChild(ch);
+}
+function outCard(id,c,it){
+  const t=document.createElement('p');t.className='qt';t.textContent='Was gibt das Programm aus?';c.appendChild(t);
+  c.appendChild(codeBox(it.q,false));
+  const w=document.createElement('div');w.className='answer';
+  const ta=document.createElement('textarea');ta.id=id+'-in';ta.rows=2;ta.placeholder='Ausgabe, jede Zeile auf eine eigene Zeile';ta.setAttribute('aria-label','Ihre Antwort');
+  const row=document.createElement('div');row.className='row';
+  const chk=document.createElement('button');chk.type='button';chk.className='btn small primary';chk.textContent='Prüfen';
+  const sol=document.createElement('button');sol.type='button';sol.className='btn small';sol.textContent='Lösung zeigen';
+  row.append(chk,sol);w.append(ta,row);c.appendChild(w);
+  let fb=null;
+  const norm=s=>s.split('\n').map(x=>x.trim().replace(/^["']|["']$/g,'').replace(/\s+/g,' ')).filter(Boolean).join('\n');
+  chk.onclick=()=>{
+    if(!ta.value.trim())return;const ok=norm(ta.value)===it.a;if(fb)fb.remove();
+    fb=fbEl(ok,ok?'Richtig.':'Noch nicht.',' '+(ok?it.e:'Gehen Sie das Programm von oben nach unten durch: Wo wird eine Funktion nur definiert, wo wird sie aufgerufen, und mit welchen Werten?'));
+    c.appendChild(fb);if(ok)markDone(id,true);
+  };
+  sol.onclick=()=>{if(fb)fb.remove();fb=fbEl(true,'Lösung',' '+it.e);fb.appendChild(codeBox(it.a,false));c.appendChild(fb);};
+}
+
+EX.a.forEach((it,i)=>{const id='a-'+i,c=card(id,'A'+(i+1));const t=document.createElement('p');t.className='qt';t.textContent=it.t;c.appendChild(t);
+  mc(id,c,it.opts,it.a,it.e,'Versuchen Sie es nochmals. Im Teil 2 und 3 finden Sie die Antwort.',it.mono,null,i+1);$('cardsA').appendChild(c);});
+EX.b.forEach((it,i)=>{const id='b-'+i,c=card(id,'B'+(i+1));outCard(id,c,it);$('cardsB').appendChild(c);});
+EX.c.forEach((it,i)=>{const id='c-'+i,c=card(id,'C'+(i+1));outCard(id,c,it);$('cardsC').appendChild(c);});
+EX.d.forEach((it,i)=>{const id='d-'+i,c=card(id,'D'+(i+1));c.appendChild(codeBox(it.q,false));
+  mc(id,c,D_OPT,D_OPT.indexOf(it.a),it.e,'Prüfen Sie Doppelpunkt, Einrückung, Reihenfolge und die Anzahl der Argumente.',true,
+    ()=>{const d=document.createElement('div');d.style.marginTop='8px';d.innerHTML='<b style="color:var(--text)">So ist es richtig:</b>';d.appendChild(codeBox(it.fix,false));return d;},false);
+  $('cardsD').appendChild(c);});
+EX.e.forEach((it,i)=>{const id='e-'+i,c=card(id,'E'+(i+1));const t=document.createElement('p');t.className='qt';t.textContent=it.t;c.appendChild(t);
+  if(it.code)c.appendChild(codeBox(it.code,false));
+  mc(id,c,it.opts,it.a,it.e,'Ordnen Sie die Argumente der Reihe nach den Parametern zu.',it.mono,null,i+11);$('cardsE').appendChild(c);});
+EX.f.forEach((it,i)=>{
+  const id='f-'+i,c=card(id,'F'+(i+1));
+  const w=document.createElement('div');w.className='task';
+  w.innerHTML='<h3 style="font-size:1.05rem">'+it.t+'</h3><p>'+it.d+'</p>';
+  const ta=document.createElement('textarea');ta.className='code';ta.id=id+'-ta';ta.spellcheck=false;ta.placeholder='# Ihr Code';ta.setAttribute('aria-label','Ihr Code zu '+it.t);
+  ta.value=store.drafts[id]||'';ta.addEventListener('input',()=>{store.drafts[id]=ta.value;save();});
+  const row=document.createElement('div');row.className='row';
+  const sb=document.createElement('button');sb.type='button';sb.className='btn small';sb.textContent='Musterlösung zeigen';
+  const db=document.createElement('button');db.type='button';db.className='btn small primary';db.dataset.done='1';
+  const lab=()=>db.textContent=store.done[id]?'Als offen markieren':'Erledigt';lab();
+  let sol=null;
+  sb.onclick=()=>{
+    if(sol){sol.remove();sol=null;sb.textContent='Musterlösung zeigen';return;}
+    sol=document.createElement('div');sol.style.display='grid';sol.style.gap='6px';
+    const n=document.createElement('p');n.style.fontSize='.88rem';n.style.color='var(--text-muted)';
+    n.textContent='Ihre Lösung darf anders aussehen. Wichtig ist, dass sie funktioniert und die Funktion wirklich aufgerufen wird.';
+    sol.append(codeBox(it.s,true),n);w.appendChild(sol);sb.textContent='Musterlösung ausblenden';
+  };
+  db.onclick=()=>{markDone(id,!store.done[id]);lab();};
+  row.append(sb,db);w.append(ta,row);c.appendChild(w);$('cardsF').appendChild(c);
+});
+
+let armed=false,armT=null;
+$('resetBtn').onclick=()=>{
+  if(!armed){armed=true;$('resetBtn').textContent='Wirklich alles zurücksetzen?';$('resetHint').textContent='Zum Bestätigen nochmals klicken.';
+    armT=setTimeout(()=>{armed=false;$('resetBtn').textContent='Fortschritt zurücksetzen';$('resetHint').textContent='';},4000);return;}
+  clearTimeout(armT);armed=false;store.done={};store.drafts={};save();
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('is-done'));
+  document.querySelectorAll('.choices button').forEach(b=>b.classList.remove('right','wrong'));
+  document.querySelectorAll('#uebungen .fb').forEach(f=>f.remove());
+  document.querySelectorAll('#uebungen textarea').forEach(t=>t.value='');
+  document.querySelectorAll('[data-done]').forEach(b=>b.textContent='Erledigt');
+  $('resetBtn').textContent='Fortschritt zurücksetzen';$('resetHint').textContent='Zurückgesetzt.';updateProgress();
+};
+updateProgress();
+})();
+</script>
+
+</body></html>

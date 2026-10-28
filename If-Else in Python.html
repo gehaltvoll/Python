@@ -1,0 +1,742 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik, Selbststudium für Schülerinnen und Schüler, mit Beamer-Modus-Schalter
+  Sprache: Deutsch, Schweizer Rechtschreibung, Sie-Form, keine Gedankenstriche
+  Umfang: if, else, elif, Vergleichsoperatoren, Einrückung, typische Fehler
+  Umgebung: Python, Beispiele mit input()/print() für WebTigerPython
+  Interaktivität: Schritt-für-Schritt-Simulation mit eigener Eingabe (Vor/Zurück), 4 Übungen mit einblendbaren Lösungen, Kopierknöpfe
+  Datenhaltung: nur localStorage für Variante und Beamer-Modus (Komfort)
+  Design: Nord-Farbschema, Open Sans + Google Sans Code, Hell/Dunkel folgt System
+  Variante A "Klar": sachlich, viel Weissraum, feine Linien, Code auf heller Fläche
+  Variante B "Technisch": dunkler Kopf und dunkle Codeblöcke auch im hellen Modus, Labels in Festbreitenschrift, eckige Formen
+-->
+<title>If-Else in Python</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<script>
+  (function () {
+    var r = document.documentElement, v = "a", b = "0";
+    try { v = localStorage.getItem("ifelse-variant") || "a"; b = localStorage.getItem("ifelse-beamer") || "0"; } catch (e) {}
+    r.setAttribute("data-variant", v === "b" ? "b" : "a");
+    r.setAttribute("data-beamer", b === "1" ? "1" : "0");
+  })();
+</script>
+<style>
+/* Layout: eine Lesespalte (max. ~70 Zeichen), Kopfband über volle Breite, Simulation als zweispaltiges Panel */
+:root {
+  --nord0:#2E3440; --nord1:#3B4252; --nord2:#434C5E; --nord3:#4C566A;
+  --nord4:#D8DEE9; --nord5:#E5E9F0; --nord6:#ECEFF4;
+  --nord7:#8FBCBB; --nord8:#88C0D0; --nord9:#81A1C1; --nord10:#5E81AC;
+  --nord11:#BF616A; --nord12:#D08770; --nord13:#EBCB8B; --nord14:#A3BE8C; --nord15:#B48EAD;
+
+  --bg:var(--nord6); --surface:var(--nord5); --surface-2:var(--nord4);
+  --text:var(--nord0); --muted:var(--nord3); --accent:var(--nord10); --accent-soft:var(--nord9);
+  --ok:var(--nord14); --warn:var(--nord13); --err:var(--nord11); --merke:var(--nord15); --info:var(--nord8);
+  --on-color:var(--nord0);
+
+  /* Variante A (Standard) */
+  --head-bg:var(--bg); --head-fg:var(--text); --head-muted:var(--muted); --head-line:var(--surface-2);
+  --code-bg:var(--surface); --code-fg:var(--text); --code-line:var(--surface-2);
+  --syn-kw:var(--nord10); --syn-fn:var(--nord10); --syn-str:var(--nord3); --syn-num:var(--nord0); --syn-com:var(--nord3);
+  --hl:color-mix(in srgb, var(--nord9) 30%, transparent);
+  --radius:6px; --h-weight:600; --label-font:var(--font);
+
+  --font:"Open Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"Google Sans Code", ui-monospace, "Cascadia Code", Consolas, "SF Mono", monospace;
+  --base:17px; --body-weight:400; --code-size:0.9em;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:var(--nord0); --surface:var(--nord1); --surface-2:var(--nord2);
+    --text:var(--nord6); --muted:var(--nord4); --accent:var(--nord8);
+    --syn-kw:var(--nord9); --syn-fn:var(--nord8); --syn-str:var(--nord14); --syn-num:var(--nord15); --syn-com:var(--nord4);
+    --hl:color-mix(in srgb, var(--nord8) 22%, transparent);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:var(--nord0); --surface:var(--nord1); --surface-2:var(--nord2);
+  --text:var(--nord6); --muted:var(--nord4); --accent:var(--nord8);
+  --syn-kw:var(--nord9); --syn-fn:var(--nord8); --syn-str:var(--nord14); --syn-num:var(--nord15); --syn-com:var(--nord4);
+  --hl:color-mix(in srgb, var(--nord8) 22%, transparent);
+  color-scheme:dark;
+}
+
+/* Variante B: technisch, dunkle Flächen für Kopf und Code */
+:root[data-variant="b"] {
+  --head-bg:var(--nord0); --head-fg:var(--nord6); --head-muted:var(--nord4); --head-line:var(--nord3);
+  --code-bg:var(--nord0); --code-fg:var(--nord6); --code-line:var(--nord3);
+  --syn-kw:var(--nord9); --syn-fn:var(--nord8); --syn-str:var(--nord14); --syn-num:var(--nord15); --syn-com:var(--nord4);
+  --hl:color-mix(in srgb, var(--nord8) 22%, transparent);
+  --radius:2px; --h-weight:700; --label-font:var(--font-mono);
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-variant="b"]:not([data-theme="light"]) { --head-bg:var(--nord1); --code-bg:var(--nord1); }
+}
+:root[data-variant="b"][data-theme="dark"] { --head-bg:var(--nord1); --code-bg:var(--nord1); }
+
+/* Beamer-Modus */
+:root[data-beamer="1"] { --base:22px; --body-weight:600; --code-size:20px; }
+
+* { box-sizing:border-box; }
+body {
+  margin:0; background:var(--bg); color:var(--text);
+  font-family:var(--font); font-size:var(--base); font-weight:var(--body-weight); line-height:1.6;
+}
+a { color:var(--accent); text-decoration:underline; text-underline-offset:2px; }
+:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+button, input { font:inherit; }
+code, pre, kbd, samp { font-family:var(--font-mono); }
+
+.inner { max-width:780px; margin:0 auto; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+
+/* Kopf */
+header.top { background:var(--head-bg); color:var(--head-fg); border-bottom:1px solid var(--head-line); }
+header.top .inner { padding-block:20px 28px; display:grid; gap:18px; }
+.controls { display:flex; flex-wrap:wrap; gap:10px; justify-content:flex-end; align-items:center; }
+.seg { display:inline-flex; border:1px solid var(--head-line); border-radius:var(--radius); overflow:hidden; }
+.seg button, .toggle {
+  background:transparent; color:var(--head-fg); border:0; padding:6px 12px; cursor:pointer;
+  font-size:0.8rem; font-weight:600; font-family:var(--label-font);
+}
+.seg button[aria-pressed="true"] { background:var(--head-fg); color:var(--head-bg); }
+.toggle { border:1px solid var(--head-line); border-radius:var(--radius); }
+.toggle[aria-pressed="true"] { background:var(--head-fg); color:var(--head-bg); }
+.kicker { margin:0; font-family:var(--label-font); font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--head-muted); }
+h1 { margin:4px 0 8px; font-size:clamp(2rem, 6vw, 2.9rem); line-height:1.1; font-weight:700; text-wrap:balance; }
+h1 code { font-weight:600; }
+.lead { margin:0; max-width:62ch; color:var(--head-fg); }
+:root[data-variant="b"] h1 code { color:var(--nord8); }
+:root[data-variant="a"] h1 code { color:var(--accent); }
+
+/* Inhalt */
+main .inner { padding-block:12px 64px; }
+section { padding-block:36px; border-bottom:1px solid var(--surface-2); }
+section:last-child { border-bottom:0; }
+.eyebrow { margin:0 0 4px; font-family:var(--label-font); font-size:0.78rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+:root[data-variant="b"] .eyebrow::before { content:"// "; color:var(--accent); }
+h2 { margin:0 0 14px; font-size:1.6rem; line-height:1.25; font-weight:var(--h-weight); text-wrap:balance; }
+h3 { margin:24px 0 8px; font-size:1.15rem; font-weight:600; }
+p { margin:0 0 14px; max-width:70ch; }
+ul, ol { margin:0 0 14px; padding-left:1.3em; max-width:68ch; }
+li { margin-bottom:4px; }
+:not(pre) > code { font-size:var(--code-size); background:var(--surface); border:1px solid var(--surface-2); padding:0.05em 0.35em; border-radius:4px; }
+
+/* Code */
+.codebox { position:relative; margin:0 0 16px; min-width:0; }
+pre.code {
+  margin:0; background:var(--code-bg); color:var(--code-fg); border:1px solid var(--code-line);
+  border-radius:var(--radius); padding:14px 16px; overflow-x:auto;
+  font-size:var(--code-size); line-height:1.5;
+}
+pre.code code { font-size:inherit; background:none; border:0; padding:0; }
+.copy {
+  position:absolute; top:8px; right:8px; font-family:var(--label-font); font-size:0.72rem; font-weight:600;
+  background:var(--code-bg); color:var(--code-fg); border:1px solid var(--code-line); border-radius:var(--radius);
+  padding:3px 8px; cursor:pointer; opacity:0.85;
+}
+.copy:hover { opacity:1; }
+.kw { color:var(--syn-kw); font-weight:600; }
+.fn { color:var(--syn-fn); }
+.str { color:var(--syn-str); }
+.num { color:var(--syn-num); }
+.com { color:var(--syn-com); font-style:italic; }
+:root[data-variant="a"] .num { font-weight:600; }
+
+/* Kästen */
+.box { border:1.5px solid var(--c, var(--accent)); border-radius:var(--radius); padding:14px 16px; margin:4px 0 18px; max-width:70ch; }
+.box p:last-child { margin-bottom:0; }
+.box .label {
+  display:inline-block; background:var(--c); color:var(--on-color); font-family:var(--label-font);
+  font-size:0.75rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; padding:1px 8px; border-radius:3px; margin-bottom:6px;
+}
+.merke { --c:var(--merke); }
+.hinweis { --c:var(--warn); }
+.fehler { --c:var(--err); }
+
+/* Anatomie */
+.anatomy { display:grid; grid-template-columns:auto 1fr; gap:8px 16px; margin:0 0 16px; align-items:baseline; }
+.anatomy dt { font-family:var(--font-mono); font-size:var(--code-size); font-weight:600; white-space:nowrap; }
+.anatomy dd { margin:0; min-width:0; }
+
+/* Tabelle */
+.tablewrap { overflow-x:auto; margin:0 0 16px; }
+table { border-collapse:collapse; min-width:100%; font-size:0.95em; }
+th, td { text-align:left; padding:8px 12px; border-bottom:1px solid var(--surface-2); vertical-align:top; }
+th { font-family:var(--label-font); font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+td code { white-space:nowrap; }
+.res { font-family:var(--font-mono); font-size:var(--code-size); font-weight:600; white-space:nowrap; }
+.res::before { display:inline-block; width:1.3em; }
+.res.t::before { content:"✓"; }
+.res.f::before { content:"✗"; }
+
+/* Flussdiagramm */
+.figure { overflow-x:auto; margin:4px 0 18px; }
+.figure svg { display:block; width:100%; max-width:440px; height:auto; }
+.fc-box { fill:var(--surface); stroke:var(--muted); stroke-width:1.5; }
+.fc-dia { fill:var(--surface); stroke:var(--accent); stroke-width:2; }
+.fc-line { stroke:var(--muted); stroke-width:1.5; fill:none; }
+.fc-true { stroke:var(--ok); stroke-width:2.5; fill:none; }
+.fc-false { stroke:var(--err); stroke-width:2.5; fill:none; }
+.fc-text { fill:var(--text); font-family:var(--font); font-size:13px; }
+.fc-mono { fill:var(--text); font-family:var(--font-mono); font-size:12.5px; }
+.fc-lbl { fill:var(--text); font-family:var(--font-mono); font-size:12px; font-weight:600; }
+.mk-muted { fill:var(--muted); } .mk-ok { fill:var(--ok); } .mk-err { fill:var(--err); }
+
+/* Fehlerpaare */
+.pairs { display:grid; gap:18px; }
+.pair { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.pair > div { min-width:0; }
+.pair .tagline { font-family:var(--label-font); font-size:0.75rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; margin:0 0 4px; }
+.pair .wrong pre.code { border-color:var(--err); }
+.pair .right pre.code { border-color:var(--ok); }
+.pair-title { margin:0 0 6px; font-weight:600; }
+@media (max-width:560px) { .pair { grid-template-columns:1fr; } }
+
+/* Simulation */
+.sim { border:1px solid var(--surface-2); border-radius:var(--radius); background:var(--surface); padding:16px; display:grid; gap:16px; }
+.sim-input { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.sim-input label { font-weight:600; }
+.sim-input input {
+  width:6.5em; padding:6px 10px; border:1px solid var(--surface-2); border-radius:var(--radius);
+  background:var(--bg); color:var(--text); font-family:var(--font-mono);
+}
+.chip {
+  border:1px solid var(--surface-2); background:var(--bg); color:var(--text); border-radius:999px;
+  padding:3px 12px; cursor:pointer; font-family:var(--font-mono); font-size:0.85rem;
+}
+:root[data-variant="b"] .chip { border-radius:var(--radius); }
+.chip:hover { border-color:var(--accent); }
+.sim-grid { display:grid; grid-template-columns:minmax(0, 1.4fr) minmax(0, 1fr); gap:16px; }
+@media (max-width:680px) { .sim-grid { grid-template-columns:1fr; } }
+.simcode { margin:0; padding:10px 0; background:var(--code-bg); color:var(--code-fg); border:1px solid var(--code-line); border-radius:var(--radius); overflow-x:auto; font-size:var(--code-size); line-height:1.6; }
+.simcode .ln { display:flex; gap:12px; padding:0 14px; white-space:pre; border-left:4px solid transparent; }
+.simcode .ln .no { opacity:0.55; min-width:1.2em; text-align:right; user-select:none; }
+.simcode .ln.cur { background:var(--hl); border-left-color:var(--accent); }
+:root[data-variant="b"] .simcode .ln.cur { border-left-color:var(--nord8); }
+.simcode .ln.cur .no { opacity:1; }
+.simcode .badge { margin-left:10px; font-size:0.8em; font-weight:600; padding:0 6px; border-radius:3px; color:var(--on-color); }
+.simcode .badge.t { background:var(--ok); }
+.simcode .badge.f { background:var(--err); }
+.state { display:grid; gap:12px; align-content:start; }
+.panel h4 { margin:0 0 4px; font-family:var(--label-font); font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+.explain { margin:0; min-height:4.8em; }
+.vars, .console {
+  font-family:var(--font-mono); font-size:var(--code-size); background:var(--bg); border:1px solid var(--surface-2);
+  border-radius:var(--radius); padding:8px 12px; min-height:2.4em; overflow-x:auto; white-space:pre;
+}
+:root[data-variant="b"] .console { background:var(--code-bg); color:var(--code-fg); border-color:var(--code-line); }
+.sim-nav { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.btn {
+  border:1px solid var(--accent); background:transparent; color:var(--text); border-radius:var(--radius);
+  padding:7px 16px; font-weight:600; cursor:pointer;
+}
+.btn.primary { background:var(--accent); color:var(--bg); }
+.btn:disabled { opacity:0.4; cursor:not-allowed; }
+.stepcount { font-family:var(--font-mono); font-size:0.85rem; color:var(--muted); margin-left:auto; }
+
+/* Übungen */
+.task { border-top:1px solid var(--surface-2); padding-top:18px; margin-top:22px; }
+.task:first-of-type { border-top:0; margin-top:6px; padding-top:0; }
+.task h3 { margin-top:0; }
+.task h3 .n { font-family:var(--label-font); color:var(--muted); font-weight:600; margin-right:6px; }
+details.sol { border:1px solid var(--surface-2); border-radius:var(--radius); padding:0 14px; margin-top:4px; }
+details.sol summary { cursor:pointer; padding:10px 0; font-weight:600; color:var(--accent); }
+details.sol[open] { padding-bottom:12px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .simcode .ln { transition:background-color .2s ease; }
+}
+</style>
+
+<header class="top">
+  <div class="inner">
+    <div class="controls" role="group" aria-label="Darstellung">
+      <div class="seg" role="group" aria-label="Design-Variante">
+        <button type="button" id="var-a" data-v="a">Variante A</button>
+        <button type="button" id="var-b" data-v="b">Variante B</button>
+      </div>
+      <button type="button" class="toggle" id="beamer-toggle" aria-pressed="false">Beamer-Modus</button>
+    </div>
+    <div>
+      <p class="kicker">Informatik · Python · Kontrollstrukturen</p>
+      <h1>Entscheidungen mit <code>if</code> und <code>else</code></h1>
+      <p class="lead">Bisher liefen Ihre Programme immer gleich ab, Zeile für Zeile. Mit der if-Anweisung kann ein Programm auf Eingaben reagieren und je nach Situation etwas anderes tun.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="inner">
+
+    <section id="idee">
+      <p class="eyebrow">Teil 1 · Die Idee</p>
+      <h2>Wenn …, dann …, sonst …</h2>
+      <p>Im Alltag treffen Sie ständig solche Entscheidungen: <em>Wenn</em> es regnet, nehme ich einen Schirm mit, <em>sonst</em> nicht. Ein Programm macht dasselbe. Es prüft eine <strong>Bedingung</strong>. Ist sie erfüllt, wird der eine Teil ausgeführt, sonst der andere. Danach geht es für beide Wege gleich weiter.</p>
+      <div class="figure" role="img" aria-label="Flussdiagramm: Die Bedingung wird geprüft. Bei True wird Block A ausgeführt, bei False Block B. Danach läuft das Programm in beiden Fällen weiter.">
+        <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <defs>
+            <marker id="m-mut" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk-muted"/></marker>
+            <marker id="m-ok" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk-ok"/></marker>
+            <marker id="m-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="mk-err"/></marker>
+          </defs>
+          <rect class="fc-box" x="130" y="8" width="140" height="34" rx="4"/>
+          <text class="fc-text" x="200" y="30" text-anchor="middle">Programm läuft</text>
+          <path class="fc-line" d="M200 42 V64" marker-end="url(#m-mut)"/>
+          <polygon class="fc-dia" points="200,68 290,108 200,148 110,108"/>
+          <text class="fc-text" x="200" y="104" text-anchor="middle">Bedingung</text>
+          <text class="fc-text" x="200" y="121" text-anchor="middle">erfüllt?</text>
+          <path class="fc-true" d="M110 108 H70 V172" marker-end="url(#m-ok)"/>
+          <text class="fc-lbl" x="56" y="100" text-anchor="middle">✓ True</text>
+          <path class="fc-false" d="M290 108 H330 V172" marker-end="url(#m-err)"/>
+          <text class="fc-lbl" x="344" y="100" text-anchor="middle">✗ False</text>
+          <rect class="fc-box" x="10" y="176" width="120" height="40" rx="4"/>
+          <text class="fc-mono" x="70" y="200" text-anchor="middle">Block A (if)</text>
+          <rect class="fc-box" x="270" y="176" width="120" height="40" rx="4"/>
+          <text class="fc-mono" x="330" y="200" text-anchor="middle">Block B (else)</text>
+          <path class="fc-line" d="M70 216 V240 H196" />
+          <path class="fc-line" d="M330 216 V240 H204" />
+          <path class="fc-line" d="M200 240 V252" marker-end="url(#m-mut)"/>
+          <rect class="fc-box" x="120" y="256" width="160" height="34" rx="4"/>
+          <text class="fc-text" x="200" y="278" text-anchor="middle">weiter im Programm</text>
+        </svg>
+      </div>
+      <p>Probieren Sie alle Beispiele dieser Seite selbst in <a href="https://webtigerpython.ethz.ch" target="_blank" rel="noopener">WebTigerPython</a> aus. Mit dem Knopf «Kopieren» übernehmen Sie den Code.</p>
+    </section>
+
+    <section id="if">
+      <p class="eyebrow">Teil 2 · Die if-Anweisung</p>
+      <h2>Aufbau einer if-Anweisung</h2>
+      <pre class="code"><code data-py>temperatur = int(input("Temperatur in °C: "))
+if temperatur &gt;= 25:
+    print("Badewetter!")</code></pre>
+      <p>Die Zeile mit <code>print</code> wird nur ausgeführt, wenn die Temperatur mindestens 25 °C beträgt. Bei einer tieferen Temperatur passiert nichts.</p>
+      <dl class="anatomy">
+        <dt>if</dt><dd>Das Schlüsselwort leitet die Entscheidung ein.</dd>
+        <dt>temperatur &gt;= 25</dt><dd>Die <strong>Bedingung</strong>. Sie ergibt immer <code>True</code> (wahr) oder <code>False</code> (falsch).</dd>
+        <dt>:</dt><dd>Der Doppelpunkt schliesst die Kopfzeile ab. Er ist Pflicht.</dd>
+        <dt>␣␣␣␣print(…)</dt><dd>Der <strong>eingerückte Block</strong> (4 Leerzeichen). Er wird nur ausgeführt, wenn die Bedingung <code>True</code> ist.</dd>
+      </dl>
+      <div class="box hinweis">
+        <span class="label">⚠ Hinweis</span>
+        <p><code>input()</code> liefert immer Text, auch wenn Sie eine Zahl eintippen. Mit <code>int(…)</code> wird daraus eine ganze Zahl, mit <code>float(…)</code> eine Dezimalzahl. Erst dann können Sie mit <code>&gt;=</code> rechnen und vergleichen.</p>
+      </div>
+    </section>
+
+    <section id="vergleiche">
+      <p class="eyebrow">Teil 3 · Bedingungen</p>
+      <h2>Vergleichsoperatoren</h2>
+      <p>Eine Bedingung ist meistens ein Vergleich. Python stellt dafür sechs Operatoren zur Verfügung. Das Ergebnis ist immer ein Wahrheitswert: <code>True</code> oder <code>False</code>.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Operator</th><th>Bedeutung</th><th>Beispiel</th><th>Ergebnis</th></tr></thead>
+          <tbody>
+            <tr><td><code>==</code></td><td>gleich</td><td><code>7 == 7</code></td><td class="res t">True</td></tr>
+            <tr><td><code>!=</code></td><td>ungleich</td><td><code>7 != 3</code></td><td class="res t">True</td></tr>
+            <tr><td><code>&lt;</code></td><td>kleiner als</td><td><code>7 &lt; 3</code></td><td class="res f">False</td></tr>
+            <tr><td><code>&gt;</code></td><td>grösser als</td><td><code>7 &gt; 3</code></td><td class="res t">True</td></tr>
+            <tr><td><code>&lt;=</code></td><td>kleiner oder gleich</td><td><code>7 &lt;= 7</code></td><td class="res t">True</td></tr>
+            <tr><td><code>&gt;=</code></td><td>grösser oder gleich</td><td><code>3 &gt;= 7</code></td><td class="res f">False</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="box merke">
+        <span class="label">★ Merke</span>
+        <p><code>=</code> ist eine <strong>Zuweisung</strong>: <code>x = 5</code> speichert 5 in <code>x</code>.<br><code>==</code> ist ein <strong>Vergleich</strong>: <code>x == 5</code> fragt, ob <code>x</code> gleich 5 ist.</p>
+      </div>
+      <p>Auch Texte lassen sich vergleichen. Dabei zählt jede Kleinigkeit, auch Gross- und Kleinschreibung:</p>
+      <pre class="code"><code data-py>antwort = input("Hauptstadt der Schweiz? ")
+if antwort == "Bern":
+    print("Richtig!")</code></pre>
+    </section>
+
+    <section id="else">
+      <p class="eyebrow">Teil 4 · Zwei Wege</p>
+      <h2>Der Sonst-Fall mit <code>else</code></h2>
+      <p>Mit <code>else</code> legen Sie fest, was passieren soll, wenn die Bedingung <code>False</code> ist. Es wird also immer genau einer der beiden Blöcke ausgeführt.</p>
+      <pre class="code"><code data-py>temperatur = int(input("Temperatur in °C: "))
+if temperatur &gt;= 25:
+    print("Badewetter!")
+else:
+    print("Jacke anziehen")</code></pre>
+      <p><code>else</code> hat <strong>keine eigene Bedingung</strong>, aber ebenfalls einen Doppelpunkt. Es steht auf derselben Einrückungsstufe wie das zugehörige <code>if</code>.</p>
+    </section>
+
+    <section id="elif">
+      <p class="eyebrow">Teil 5 · Mehrere Wege</p>
+      <h2>Weitere Fälle mit <code>elif</code></h2>
+      <p>Oft gibt es mehr als zwei Möglichkeiten. Dafür gibt es <code>elif</code>, die Kurzform von «else if». Sie können beliebig viele <code>elif</code>-Zweige zwischen <code>if</code> und <code>else</code> einfügen.</p>
+      <pre class="code"><code data-py>temperatur = int(input("Temperatur in °C: "))
+if temperatur &gt;= 25:
+    print("Badewetter!")
+elif temperatur &gt;= 15:
+    print("Angenehm, T-Shirt reicht")
+else:
+    print("Jacke anziehen")</code></pre>
+      <p>Python prüft die Bedingungen <strong>von oben nach unten</strong>. Sobald eine Bedingung <code>True</code> ergibt, wird ihr Block ausgeführt. Alle folgenden Zweige werden übersprungen, auch wenn ihre Bedingung ebenfalls zutreffen würde.</p>
+      <div class="box merke">
+        <span class="label">★ Merke</span>
+        <p>In einer if-elif-else-Kette wird <strong>genau ein</strong> Block ausgeführt: der erste, dessen Bedingung zutrifft, oder sonst der <code>else</code>-Block. Bei 30 °C gibt das Programm oben deshalb nur «Badewetter!» aus, obwohl 30 auch grösser als 15 ist.</p>
+      </div>
+    </section>
+
+    <section id="einrueckung">
+      <p class="eyebrow">Teil 6 · Einrückung</p>
+      <h2>Was gehört zum Block?</h2>
+      <p>Python erkennt an der <strong>Einrückung</strong>, welche Zeilen zu einem Block gehören. Üblich sind 4 Leerzeichen (in WebTigerPython erzeugt die Tabulatortaste genau das). Ein Block kann beliebig viele Zeilen enthalten.</p>
+      <pre class="code"><code data-py>temperatur = int(input("Temperatur in °C: "))
+if temperatur &gt;= 25:
+    print("Badewetter!")
+    print("Sonnencreme nicht vergessen")
+print("Programm fertig")</code></pre>
+      <p>Die beiden eingerückten Zeilen werden nur bei mindestens 25 °C ausgeführt. Die letzte Zeile ist nicht eingerückt. Sie gehört nicht mehr zur if-Anweisung und wird <strong>immer</strong> ausgeführt.</p>
+    </section>
+
+    <section id="simulation">
+      <p class="eyebrow">Teil 7 · Simulation</p>
+      <h2>Schritt für Schritt mitverfolgen</h2>
+      <p>Wählen Sie eine Temperatur und klicken Sie auf «Weiter». Sie sehen, welche Zeile Python gerade ausführt, wie die Bedingungen ausgewertet werden und was in der Ausgabe erscheint.</p>
+      <div class="sim">
+        <div class="sim-input">
+          <label for="sim-temp">Eingabe für temperatur:</label>
+          <input type="number" id="sim-temp" value="22" min="-30" max="50" step="1">
+          <span aria-hidden="true">°C</span>
+          <button type="button" class="chip" data-t="30">30</button>
+          <button type="button" class="chip" data-t="22">22</button>
+          <button type="button" class="chip" data-t="8">8</button>
+        </div>
+        <div class="sim-grid">
+          <div class="simcode" id="sim-code" aria-label="Programmcode der Simulation"></div>
+          <div class="state">
+            <div class="panel">
+              <h4>Was passiert?</h4>
+              <p class="explain" id="sim-explain" aria-live="polite"></p>
+            </div>
+            <div class="panel">
+              <h4>Variablen</h4>
+              <div class="vars" id="sim-vars"></div>
+            </div>
+            <div class="panel">
+              <h4>Ausgabe</h4>
+              <div class="console" id="sim-out"></div>
+            </div>
+          </div>
+        </div>
+        <div class="sim-nav">
+          <button type="button" class="btn" id="sim-prev">← Zurück</button>
+          <button type="button" class="btn primary" id="sim-next">Weiter →</button>
+          <button type="button" class="btn" id="sim-reset">Neu starten</button>
+          <span class="stepcount" id="sim-count"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="fehler">
+      <p class="eyebrow">Teil 8 · Typische Fehler</p>
+      <h2>Die vier häufigsten Stolpersteine</h2>
+      <div class="pairs">
+        <div>
+          <p class="pair-title">1. Doppelpunkt vergessen</p>
+          <div class="pair">
+            <div class="wrong"><p class="tagline">✗ Falsch</p><pre class="code" data-nocopy><code data-py>if temperatur &gt;= 25
+    print("Badewetter!")</code></pre></div>
+            <div class="right"><p class="tagline">✓ Richtig</p><pre class="code" data-nocopy><code data-py>if temperatur &gt;= 25:
+    print("Badewetter!")</code></pre></div>
+          </div>
+        </div>
+        <div>
+          <p class="pair-title">2. Zuweisung <code>=</code> statt Vergleich <code>==</code></p>
+          <div class="pair">
+            <div class="wrong"><p class="tagline">✗ Falsch</p><pre class="code" data-nocopy><code data-py>if antwort = "Bern":
+    print("Richtig!")</code></pre></div>
+            <div class="right"><p class="tagline">✓ Richtig</p><pre class="code" data-nocopy><code data-py>if antwort == "Bern":
+    print("Richtig!")</code></pre></div>
+          </div>
+        </div>
+        <div>
+          <p class="pair-title">3. Einrückung fehlt</p>
+          <div class="pair">
+            <div class="wrong"><p class="tagline">✗ Falsch</p><pre class="code" data-nocopy><code data-py>if temperatur &gt;= 25:
+print("Badewetter!")</code></pre></div>
+            <div class="right"><p class="tagline">✓ Richtig</p><pre class="code" data-nocopy><code data-py>if temperatur &gt;= 25:
+    print("Badewetter!")</code></pre></div>
+          </div>
+        </div>
+        <div>
+          <p class="pair-title">4. Zahl aus input() nicht umgewandelt</p>
+          <div class="pair">
+            <div class="wrong"><p class="tagline">✗ Falsch</p><pre class="code" data-nocopy><code data-py>alter = input("Alter: ")
+if alter &gt;= 18:
+    print("volljährig")</code></pre></div>
+            <div class="right"><p class="tagline">✓ Richtig</p><pre class="code" data-nocopy><code data-py>alter = int(input("Alter: "))
+if alter &gt;= 18:
+    print("volljährig")</code></pre></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="uebungen">
+      <p class="eyebrow">Teil 9 · Übungen</p>
+      <h2>Jetzt sind Sie dran</h2>
+      <p>Notieren Sie Ihre Antwort zuerst selbst. Öffnen Sie die Lösung erst danach.</p>
+
+      <div class="task">
+        <h3><span class="n">Ü1</span>Ausgabe vorhersagen</h3>
+        <p>Was gibt dieses Programm aus?</p>
+        <pre class="code"><code data-py>punkte = 38
+if punkte &gt;= 40:
+    print("Level geschafft")
+else:
+    print("Nochmals versuchen")
+print("Spielende")</code></pre>
+        <details class="sol"><summary>Lösung anzeigen</summary>
+          <pre class="code" data-nocopy><code>Nochmals versuchen
+Spielende</code></pre>
+          <p>Die Bedingung <code>38 &gt;= 40</code> ergibt <code>False</code>, also wird der <code>else</code>-Block ausgeführt. «Spielende» ist nicht eingerückt und erscheint deshalb in jedem Fall.</p>
+        </details>
+      </div>
+
+      <div class="task">
+        <h3><span class="n">Ü2</span>Fehler finden</h3>
+        <p>In diesem Programm stecken drei Fehler. Finden und korrigieren Sie alle.</p>
+        <pre class="code" data-nocopy><code data-py>alter = int(input("Alter: "))
+if alter = 18
+print("Sie sind genau 18.")</code></pre>
+        <details class="sol"><summary>Lösung anzeigen</summary>
+          <ol>
+            <li><code>=</code> muss <code>==</code> heissen, weil verglichen wird.</li>
+            <li>Nach der Bedingung fehlt der Doppelpunkt.</li>
+            <li>Die <code>print</code>-Zeile muss eingerückt sein.</li>
+          </ol>
+          <pre class="code"><code data-py>alter = int(input("Alter: "))
+if alter == 18:
+    print("Sie sind genau 18.")</code></pre>
+        </details>
+      </div>
+
+      <div class="task">
+        <h3><span class="n">Ü3</span>Auf die Reihenfolge kommt es an</h3>
+        <p>Das Programm soll Schweizer Noten beurteilen. Was wird bei der Note 5.5 ausgegeben? Warum ist das ein Problem und wie korrigieren Sie es?</p>
+        <pre class="code"><code data-py>note = 5.5
+if note &gt;= 4:
+    print("genügend")
+elif note &gt;= 5.5:
+    print("sehr gut")
+else:
+    print("ungenügend")</code></pre>
+        <details class="sol"><summary>Lösung anzeigen</summary>
+          <p>Ausgegeben wird «genügend». Die erste Bedingung <code>5.5 &gt;= 4</code> ist bereits <code>True</code>, darum werden die restlichen Zweige übersprungen. «sehr gut» kann so nie erscheinen. Die strengere Bedingung muss zuerst geprüft werden:</p>
+          <pre class="code"><code data-py>note = 5.5
+if note &gt;= 5.5:
+    print("sehr gut")
+elif note &gt;= 4:
+    print("genügend")
+else:
+    print("ungenügend")</code></pre>
+        </details>
+      </div>
+
+      <div class="task">
+        <h3><span class="n">Ü4</span>Selbst programmieren: Kinokasse</h3>
+        <p>Schreiben Sie ein Programm, das das Alter einliest und den passenden Ticketpreis ausgibt:</p>
+        <ul>
+          <li>unter 16 Jahren: «Kinderticket: 12 CHF»</li>
+          <li>16 bis 64 Jahre: «Erwachsene: 18 CHF»</li>
+          <li>ab 65 Jahren: «Senioren: 14 CHF»</li>
+        </ul>
+        <p>Testen Sie Ihr Programm in WebTigerPython mit den Grenzwerten 15, 16, 64 und 65.</p>
+        <details class="sol"><summary>Lösung anzeigen</summary>
+          <pre class="code"><code data-py>alter = int(input("Alter: "))
+if alter &lt; 16:
+    print("Kinderticket: 12 CHF")
+elif alter &lt; 65:
+    print("Erwachsene: 18 CHF")
+else:
+    print("Senioren: 14 CHF")</code></pre>
+          <p>Beim <code>elif</code> genügt <code>alter &lt; 65</code>. Wer hier ankommt, ist sicher nicht jünger als 16, sonst hätte bereits die erste Bedingung zugetroffen.</p>
+        </details>
+      </div>
+    </section>
+
+    <section id="ueberblick">
+      <p class="eyebrow">Teil 10 · Auf einen Blick</p>
+      <h2>Zusammenfassung</h2>
+      <pre class="code"><code data-py>if bedingung_1:
+    block_a      # nur wenn bedingung_1 True ist
+elif bedingung_2:
+    block_b      # wenn bedingung_1 False und bedingung_2 True ist
+else:
+    block_c      # wenn alle Bedingungen False sind
+weiter           # wird immer ausgeführt</code></pre>
+      <ul>
+        <li>Eine Bedingung ergibt <code>True</code> oder <code>False</code>.</li>
+        <li>Nach jeder Kopfzeile (<code>if</code>, <code>elif</code>, <code>else</code>) steht ein Doppelpunkt.</li>
+        <li>Die Einrückung bestimmt, welche Zeilen zu einem Block gehören.</li>
+        <li><code>elif</code> und <code>else</code> sind freiwillig. Es wird höchstens ein Block der Kette ausgeführt.</li>
+      </ul>
+    </section>
+
+  </div>
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  /* ---------- Syntaxhervorhebung ---------- */
+  function esc(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  var re = /(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(if|elif|else|and|or|not|True|False|None|in|for|while|def|return)\b|\b(print|input|int|float|str|len|range)\b(?=\s*\()/g;
+  function highlight(src) {
+    var out = "", last = 0, m;
+    re.lastIndex = 0;
+    while ((m = re.exec(src)) !== null) {
+      out += esc(src.slice(last, m.index));
+      var cls = m[1] ? "com" : m[2] ? "str" : m[3] ? "num" : m[4] ? "kw" : "fn";
+      out += '<span class="' + cls + '">' + esc(m[0]) + "</span>";
+      last = re.lastIndex;
+    }
+    return out + esc(src.slice(last));
+  }
+  document.querySelectorAll("code[data-py]").forEach(function (el) {
+    el.innerHTML = highlight(el.textContent);
+  });
+
+  /* ---------- Kopierknöpfe ---------- */
+  document.querySelectorAll("pre.code").forEach(function (pre) {
+    var box = document.createElement("div");
+    box.className = "codebox";
+    pre.parentNode.insertBefore(box, pre);
+    box.appendChild(pre);
+    if (pre.hasAttribute("data-nocopy")) return;
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "copy"; b.textContent = "Kopieren";
+    b.addEventListener("click", function () {
+      var text = pre.textContent;
+      function done(msg) { b.textContent = msg; setTimeout(function () { b.textContent = "Kopieren"; }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(pre);
+        var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+        done("Markiert, Ctrl+C");
+      }
+      try {
+        navigator.clipboard.writeText(text).then(function () { done("Kopiert"); }, fallback);
+      } catch (e) { fallback(); }
+    });
+    box.appendChild(b);
+  });
+
+  /* ---------- Variante und Beamer ---------- */
+  var btnA = document.getElementById("var-a"), btnB = document.getElementById("var-b");
+  var beamer = document.getElementById("beamer-toggle");
+  function syncControls() {
+    var v = root.getAttribute("data-variant");
+    btnA.setAttribute("aria-pressed", v === "a" ? "true" : "false");
+    btnB.setAttribute("aria-pressed", v === "b" ? "true" : "false");
+    beamer.setAttribute("aria-pressed", root.getAttribute("data-beamer") === "1" ? "true" : "false");
+  }
+  [btnA, btnB].forEach(function (b) {
+    b.addEventListener("click", function () {
+      root.setAttribute("data-variant", b.dataset.v);
+      try { localStorage.setItem("ifelse-variant", b.dataset.v); } catch (e) {}
+      syncControls();
+    });
+  });
+  beamer.addEventListener("click", function () {
+    var on = root.getAttribute("data-beamer") === "1" ? "0" : "1";
+    root.setAttribute("data-beamer", on);
+    try { localStorage.setItem("ifelse-beamer", on); } catch (e) {}
+    syncControls();
+  });
+  syncControls();
+
+  /* ---------- Simulation ---------- */
+  var lines = [
+    'temperatur = int(input("Temperatur in °C: "))',
+    'if temperatur >= 25:',
+    '    print("Badewetter!")',
+    'elif temperatur >= 15:',
+    '    print("Angenehm, T-Shirt reicht")',
+    'else:',
+    '    print("Jacke anziehen")',
+    'print("Programm fertig")'
+  ];
+  var codeEl = document.getElementById("sim-code");
+  var tempEl = document.getElementById("sim-temp");
+  var explainEl = document.getElementById("sim-explain");
+  var varsEl = document.getElementById("sim-vars");
+  var outEl = document.getElementById("sim-out");
+  var prevBtn = document.getElementById("sim-prev");
+  var nextBtn = document.getElementById("sim-next");
+  var countEl = document.getElementById("sim-count");
+  var steps = [], pos = 0;
+
+  codeEl.innerHTML = lines.map(function (l, i) {
+    return '<div class="ln" data-i="' + i + '"><span class="no">' + (i + 1) + '</span><span class="src">' + highlight(l) + '</span><span class="bslot"></span></div>';
+  }).join("");
+  var lineEls = codeEl.querySelectorAll(".ln");
+
+  function build(t) {
+    var s = [];
+    s.push({ line: 0, text: "input() liest «" + t + "» ein, int() macht daraus die Zahl " + t + ". Sie wird in der Variablen temperatur gespeichert." });
+    var c1 = t >= 25;
+    s.push({ line: 1, cond: c1, text: "Python prüft die Bedingung temperatur >= 25, also " + t + " >= 25. Das ergibt " + (c1 ? "True." : "False. Der eingerückte Block darunter wird übersprungen.") });
+    if (c1) {
+      s.push({ line: 2, out: "Badewetter!", text: "Die Bedingung war True, also wird dieser Block ausgeführt. Danach überspringt Python alle weiteren elif- und else-Zweige." });
+    } else {
+      var c2 = t >= 15;
+      s.push({ line: 3, cond: c2, text: "Nächster Zweig: temperatur >= 15, also " + t + " >= 15. Das ergibt " + (c2 ? "True." : "False. Auch dieser Block wird übersprungen.") });
+      if (c2) {
+        s.push({ line: 4, out: "Angenehm, T-Shirt reicht", text: "Die Bedingung war True, also wird dieser Block ausgeführt. Der else-Zweig wird übersprungen." });
+      } else {
+        s.push({ line: 5, text: "Alle Bedingungen waren False. Darum kommt jetzt der else-Zweig zum Zug. Er hat keine eigene Bedingung." });
+        s.push({ line: 6, out: "Jacke anziehen", text: "Der else-Block wird ausgeführt." });
+      }
+    }
+    s.push({ line: 7, out: "Programm fertig", text: "Diese Zeile ist nicht eingerückt. Sie gehört nicht mehr zur if-Anweisung und wird in jedem Fall ausgeführt. Das Programm ist zu Ende." });
+    return s;
+  }
+
+  function render() {
+    var t = parseInt(tempEl.value, 10);
+    var st = steps[pos];
+    lineEls.forEach(function (el, i) {
+      el.classList.toggle("cur", i === st.line);
+      el.querySelector(".bslot").innerHTML = "";
+    });
+    // Bedingungsergebnisse bis zum aktuellen Schritt anzeigen
+    for (var k = 0; k <= pos; k++) {
+      var s = steps[k];
+      if (typeof s.cond === "boolean") {
+        lineEls[s.line].querySelector(".bslot").innerHTML =
+          '<span class="badge ' + (s.cond ? "t" : "f") + '">' + (s.cond ? "✓ True" : "✗ False") + "</span>";
+      }
+    }
+    explainEl.textContent = st.text;
+    varsEl.textContent = "temperatur = " + t;
+    var outs = [];
+    for (var j = 0; j <= pos; j++) if (steps[j].out) outs.push(steps[j].out);
+    outEl.textContent = outs.join("\n");
+    prevBtn.disabled = pos === 0;
+    nextBtn.disabled = pos === steps.length - 1;
+    countEl.textContent = "Schritt " + (pos + 1) + " von " + steps.length;
+  }
+
+  function restart() {
+    var t = parseInt(tempEl.value, 10);
+    if (isNaN(t)) { t = 22; tempEl.value = 22; }
+    steps = build(t); pos = 0; render();
+  }
+
+  prevBtn.addEventListener("click", function () { if (pos > 0) { pos--; render(); } });
+  nextBtn.addEventListener("click", function () { if (pos < steps.length - 1) { pos++; render(); } });
+  document.getElementById("sim-reset").addEventListener("click", restart);
+  tempEl.addEventListener("change", restart);
+  document.querySelectorAll(".chip").forEach(function (c) {
+    c.addEventListener("click", function () { tempEl.value = c.dataset.t; restart(); });
+  });
+  restart();
+})();
+</script>
+
+</body></html>

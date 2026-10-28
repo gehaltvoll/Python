@@ -1,0 +1,734 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik, Zielgruppe: Schüler:innen im Einstieg (nach ersten Python-Lektionen), Gerät: gemischt.
+  Anrede: Sie-Form. Design: ein einziges dunkles Design (Nord), kein Umschalter, kein heller Modus.
+  Inhalt: die vier Denkwerkzeuge Zerlegung, Mustererkennung, Abstraktion, Algorithmen; Alltagsbeispiele und Bezug zu Python
+          (Funktionen, Variablen); Fallbeispiel «Notendurchschnitt» mit allen vier Werkzeugen.
+  Funktionen: Abstraktions-Grafik (Stadtplan vs. Netzplan); Roboter-Spiel (Befehle zusammenstellen und ausführen, 4 Levels);
+              Übungen A Werkzeug erkennen (Auswahl), B Zerlegen (Teilaufgaben zuordnen), C Muster fortsetzen (Eingabe),
+              D Abstrahieren (relevante Angaben ankreuzen), E Algorithmen (Schritte ordnen + Roboter-Levels),
+              F Präzise Anweisungen (Auswahl), G Alles zusammen (Freitext + Musterlösung, selbst abhaken).
+  Datenhaltung: pro Browser (localStorage, nur Komfort): Fortschritt, Entwürfe, Roboterprogramme. Zurücksetzen-Knopf.
+  Export: keiner.
+-->
+<title>Computational Thinking</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: eine Lesespalte; je Denkwerkzeug ein Abschnitt mit eigener Farbe; Übungen als Karten */
+:root{
+  color-scheme:dark;
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);
+  --accent:var(--nord8);--accent-soft:var(--nord9);
+  --ok:var(--nord14);--warn:var(--nord13);--err:var(--nord11);--special:var(--nord15);--info:var(--nord8);
+  --p-zer:var(--nord8);--p-mus:var(--nord14);--p-abs:var(--nord15);--p-alg:var(--nord13);
+
+  --code-bg:var(--nord0);--code-fg:var(--nord6);--code-border:var(--nord3);
+  --c-kw:var(--nord9);--c-fn:var(--nord8);--c-com:var(--nord4);--c-str:var(--nord14);--c-num:var(--nord15);
+
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  --radius:6px;--radius-s:4px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--accent-soft);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;line-height:1.25;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.6rem);font-weight:700}
+h2{font-size:1.55rem;font-weight:700}
+h3{font-size:1.2rem;font-weight:600}
+p{margin:0}
+code{font-family:var(--font-mono);font-size:.9em;background:var(--surface-2);padding:.05em .35em;border-radius:4px}
+
+.wrap{max-width:820px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+header.top{background:var(--surface);border-bottom:3px solid var(--nord8)}
+header.top .wrap{padding-block:30px 26px;display:grid;gap:14px}
+.eyebrow{font-family:var(--font-mono);font-size:.8rem;letter-spacing:.05em;color:var(--text-muted);font-weight:600}
+.eyebrow::before{content:">>> ";color:var(--nord14)}
+.lead{color:var(--text-muted);max-width:64ch}
+.progress{display:flex;align-items:center;gap:12px;font-size:.9rem;color:var(--text-muted);flex-wrap:wrap}
+.bar{flex:1;min-width:140px;height:8px;background:var(--nord2);overflow:hidden}
+.bar span{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.progress strong{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text)}
+.toc{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.92rem}
+.toc a{color:var(--text);text-decoration-color:var(--nord9)}
+
+main .wrap{padding-block:12px 64px}
+section.part{padding-block:44px 8px;display:grid;gap:18px;border-top:1px solid var(--surface-2)}
+section.part:first-child{border-top:0}
+.num{font-family:var(--font-mono);font-size:.82rem;font-weight:600;color:var(--accent);letter-spacing:.04em}
+.prose{display:grid;gap:14px;max-width:68ch}
+.pill{font-family:var(--font-mono);font-size:.8rem;font-weight:600;color:var(--nord0);padding:1px 8px;border-radius:3px;white-space:nowrap}
+.pz{background:var(--p-zer)} .pm{background:var(--p-mus)} .pa{background:var(--p-abs)} .pl{background:var(--p-alg)}
+section.part[data-p] .num{color:var(--pc)}
+section[data-p="z"]{--pc:var(--p-zer)} section[data-p="m"]{--pc:var(--p-mus)} section[data-p="a"]{--pc:var(--p-abs)} section[data-p="l"]{--pc:var(--p-alg)}
+section.part[data-p] h2{border-left:5px solid var(--pc);padding-left:12px}
+
+/* Übersicht 4 Werkzeuge */
+.pillars{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:720px){.pillars{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:400px){.pillars{grid-template-columns:minmax(0,1fr)}}
+.pillars a{display:grid;gap:6px;align-content:start;text-decoration:none;color:var(--text);background:var(--surface);border:1px solid var(--surface-2);border-top:4px solid var(--c);border-radius:var(--radius);padding:12px}
+.pillars a:hover{border-color:var(--c)}
+.pillars .n{font-family:var(--font-mono);font-size:.75rem;color:var(--c);font-weight:600}
+.pillars b{font-size:1.02rem}
+.pillars span.d{font-size:.88rem;color:var(--text-muted);line-height:1.45}
+
+/* Code */
+.codebox{position:relative;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);min-width:0}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:.9em;line-height:1.5;color:var(--code-fg)}
+.codebox .out{border-top:1px dashed var(--code-border);padding:8px 16px 10px;font-family:var(--font-mono);font-size:.85em;white-space:pre-wrap}
+.codebox .out::before{content:"Ausgabe";display:block;font-size:.72rem;letter-spacing:.05em;color:var(--nord4)}
+.tk-kw{color:var(--c-kw);font-weight:600} .tk-fn{color:var(--c-fn)} .tk-str{color:var(--c-str)} .tk-num{color:var(--c-num)} .tk-com{color:var(--c-com);font-style:italic}
+
+.note{border-left:4px solid var(--special);background:var(--surface);padding:12px 16px;display:grid;gap:6px;max-width:68ch}
+.note b.k{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.05em;color:var(--special)}
+.note.info{border-left-color:var(--info)} .note.info b.k{color:var(--info)}
+.note.warn{border-left-color:var(--warn)} .note.warn b.k{color:var(--warn)}
+
+/* Baum (Zerlegung) */
+.tree{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:16px;overflow-x:auto}
+.tree ul{list-style:none;margin:0;padding-left:22px;border-left:2px solid var(--nord3)}
+.tree > ul{padding-left:0;border-left:0}
+.tree li{position:relative;padding:4px 0 4px 14px}
+.tree ul ul li::before{content:"";position:absolute;left:0;top:1.05em;width:10px;border-top:2px solid var(--nord3)}
+.tree .node{display:inline-block;padding:2px 10px;border-radius:var(--radius-s);background:var(--bg);border:1px solid var(--surface-2);font-size:.95rem}
+.tree .root{background:var(--p-zer);color:var(--nord0);font-weight:700;border-color:var(--p-zer)}
+.tree .lvl1{border-color:var(--p-zer);font-weight:600}
+.tree .leaf{color:var(--text-muted);font-size:.9rem}
+
+/* Muster-Beispiel */
+.seq{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.seq span{font-family:var(--font-mono);font-size:1.1rem;padding:4px 12px;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius-s);font-variant-numeric:tabular-nums}
+.seq span.q{border-color:var(--p-mus);color:var(--p-mus)}
+.seq i{font-style:normal;font-family:var(--font-mono);font-size:.8rem;color:var(--p-mus)}
+
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+@media (max-width:680px){.pair{grid-template-columns:minmax(0,1fr)}}
+.pair figure{margin:0;min-width:0;display:grid;gap:6px;align-content:start}
+.pair figcaption{font-size:.85rem;color:var(--text-muted);font-family:var(--font-mono)}
+.pair svg{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius-s)}
+
+/* Fallbeispiel */
+.case{display:grid;gap:10px}
+.case .st{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:12px 14px}
+.case .st p{font-size:.95rem}
+
+/* Roboter */
+.robot{display:grid;gap:12px}
+.robot .rgrid{display:grid;gap:3px;width:max-content;max-width:100%;padding:6px;background:var(--bg);border:1px solid var(--surface-2);border-radius:var(--radius-s)}
+.robot .cell{width:clamp(30px,8.5vw,44px);aspect-ratio:1;background:var(--nord1);border-radius:3px;display:grid;place-items:center;position:relative;font-size:1.1rem}
+.robot .cell.wall{background:var(--nord3);background-image:repeating-linear-gradient(45deg,transparent 0 5px,rgba(46,52,64,.45) 5px 7px)}
+.robot .cell.goal::after{content:"★";color:var(--nord13);font-size:1.25rem}
+.robot .cell.trail{background:rgba(136,192,208,.16)}
+.robot .bot{position:absolute;inset:12%;border-radius:50%;background:var(--nord8);color:var(--nord0);display:grid;place-items:center;font-size:.85rem;font-weight:700;transition:transform .2s;z-index:1}
+.robot .bot.crash{background:var(--nord11);color:var(--nord6)}
+.robot .bot.win{background:var(--nord14)}
+.robot .rlay{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:620px){.robot .rlay{grid-template-columns:minmax(0,1fr)}}
+.robot .prog{font-family:var(--font-mono);font-size:.85rem;background:var(--code-bg);border:1px solid var(--code-border);border-radius:var(--radius-s);padding:8px 0;min-height:4em;max-height:280px;overflow:auto}
+.robot .prog div{display:flex;align-items:center;gap:8px;padding:1px 8px;border-left:3px solid transparent}
+.robot .prog div.cur{border-left-color:var(--nord13);background:rgba(235,203,139,.15)}
+.robot .prog .ln{color:var(--nord3);min-width:1.6em;text-align:right;font-variant-numeric:tabular-nums}
+.robot .prog button{margin-left:auto;background:none;border:0;color:var(--nord4);cursor:pointer;font-size:.8rem;padding:0 4px}
+.robot .prog button:hover{color:var(--nord11)}
+.robot .prog .empty{color:var(--text-muted);font-style:italic;font-family:var(--font);padding:4px 10px}
+.robot .cmds{display:flex;flex-wrap:wrap;gap:6px}
+.robot .cmds .btn{font-family:var(--font-mono);font-weight:400}
+.robot .msg{font-size:.92rem;min-height:1.5em}
+.robot .msg.ok{color:var(--nord14)} .robot .msg.no{color:var(--nord11)}
+
+.btn{border:1px solid var(--nord3);background:var(--nord2);padding:7px 14px;border-radius:var(--radius-s);cursor:pointer;font-weight:600;font-size:.92rem}
+.btn:hover{border-color:var(--nord9)}
+.btn.primary{background:var(--nord8);border-color:var(--nord8);color:var(--nord0)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.small{padding:4px 10px;font-size:.82rem}
+
+/* Übungen */
+.ex-group{display:grid;gap:14px;margin-top:32px}
+.ex-group:first-of-type{margin-top:0}
+.ex-group > header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ex-group h3 .k{font-family:var(--font-mono);color:var(--accent);margin-right:6px}
+.ex-count{font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted);font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.cards.wide{grid-template-columns:minmax(0,1fr)}
+.card{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:14px;display:grid;gap:10px;align-content:start;min-width:0;position:relative}
+.card.is-done{border-color:var(--ok)}
+.card .tick{position:absolute;top:10px;right:12px;font-size:.72rem;font-weight:600;color:var(--nord0);background:var(--ok);padding:0 7px;border-radius:2px;font-family:var(--font-mono);display:none}
+.card.is-done .tick{display:inline-block}
+.card .qn{font-family:var(--font-mono);font-size:.75rem;color:var(--text-muted)}
+.card .qt{font-size:.95rem}
+.choices{display:flex;flex-wrap:wrap;gap:6px}
+.choices button{font-size:.88rem;padding:4px 10px;border-radius:var(--radius-s);border:1px solid var(--nord3);background:var(--bg);cursor:pointer;text-align:left}
+.choices button:hover{border-color:var(--nord9)}
+.choices button.right{background:var(--ok);border-color:var(--ok);color:var(--nord0)}
+.choices button.wrong{background:var(--err);border-color:var(--err);color:var(--nord6)}
+.fb{font-size:.9rem;padding:8px 10px;border-left:4px solid var(--surface-2);background:var(--bg)}
+.fb.ok{border-left-color:var(--ok)} .fb.ok b{color:var(--ok)}
+.fb.no{border-left-color:var(--err)} .fb.no b{color:var(--nord11)}
+.fb b{display:block}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.inp{font-family:var(--font-mono);padding:6px 10px;border:1px solid var(--nord3);border-radius:var(--radius-s);background:var(--bg);width:8em}
+.sortlist{display:grid;gap:6px}
+.sortlist .it{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--surface-2);border-radius:var(--radius-s);padding:6px 10px;font-size:.93rem}
+.sortlist .it.r{border-color:var(--ok)} .sortlist .it.w{border-color:var(--err)}
+.sortlist select{font-size:.85rem;padding:3px 6px;background:var(--nord1);border:1px solid var(--nord3);border-radius:var(--radius-s)}
+.orderlist{display:grid;gap:6px;counter-reset:o}
+.orderlist .it{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;background:var(--bg);border:1px solid var(--surface-2);border-radius:var(--radius-s);padding:6px 8px 6px 10px;font-size:.93rem}
+.orderlist .it::before{counter-increment:o;content:counter(o);font-family:var(--font-mono);color:var(--p-alg);font-size:.85rem;min-width:1.2em}
+.orderlist .mv{display:flex;gap:4px}
+.orderlist .mv button{width:30px;height:28px;border:1px solid var(--nord3);background:var(--nord1);border-radius:var(--radius-s);cursor:pointer}
+.orderlist .mv button:disabled{opacity:.3;cursor:default}
+.checks{display:grid;gap:6px}
+.checks label{display:flex;gap:10px;align-items:flex-start;background:var(--bg);border:1px solid var(--surface-2);border-radius:var(--radius-s);padding:6px 10px;font-size:.93rem;cursor:pointer}
+.checks label.r{border-color:var(--ok)} .checks label.w{border-color:var(--err)}
+.checks input{accent-color:var(--nord8);margin-top:.3em}
+textarea{width:100%;font-family:var(--font);font-size:.93rem;line-height:1.5;padding:8px 10px;border:1px solid var(--nord3);border-radius:var(--radius-s);background:var(--bg);resize:vertical;min-height:70px}
+.task{display:grid;gap:10px}
+.task label.f{font-size:.85rem;font-weight:600;display:flex;gap:8px;align-items:center}
+.reset{margin-top:30px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;color:var(--text-muted);font-size:.9rem}
+
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <span class="eyebrow">Informatik · Grundlagen</span>
+    <h1>Computational Thinking</h1>
+    <p class="lead">Bevor man ein Programm schreibt, muss man das Problem verstehen und eine Lösung planen. Computational Thinking ist die Denkweise, mit der Informatikerinnen und Informatiker dabei vorgehen. Sie lernen die vier wichtigsten Denkwerkzeuge kennen und merken schnell, dass Sie diese auch ausserhalb der Informatik brauchen können.</p>
+    <div class="progress" aria-live="polite">
+      <span>Übungen erledigt</span>
+      <div class="bar" aria-hidden="true"><span id="bar"></span></div>
+      <strong id="prog">0 / 0</strong>
+    </div>
+    <nav class="toc" aria-label="Inhalt">
+      <a href="#ueberblick">Überblick</a><a href="#zerlegung">Zerlegung</a><a href="#muster">Mustererkennung</a><a href="#abstraktion">Abstraktion</a><a href="#algorithmen">Algorithmen</a><a href="#fall">Alles zusammen</a><a href="#uebungen">Übungen</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<!-- 1 Überblick -->
+<section class="part" id="ueberblick">
+  <span class="num"># Teil 1</span>
+  <h2>Was ist Computational Thinking?</h2>
+  <div class="prose">
+    <p>Computational Thinking heisst nicht, wie ein Computer zu denken. Es heisst, ein Problem so zu durchdenken, dass am Ende eine Lösung steht, die man Schritt für Schritt ausführen kann, von einem Menschen oder von einer Maschine. Der Begriff wurde 2006 von der Informatikerin Jeannette Wing bekannt gemacht. Sie forderte, dass alle diese Denkweise lernen sollten, nicht nur angehende Programmiererinnen und Programmierer.</p>
+    <p>Dazu gehören vier Werkzeuge. Sie werden selten streng nacheinander eingesetzt, sondern greifen ineinander.</p>
+  </div>
+  <div class="pillars">
+    <a href="#zerlegung" style="--c:var(--p-zer)"><span class="n">01</span><b>Zerlegung</b><span class="d">Ein grosses Problem in kleine, lösbare Teilprobleme aufteilen.</span></a>
+    <a href="#muster" style="--c:var(--p-mus)"><span class="n">02</span><b>Mustererkennung</b><span class="d">Gemeinsamkeiten und Wiederholungen entdecken.</span></a>
+    <a href="#abstraktion" style="--c:var(--p-abs)"><span class="n">03</span><b>Abstraktion</b><span class="d">Wichtiges behalten, unwichtige Details weglassen.</span></a>
+    <a href="#algorithmen" style="--c:var(--p-alg)"><span class="n">04</span><b>Algorithmen</b><span class="d">Eine eindeutige Schritt-für-Schritt-Anleitung erstellen.</span></a>
+  </div>
+</section>
+
+<!-- 2 Zerlegung -->
+<section class="part" id="zerlegung" data-p="z">
+  <span class="num"># Teil 2 · Zerlegung</span>
+  <h2>Zerlegung: das Grosse in Kleines aufteilen</h2>
+  <div class="prose">
+    <p>Ein grosses Problem wirkt oft überwältigend. Bei der <strong>Zerlegung</strong> (englisch <em>decomposition</em>) teilen Sie es in kleinere Teilprobleme auf. Diese zerlegen Sie wieder, bis jedes Stück so klein ist, dass Sie direkt wissen, wie es zu lösen ist. Ein Vorteil: Verschiedene Personen können gleichzeitig an verschiedenen Teilen arbeiten.</p>
+    <p>Beispiel: Ihre Klasse plant eine Schulreise. Als Ganzes ist das eine unübersichtliche Aufgabe. Zerlegt sieht sie so aus:</p>
+  </div>
+  <div class="tree" aria-label="Zerlegung der Aufgabe Schulreise planen">
+    <ul><li><span class="node root">Schulreise planen</span>
+      <ul>
+        <li><span class="node lvl1">Ziel festlegen</span><ul><li><span class="node leaf">Ideen sammeln</span></li><li><span class="node leaf">abstimmen</span></li></ul></li>
+        <li><span class="node lvl1">Anreise</span><ul><li><span class="node leaf">Verbindung suchen</span></li><li><span class="node leaf">Billette für die Gruppe kaufen</span></li></ul></li>
+        <li><span class="node lvl1">Programm vor Ort</span><ul><li><span class="node leaf">Aktivität buchen</span></li><li><span class="node leaf">Schlechtwetter-Variante</span></li></ul></li>
+        <li><span class="node lvl1">Verpflegung</span><ul><li><span class="node leaf">Picknick oder Restaurant?</span></li><li><span class="node leaf">Allergien abfragen</span></li></ul></li>
+      </ul></li></ul>
+  </div>
+  <div class="prose">
+    <p>In der Programmierung kennen Sie das schon: Mit <code>def</code> schreiben Sie für jedes Teilproblem eine eigene Funktion. Das Hauptprogramm ruft diese Funktionen dann nur noch nacheinander auf.</p>
+  </div>
+  <div class="codebox"><pre data-code>def noten_einlesen(): ...
+def durchschnitt_berechnen(): ...
+def zeugnis_ausgeben(): ...
+
+noten_einlesen()
+durchschnitt_berechnen()
+zeugnis_ausgeben()</pre></div>
+</section>
+
+<!-- 3 Mustererkennung -->
+<section class="part" id="muster" data-p="m">
+  <span class="num"># Teil 3 · Mustererkennung</span>
+  <h2>Mustererkennung: Gemeinsamkeiten entdecken</h2>
+  <div class="prose">
+    <p>Bei der <strong>Mustererkennung</strong> suchen Sie nach Dingen, die sich wiederholen oder einander ähneln, innerhalb eines Problems oder zwischen verschiedenen Problemen. Wer ein Muster erkennt, muss eine Lösung nur einmal finden und kann sie danach immer wieder verwenden.</p>
+    <p>Muster stecken in Zahlenfolgen, aber auch im Alltag: Jedes Rezept für einen Kuchen folgt ungefähr dem gleichen Ablauf. Spamfilter erkennen unerwünschte Mails an typischen Wörtern und Absendern. Ärztinnen erkennen eine Krankheit an einem Muster von Symptomen.</p>
+  </div>
+  <div class="seq" aria-label="Zahlenfolge mit Muster">
+    <span>3</span><i>+4</i><span>7</span><i>+4</i><span>11</span><i>+4</i><span>15</span><i>+4</i><span class="q">?</span>
+  </div>
+  <div class="prose">
+    <p>Auch im Code lohnt sich der Blick auf Muster. Wenn Sie mehrmals fast dieselben Zeilen schreiben und sich nur ein Wert ändert, ist das ein klares Signal: Hier gehört eine Funktion mit einem Parameter hin.</p>
+  </div>
+  <div class="pair">
+    <figure><figcaption>Muster: nur der Name ändert sich</figcaption>
+      <div class="codebox"><pre data-code>print("Hallo Mia, willkommen!")
+print("Hallo Ben, willkommen!")
+print("Hallo Lea, willkommen!")</pre></div></figure>
+    <figure><figcaption>das Muster als Funktion</figcaption>
+      <div class="codebox"><pre data-code>def willkommen(name):
+    print("Hallo", name + ", willkommen!")
+
+willkommen("Mia")
+willkommen("Ben")
+willkommen("Lea")</pre></div></figure>
+  </div>
+</section>
+
+<!-- 4 Abstraktion -->
+<section class="part" id="abstraktion" data-p="a">
+  <span class="num"># Teil 4 · Abstraktion</span>
+  <h2>Abstraktion: das Wesentliche herausschälen</h2>
+  <div class="prose">
+    <p>Bei der <strong>Abstraktion</strong> entscheiden Sie, welche Informationen für Ihr Problem wichtig sind, und lassen alles andere bewusst weg. Was wichtig ist, hängt immer von der Frage ab, die Sie beantworten wollen.</p>
+    <p>Das bekannteste Beispiel ist der Netzplan von Tram und Bus. Ein Stadtplan zeigt jede Strasse, jede Kurve und die echten Abstände. Wer nur wissen will, wo er umsteigen muss, braucht das alles nicht. Der Netzplan zeigt deshalb nur die Haltestellen, ihre Reihenfolge und die Linien. Er ist ungenau, aber für diesen Zweck viel besser.</p>
+  </div>
+  <div class="pair">
+    <figure><figcaption>Stadtplan: alle Details</figcaption>
+      <svg viewBox="0 0 300 200" role="img" aria-label="Detaillierter Stadtplan mit vielen Strassen">
+        <rect x="0" y="0" width="300" height="200" fill="#3B4252"/>
+        <g fill="none" stroke="#4C566A" stroke-width="5" stroke-linecap="round">
+          <path d="M10 40 C60 30 90 60 140 50 S220 20 290 45"/><path d="M5 120 C50 110 70 140 120 130 S200 100 295 125"/>
+          <path d="M60 5 C70 60 40 100 65 195"/><path d="M180 5 C170 50 200 90 185 195"/><path d="M240 10 C260 80 230 140 250 195"/>
+          <path d="M110 60 L150 170"/><path d="M20 170 C80 160 140 185 290 165"/><path d="M120 10 L100 90"/>
+        </g>
+        <g fill="#434C5E">
+          <rect x="80" y="70" width="18" height="14"/><rect x="200" y="60" width="22" height="16"/><rect x="130" y="140" width="16" height="12"/>
+          <rect x="20" y="70" width="20" height="18"/><rect x="250" y="80" width="16" height="20"/><rect x="200" y="140" width="24" height="12"/>
+        </g>
+        <g fill="none" stroke-width="3"><path d="M10 40 C60 30 90 60 140 50 S220 20 290 45" stroke="#88C0D0"/><path d="M60 5 C70 60 40 100 65 195" stroke="#B48EAD"/></g>
+        <g fill="#ECEFF4"><circle cx="65" cy="38" r="4"/><circle cx="140" cy="50" r="4"/><circle cx="225" cy="32" r="4"/><circle cx="60" cy="120" r="4"/><circle cx="64" cy="180" r="4"/></g>
+      </svg></figure>
+    <figure><figcaption>Netzplan: nur das Nötige</figcaption>
+      <svg viewBox="0 0 300 200" role="img" aria-label="Vereinfachter Netzplan mit zwei Linien und fünf Haltestellen">
+        <rect x="0" y="0" width="300" height="200" fill="#3B4252"/>
+        <path d="M30 50 H270" stroke="#88C0D0" stroke-width="6"/><path d="M70 20 V180" stroke="#B48EAD" stroke-width="6"/>
+        <g fill="#2E3440" stroke="#ECEFF4" stroke-width="3"><circle cx="70" cy="50" r="8"/><circle cx="160" cy="50" r="6"/><circle cx="250" cy="50" r="6"/><circle cx="70" cy="115" r="6"/><circle cx="70" cy="170" r="6"/></g>
+        <g fill="#ECEFF4" font-family="Open Sans, sans-serif" font-size="12"><text x="82" y="40">Bahnhof</text><text x="140" y="72">Zentrum</text><text x="226" y="72">Spital</text><text x="84" y="119">Schule</text><text x="84" y="174">Stadion</text></g>
+      </svg></figure>
+  </div>
+  <div class="prose">
+    <p>Beim Programmieren abstrahieren Sie ständig. Eine Variable <code>note</code> speichert nur die Zahl, nicht das ganze Prüfungsblatt. Und wenn Sie <code>print()</code> aufrufen, müssen Sie nicht wissen, wie der Computer die Buchstaben auf den Bildschirm zeichnet. Eine gute Funktion versteckt ihre Details hinter einem verständlichen Namen.</p>
+  </div>
+</section>
+
+<!-- 5 Algorithmen -->
+<section class="part" id="algorithmen" data-p="l">
+  <span class="num"># Teil 5 · Algorithmen</span>
+  <h2>Algorithmen: eine eindeutige Anleitung</h2>
+  <div class="prose">
+    <p>Ein <strong>Algorithmus</strong> ist eine Schritt-für-Schritt-Anleitung, die ein Problem löst. Damit ein Computer sie ausführen kann, muss sie drei Bedingungen erfüllen: Jeder Schritt ist <strong>eindeutig</strong>, es gibt also keinen Interpretationsspielraum. Die Schritte haben eine klare <strong>Reihenfolge</strong>. Und die Anleitung ist nach endlich vielen Schritten <strong>fertig</strong>.</p>
+    <p>Menschen verstehen auch ungenaue Anweisungen. Wenn im Rezept «etwas Salz» steht, nehmen Sie eine Prise. Ein Computer dagegen tut genau das, was dasteht, nicht mehr und nicht weniger. Darum ist ein Programm nichts anderes als ein Algorithmus, aufgeschrieben in einer Sprache, die der Computer versteht.</p>
+  </div>
+  <div class="pair">
+    <figure><figcaption>für Menschen: ungenau</figcaption>
+      <div class="codebox"><pre data-code="nocopy">Geh ein Stück geradeaus,
+dann bei der Ecke rechts
+und such den Stern.</pre></div></figure>
+    <figure><figcaption>für einen Roboter: eindeutig</figcaption>
+      <div class="codebox"><pre data-code="nocopy">vorwaerts()
+vorwaerts()
+rechts()
+vorwaerts()</pre></div></figure>
+  </div>
+  <div class="prose">
+    <p>Probieren Sie es aus. Der Roboter versteht genau drei Befehle: <code>vorwaerts()</code> bewegt ihn ein Feld in Blickrichtung, <code>links()</code> und <code>rechts()</code> drehen ihn um eine Vierteldrehung an Ort. Stellen Sie ein Programm zusammen, das ihn auf den Stern bringt, und klicken Sie auf «Ausführen». Weitere Levels finden Sie in den Übungen.</p>
+  </div>
+  <div class="card" id="robotDemo"></div>
+</section>
+
+<!-- 6 Fall -->
+<section class="part" id="fall">
+  <span class="num"># Teil 6</span>
+  <h2>Alles zusammen: ein Notenrechner</h2>
+  <div class="prose">
+    <p>Sie sollen ein Programm schreiben, das für drei Prüfungen den Notendurchschnitt berechnet und meldet, ob er genügend ist. So helfen Ihnen die vier Werkzeuge:</p>
+  </div>
+  <div class="case">
+    <div class="st"><span class="pill pz">Zerlegung</span><p>Das Programm hat drei Teilaufgaben: die Noten bekommen, den Durchschnitt berechnen, das Ergebnis ausgeben und beurteilen.</p></div>
+    <div class="st"><span class="pill pm">Muster</span><p>Jede Note wird gleich behandelt. Und das Prüfen «genügend oder nicht» kennen Sie schon aus der Lektion über if-else.</p></div>
+    <div class="st"><span class="pill pa">Abstraktion</span><p>Für die Rechnung zählen nur die drei Zahlenwerte. Fach, Datum und Thema der Prüfungen lassen Sie weg.</p></div>
+    <div class="st"><span class="pill pl">Algorithmus</span><p>1. Die drei Noten addieren. 2. Die Summe durch 3 teilen. 3. Den Durchschnitt ausgeben. 4. Ist er mindestens 4, «genügend» melden, sonst «ungenügend».</p></div>
+  </div>
+  <div class="codebox"><pre data-code>def notenrechner(n1, n2, n3):
+    schnitt = (n1 + n2 + n3) / 3
+    print("Durchschnitt:", round(schnitt, 2))
+    if schnitt >= 4:
+        print("genügend")
+    else:
+        print("ungenügend")
+
+notenrechner(4.5, 5, 3.5)</pre><div class="out">Durchschnitt: 4.33
+genügend</div></div>
+</section>
+
+<!-- 7 Übungen -->
+<section class="part" id="uebungen">
+  <span class="num"># Teil 7</span>
+  <h2>Übungen</h2>
+  <p class="prose">Ihr Fortschritt wird in diesem Browser gespeichert. Erledigte Aufgaben erhalten ein grünes Häkchen.</p>
+
+  <div class="ex-group"><header><h3><span class="k">A</span>Welches Werkzeug ist das?</h3><span class="ex-count" data-count="a"></span></header>
+    <p class="prose">Ordnen Sie jede Situation dem Denkwerkzeug zu, das darin hauptsächlich verwendet wird.</p>
+    <div class="cards" id="cardsA"></div></div>
+  <div class="ex-group"><header><h3><span class="k">B</span>Zerlegen</h3><span class="ex-count" data-count="b"></span></header>
+    <p class="prose">Ordnen Sie jede Teilaufgabe dem passenden Teilproblem zu und klicken Sie auf «Prüfen».</p>
+    <div class="cards wide" id="cardsB"></div></div>
+  <div class="ex-group"><header><h3><span class="k">C</span>Muster fortsetzen</h3><span class="ex-count" data-count="c"></span></header>
+    <p class="prose">Welcher Wert folgt als Nächstes? Tippen Sie ihn ein.</p>
+    <div class="cards" id="cardsC"></div></div>
+  <div class="ex-group"><header><h3><span class="k">D</span>Abstrahieren</h3><span class="ex-count" data-count="d"></span></header>
+    <p class="prose">Kreuzen Sie nur die Angaben an, die für die genannte Aufgabe wirklich nötig sind.</p>
+    <div class="cards" id="cardsD"></div></div>
+  <div class="ex-group"><header><h3><span class="k">E</span>Algorithmen</h3><span class="ex-count" data-count="e"></span></header>
+    <p class="prose">Bringen Sie zuerst die Schritte in die richtige Reihenfolge. Danach steuern Sie den Roboter durch vier Levels.</p>
+    <div class="cards" id="cardsE1"></div>
+    <div class="cards wide" id="cardsE2"></div></div>
+  <div class="ex-group"><header><h3><span class="k">F</span>Präzise Anweisungen</h3><span class="ex-count" data-count="f"></span></header>
+    <p class="prose">Was ist an dieser Anleitung das Problem, wenn ein Computer sie ausführen soll?</p>
+    <div class="cards" id="cardsF"></div></div>
+  <div class="ex-group"><header><h3><span class="k">G</span>Alles zusammen</h3><span class="ex-count" data-count="g"></span></header>
+    <p class="prose">Wenden Sie die vier Werkzeuge selbst an. Schreiben Sie Ihre Überlegungen in Stichworten auf, vergleichen Sie mit dem Lösungsvorschlag und haken Sie die Aufgabe ab.</p>
+    <div class="cards wide" id="cardsG"></div></div>
+
+  <div class="reset">
+    <button class="btn small" id="resetBtn" type="button">Fortschritt zurücksetzen</button>
+    <span id="resetHint"></span>
+  </div>
+</section>
+
+</div>
+</main>
+
+<script>
+(function(){
+const KEY='pyct-v1';
+let store={done:{},drafts:{},robots:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s){store.done=s.done||{};store.drafts=s.drafts||{};store.robots=s.robots||{};}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function hl(src){
+  const re=/(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b(True|False|None|and|or|not|in|if|else|elif|for|while|def|return)\b|\b([A-Za-z_]\w*)(?=\()/gm;
+  let out='',last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));const t=esc(m[0]);
+    if(m[1])out+='<span class="tk-com">'+t+'</span>';else if(m[2])out+='<span class="tk-str">'+t+'</span>';
+    else if(m[3])out+='<span class="tk-num">'+t+'</span>';else if(m[4])out+='<span class="tk-kw">'+t+'</span>';
+    else out+='<span class="tk-fn">'+t+'</span>';
+    last=m.index+m[0].length;
+  }
+  return out+esc(src.slice(last));
+}
+document.querySelectorAll('pre[data-code]').forEach(pre=>{pre.innerHTML=hl(pre.textContent);});
+
+/* ---------- Fortschritt ---------- */
+const GROUPS={a:0,b:0,c:0,d:0,e:0,f:0,g:0};
+function doneCount(g){return Object.keys(store.done).filter(k=>g?k.startsWith(g+'-'):k.split('-')[0] in GROUPS).length;}
+function total(){return Object.values(GROUPS).reduce((a,b)=>a+b,0);}
+function updateProgress(){
+  const n=doneCount(),t=total();$('prog').textContent=n+' / '+t;$('bar').style.width=(t?n/t*100:0)+'%';
+  for(const g in GROUPS){const el=document.querySelector('[data-count="'+g+'"]');if(el)el.textContent=doneCount(g)+' / '+GROUPS[g]+' erledigt';}
+}
+function markDone(id,val){
+  if(!(id.split('-')[0] in GROUPS))return;
+  if(val)store.done[id]=true;else delete store.done[id];save();
+  const c=document.querySelector('[data-id="'+id+'"]');if(c)c.classList.toggle('is-done',!!val);updateProgress();
+}
+function card(id,label){
+  const g=id.split('-')[0];if(g in GROUPS)GROUPS[g]++;
+  const c=document.createElement('div');c.className='card';c.dataset.id=id;if(store.done[id])c.classList.add('is-done');
+  c.innerHTML='<span class="tick">✓ erledigt</span><span class="qn">'+label+'</span>';return c;
+}
+function para(c,text,cls){const p=document.createElement('p');p.className=cls||'qt';p.innerHTML=text;c.appendChild(p);return p;}
+function fbEl(ok,title,text){const d=document.createElement('div');d.className='fb '+(ok?'ok':'no');d.setAttribute('role','status');d.innerHTML='<b>'+(ok?'✓ ':'✗ ')+title+'</b>'+esc(text);return d;}
+function setFb(c,el){const old=c.querySelector(':scope > .fb');if(old)old.remove();c.appendChild(el);}
+function seeded(arr,seed){const a=arr.map((x,i)=>[x,i]);let s=seed*7919+13;for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* ---------- Roboter ---------- */
+const DIRS=[[0,-1],[1,0],[0,1],[-1,0]];
+const ARROWS=['▲','▶','▼','◀'];
+function parseLevel(rows){
+  const L={w:rows[0].length,h:rows.length,walls:new Set()};
+  rows.forEach((r,y)=>[...r].forEach((ch,x)=>{
+    if(ch==='#')L.walls.add(x+','+y);
+    if(ch==='G')L.goal=[x,y];
+    const d='^>v<'.indexOf(ch);if(d>=0){L.start=[x,y,d];}
+  }));
+  return L;
+}
+const LEVELS=[
+  {name:'Probieren Sie es aus',rows:['..G','...','^..'],hint:'Der Stern liegt rechts oben. Wie oft geradeaus, wann drehen?',best:5},
+  {name:'Level 1: Geradeaus',rows:['G....','.....','.....','^....'],hint:'Drehen ist nicht nötig, wenn das Ziel genau vor dem Roboter liegt.',best:3},
+  {name:'Level 2: Um die Ecke',rows:['....G','.....','.....','.....','^....'],hint:'Zuerst nach oben, dann einmal drehen.',best:9},
+  {name:'Level 3: Hindernisse',rows:['....#G','....#.','..#.#.','..#...','..#...','^.#...'],hint:'Zerlegen Sie den Weg in Abschnitte: hoch, nach rechts, runter, nach rechts, hoch.',best:18},
+  {name:'Level 4: Die Treppe',rows:['####.G','###..#','##..##','#..###','..####','^#####'],hint:'Suchen Sie das Muster. Welche vier Befehle wiederholen sich immer wieder?',best:19}
+];
+function robotWidget(c,levelIdx,id){
+  const LV=LEVELS[levelIdx],L=parseLevel(LV.rows);
+  const key='lv'+levelIdx;
+  let prog=Array.isArray(store.robots[key])?store.robots[key].slice():[];
+  let pos=null,trail=new Set(),running=false,curLine=-1,state='';
+  const w=document.createElement('div');w.className='robot';
+  w.innerHTML='<h3 style="font-size:1.05rem">'+esc(LV.name)+'</h3>'+
+    '<div class="rlay"><div class="rgrid" style="grid-template-columns:repeat('+L.w+',auto)"></div>'+
+    '<div style="display:grid;gap:8px;min-width:0"><div class="cmds"><button class="btn small" data-c="v" type="button">vorwaerts()</button><button class="btn small" data-c="l" type="button">links()</button><button class="btn small" data-c="r" type="button">rechts()</button></div>'+
+    '<div class="prog" aria-label="Programm"></div>'+
+    '<div class="row"><button class="btn small primary" data-a="run" type="button">▶ Ausführen</button><button class="btn small" data-a="undo" type="button">Letzten löschen</button><button class="btn small" data-a="clear" type="button">Alles löschen</button></div></div></div>'+
+    '<p class="msg" aria-live="polite"></p><p style="font-size:.85rem;color:var(--text-muted)">Tipp: '+esc(LV.hint)+' Kürzeste Lösung: '+LV.best+' Befehle.</p>';
+  c.appendChild(w);
+  const grid=w.querySelector('.rgrid'),pr=w.querySelector('.prog'),msg=w.querySelector('.msg');
+  function resetPos(){pos=[L.start[0],L.start[1],L.start[2]];trail=new Set([pos[0]+','+pos[1]]);state='';}
+  function drawGrid(){
+    let h='';
+    for(let y=0;y<L.h;y++)for(let x=0;x<L.w;x++){
+      const k=x+','+y,cls=['cell'];
+      if(L.walls.has(k))cls.push('wall');if(L.goal[0]===x&&L.goal[1]===y)cls.push('goal');if(trail.has(k)&&!L.walls.has(k))cls.push('trail');
+      h+='<div class="'+cls.join(' ')+'">'+(pos[0]===x&&pos[1]===y?'<span class="bot '+state+'">'+ARROWS[pos[2]]+'</span>':'')+'</div>';
+    }
+    grid.innerHTML=h;
+  }
+  const NAMES={v:'vorwaerts()',l:'links()',r:'rechts()'};
+  function drawProg(){
+    if(!prog.length){pr.innerHTML='<div class="empty">Noch leer. Fügen Sie oben Befehle hinzu.</div>';return;}
+    pr.innerHTML=prog.map((p,i)=>'<div class="'+(i===curLine?'cur':'')+'"><span class="ln">'+(i+1)+'</span><span class="tk-fn">'+NAMES[p]+'</span>'+(running?'':'<button type="button" data-del="'+i+'" aria-label="Befehl '+(i+1)+' löschen">✕</button>')+'</div>').join('');
+    const cur=pr.querySelector('.cur');if(cur)cur.scrollIntoView({block:'nearest'});
+  }
+  function persist(){store.robots[key]=prog;save();}
+  function setBusy(b){running=b;w.querySelectorAll('.cmds button,[data-a]').forEach(x=>x.disabled=b);}
+  w.querySelector('.cmds').onclick=e=>{const b=e.target.closest('[data-c]');if(!b||running)return;if(prog.length>=60)return;prog.push(b.dataset.c);persist();resetPos();curLine=-1;msg.textContent='';msg.className='msg';drawGrid();drawProg();};
+  pr.onclick=e=>{const b=e.target.closest('[data-del]');if(!b||running)return;prog.splice(+b.dataset.del,1);persist();drawProg();};
+  w.querySelector('[data-a="undo"]').onclick=()=>{prog.pop();persist();resetPos();curLine=-1;msg.textContent='';drawGrid();drawProg();};
+  w.querySelector('[data-a="clear"]').onclick=()=>{prog=[];persist();resetPos();curLine=-1;msg.textContent='';drawGrid();drawProg();};
+  w.querySelector('[data-a="run"]').onclick=()=>{
+    if(!prog.length){msg.className='msg no';msg.textContent='Das Programm ist noch leer.';return;}
+    resetPos();curLine=-1;msg.textContent='';msg.className='msg';setBusy(true);drawGrid();
+    let i=0;
+    const step=()=>{
+      if(i>=prog.length){
+        const win=pos[0]===L.goal[0]&&pos[1]===L.goal[1];
+        state=win?'win':'';curLine=-1;drawGrid();setBusy(false);drawProg();
+        if(win){msg.className='msg ok';msg.textContent='✓ Geschafft mit '+prog.length+' Befehlen.'+(prog.length<=LV.best?' Das ist die kürzeste Lösung!':'');if(id)markDone(id,true);}
+        else{msg.className='msg no';msg.textContent='✗ Das Programm ist fertig, aber der Roboter steht nicht auf dem Stern.';}
+        return;
+      }
+      curLine=i;const c=prog[i];
+      if(c==='l')pos[2]=(pos[2]+3)%4;else if(c==='r')pos[2]=(pos[2]+1)%4;
+      else{
+        const nx=pos[0]+DIRS[pos[2]][0],ny=pos[1]+DIRS[pos[2]][1];
+        if(nx<0||ny<0||nx>=L.w||ny>=L.h||L.walls.has(nx+','+ny)){
+          state='crash';drawGrid();drawProg();setBusy(false);drawProg();
+          msg.className='msg no';msg.textContent='✗ Befehl '+(i+1)+': Der Roboter stösst an '+(nx<0||ny<0||nx>=L.w||ny>=L.h?'den Rand':'eine Wand')+'. Ein Computer führt genau das aus, was dasteht.';
+          return;
+        }
+        pos[0]=nx;pos[1]=ny;trail.add(nx+','+ny);
+      }
+      drawGrid();drawProg();i++;setTimeout(step,reduce?120:380);
+    };
+    setTimeout(step,reduce?60:250);
+  };
+  resetPos();drawGrid();drawProg();
+}
+robotWidget($('robotDemo'),0,null);
+
+/* ---------- Übungen: Daten ---------- */
+const P=['Zerlegung','Mustererkennung','Abstraktion','Algorithmus'];
+const A=[
+  ['Sie teilen einen Vortrag in Einleitung, drei Hauptteile und Schluss auf und verteilen die Teile in der Gruppe.',0,'Ein grosses Vorhaben wird in Teile aufgeteilt, die man einzeln bearbeiten kann.'],
+  ['Sie merken, dass in allen Matheaufgaben dieses Kapitels die gleiche Formel vorkommt.',1,'Sie erkennen eine Gemeinsamkeit zwischen mehreren Aufgaben.'],
+  ['Für eine Skizze Ihres Schulwegs zeichnen Sie nur die Strassen und die Abzweigungen, keine Häuser und Bäume.',2,'Sie lassen bewusst Details weg, die für den Zweck nicht nötig sind.'],
+  ['Sie schreiben für Ihren Grossvater eine nummerierte Anleitung, wie er ein Foto per Chat verschickt.',3,'Eine eindeutige Schritt-für-Schritt-Anleitung ist ein Algorithmus.'],
+  ['Ein Spamfilter markiert Mails, in denen typische Wörter wie «Gewinn» und «sofort» gehäuft vorkommen.',1,'Der Filter erkennt ein wiederkehrendes Muster in unerwünschten Mails.'],
+  ['In einem Computerspiel wird eine Figur nur als Position, Lebenspunkte und Richtung gespeichert.',2,'Von der ganzen Figur bleiben nur die Angaben übrig, die das Programm braucht.'],
+  ['Sie planen den Bau einer Website und legen fest: Startseite, Galerie, Kontaktformular.',0,'Das Gesamtprojekt wird in Teilprobleme zerlegt.'],
+  ['Ein Navigationsgerät berechnet die Route als Folge von Abbiegeanweisungen.',3,'Eine eindeutige Folge von Schritten, die zum Ziel führt.']
+];
+const B=[
+  {t:'Ein Klassenfest organisieren',cats:['Essen & Trinken','Programm','Organisation'],items:[
+    ['Getränke einkaufen',0],['Musik zusammenstellen',1],['Raum reservieren',2],['Grill ausleihen',0],['Quiz vorbereiten',1],['Einladung verschicken',2],['Allergien abfragen',0],['Spiele für draussen planen',1],['Aufräumteam einteilen',2]]},
+  {t:'Ein einfaches Videospiel entwickeln',cats:['Grafik','Steuerung','Spielregeln'],items:[
+    ['Figur zeichnen',0],['Tastatureingaben auswerten',1],['Punkte zählen',2],['Hintergrund gestalten',0],['Figur springt bei Leertaste',1],['Spielende, wenn Leben auf 0',2],['Farben der Gegner festlegen',0],['Mausklick erkennen',1],['Level wird schneller ab 100 Punkten',2]]}
+];
+const C=[
+  ['2, 4, 6, 8, …','10','Jedes Mal plus 2.'],
+  ['1, 4, 9, 16, …','25','Quadratzahlen: 1·1, 2·2, 3·3, 4·4, also 5·5.'],
+  ['3, 6, 12, 24, …','48','Jedes Mal mal 2.'],
+  ['1, 1, 2, 3, 5, 8, …','13','Jede Zahl ist die Summe der beiden vorherigen (Fibonacci-Folge).'],
+  ['10, 7, 4, 1, …','-2','Jedes Mal minus 3. Die Folge geht unter null weiter.'],
+  ['A, C, E, G, …','I','Jeder zweite Buchstabe des Alphabets wird übersprungen.'],
+  ['1, 2, 4, 7, 11, …','16','Der Abstand wächst jedes Mal um 1: +1, +2, +3, +4, also +5.']
+];
+const D=[
+  {t:'Ein Netzplan für das Tram soll zeigen, wie man von A nach B kommt.',opts:[['Namen der Haltestellen',1],['Reihenfolge der Haltestellen',1],['Wo man umsteigen kann',1],['Genauer Verlauf jeder Kurve',0],['Häuser entlang der Strecke',0],['Exakte Abstände in Metern',0]]},
+  {t:'Ein Programm soll den Durchschnitt Ihrer Mathe-Noten berechnen.',opts:[['Die einzelnen Notenwerte',1],['Die Anzahl der Noten',1],['Das Datum der Prüfungen',0],['Der Raum, in dem geschrieben wurde',0],['Das Thema der Prüfungen',0]]},
+  {t:'Eine App soll entscheiden, ob Sie heute einen Regenschirm brauchen.',opts:[['Regenwahrscheinlichkeit',1],['Zeit, in der Sie unterwegs sind',1],['Name des Wetterdienstes',0],['Mondphase',0],['Farbe Ihrer Jacke',0]]},
+  {t:'Ein Roboter-Staubsauger plant seinen Weg durch die Wohnung.',opts:[['Wo Wände und Möbel stehen',1],['Wo er schon gereinigt hat',1],['Wo seine Ladestation ist',1],['Farbe der Wände',0],['Welche Bilder an der Wand hängen',0]]}
+];
+const E=[
+  {t:'Einen Tee zubereiten',steps:['Wasserkocher mit Wasser füllen','Wasserkocher einschalten','Teebeutel in die Tasse legen','Heisses Wasser in die Tasse giessen','Drei Minuten warten','Teebeutel herausnehmen']},
+  {t:'Eine Nachricht im Klassenchat senden',steps:['Handy entsperren','Chat-App öffnen','Klassenchat auswählen','Nachricht eintippen','Auf «Senden» tippen']},
+  {t:'Das Notenrechner-Programm',steps:['Die drei Noten bekommen','Die Noten addieren','Die Summe durch 3 teilen','Den Durchschnitt ausgeben','Prüfen, ob er mindestens 4 ist','«genügend» oder «ungenügend» melden']}
+];
+const F=[
+  ['«Schütte etwas Mehl in die Schüssel.»',['Die Menge ist nicht eindeutig','Die Reihenfolge fehlt','Die Anleitung endet nie','Es ist keine Abstraktion'],0,'«Etwas» ist ungenau. Ein Algorithmus braucht eine klare Angabe, zum Beispiel 200 g.'],
+  ['«Rühre so lange, bis es gut ist.»',['Es ist unklar, wann aufgehört wird','Es fehlt ein Muster','Zu viele Schritte','Rühren ist kein Schritt'],0,'«Gut» lässt sich nicht prüfen. Besser: «Rühre 2 Minuten» oder «bis keine Klumpen mehr sichtbar sind».'],
+  ['«1. Lies die nächste Zahl. 2. Gehe zu Schritt 1.»',['Die Anleitung endet nie','Die Schritte sind nicht eindeutig','Die Reihenfolge ist falsch','Es ist eine Zerlegung'],0,'Es gibt keine Abbruchbedingung. Ein Algorithmus muss nach endlich vielen Schritten fertig sein.'],
+  ['«Biege links oder rechts ab.»',['Der Schritt lässt eine Wahl offen','Der Schritt ist zu kurz','Die Anleitung endet nie','Es fehlt eine Abstraktion'],0,'Ein Computer kann nicht selbst wählen. Es muss klar sein, wann links und wann rechts, zum Beispiel mit einer if-Bedingung.']
+];
+const G=[
+  {t:'Ein Quiz-Programm planen',d:'Sie sollen ein Programm planen, das fünf Fragen stellt, die Antworten prüft und am Schluss die Punktzahl anzeigt. Notieren Sie zu jedem Denkwerkzeug Ihre Überlegungen.',
+   s:['Teilprobleme: Frage stellen, Antwort einlesen, Antwort prüfen, Punkte zählen, Ergebnis anzeigen.','Jede Frage läuft gleich ab (stellen, einlesen, prüfen). Das Muster lässt sich als Funktion frage(text, loesung) schreiben.','Nötig sind nur Fragetext, richtige Antwort und Punktestand. Design, Hintergrundfarbe oder Name der Lehrperson spielen keine Rolle.','1. punkte = 0. 2. Für jede Frage: Frage ausgeben, Antwort einlesen, bei richtiger Antwort punkte um 1 erhöhen. 3. «Sie haben X von 5 Punkten» ausgeben.']},
+  {t:'Ein Problem aus Ihrem Alltag',d:'Wählen Sie ein Problem aus Ihrem Alltag, zum Beispiel Ihre Woche vor einer Prüfung planen, ein Zimmer umstellen oder einen Kuchen für 20 Personen backen. Wenden Sie alle vier Denkwerkzeuge darauf an.',
+   s:['Beispiel «Prüfungswoche»: Themen sammeln, Lernzeit pro Thema festlegen, Übungsaufgaben lösen, Pausen einplanen.','Jedes Thema wird gleich gelernt: lesen, zusammenfassen, Aufgaben lösen. Bei der letzten Prüfung hat das auch funktioniert.','Wichtig sind Themen, verfügbare Zeit und Prüfungsdatum. Unwichtig ist, in welcher Farbe der Plan geschrieben wird.','Mo: Thema 1 lesen und zusammenfassen. Di: Aufgaben zu Thema 1. Mi: Thema 2 … Am Abend vor der Prüfung nur repetieren, früh schlafen.']}
+];
+
+/* A */
+A.forEach((it,i)=>{
+  const id='a-'+i,c=card(id,'A'+(i+1));para(c,esc(it[0]));
+  const ch=document.createElement('div');ch.className='choices';
+  P.forEach((p,k)=>{const b=document.createElement('button');b.type='button';b.textContent=p;
+    b.onclick=()=>{ch.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));const ok=k===it[1];b.classList.add(ok?'right':'wrong');
+      setFb(c,fbEl(ok,ok?'Richtig.':'Leider nicht.',' '+(ok?it[2]:'Überlegen Sie: Wird etwas aufgeteilt, eine Gemeinsamkeit erkannt, etwas weggelassen oder eine Anleitung erstellt?')));if(ok)markDone(id,true);};
+    ch.appendChild(b);});
+  c.appendChild(ch);$('cardsA').appendChild(c);
+});
+/* B */
+B.forEach((it,i)=>{
+  const id='b-'+i,c=card(id,'B'+(i+1));
+  const h=document.createElement('h3');h.style.fontSize='1.05rem';h.textContent=it.t;c.appendChild(h);
+  const list=document.createElement('div');list.className='sortlist';
+  seeded(it.items,i+3).forEach(([item],k)=>{
+    const row=document.createElement('div');row.className='it';const sid=id+'-s'+k;
+    row.innerHTML='<label for="'+sid+'">'+esc(item[0])+'</label><select id="'+sid+'" data-a="'+item[1]+'"><option value="">wählen …</option>'+it.cats.map((ct,j)=>'<option value="'+j+'">'+esc(ct)+'</option>').join('')+'</select>';
+    list.appendChild(row);
+  });
+  c.appendChild(list);
+  const row=document.createElement('div');row.className='row';const chk=document.createElement('button');chk.type='button';chk.className='btn small primary';chk.textContent='Prüfen';row.appendChild(chk);c.appendChild(row);
+  chk.onclick=()=>{
+    let right=0;const sels=list.querySelectorAll('select');
+    sels.forEach(s=>{const ok=s.value!==''&&+s.value===+s.dataset.a;s.parentElement.classList.toggle('r',ok);s.parentElement.classList.toggle('w',!ok);if(ok)right++;});
+    const ok=right===sels.length;
+    setFb(c,fbEl(ok,ok?'Alles richtig zugeordnet.':right+' von '+sels.length+' richtig.',ok?' So hat jedes Teilproblem seine klar umrissenen Aufgaben.':' Die rot umrandeten Zuordnungen stimmen noch nicht.'));
+    if(ok)markDone(id,true);
+  };
+  $('cardsB').appendChild(c);
+});
+/* C */
+C.forEach((it,i)=>{
+  const id='c-'+i,c=card(id,'C'+(i+1));
+  const seq=document.createElement('div');seq.className='seq';seq.innerHTML=it[0].replace(', …','').split(', ').map(x=>'<span>'+esc(x)+'</span>').join('')+'<span class="q">?</span>';c.appendChild(seq);
+  const row=document.createElement('div');row.className='row';
+  const inp=document.createElement('input');inp.className='inp';inp.id=id+'-in';inp.setAttribute('aria-label','Nächster Wert der Folge '+it[0]);
+  const b=document.createElement('button');b.type='button';b.className='btn small primary';b.textContent='Prüfen';
+  const s=document.createElement('button');s.type='button';s.className='btn small';s.textContent='Lösung zeigen';
+  row.append(inp,b,s);c.appendChild(row);
+  const check=()=>{if(!inp.value.trim())return;const ok=inp.value.trim().toUpperCase().replace('−','-')===it[1];
+    setFb(c,fbEl(ok,ok?'Richtig.':'Noch nicht.',' '+(ok?it[2]:'Schauen Sie, wie sich die Zahl von Schritt zu Schritt verändert.')));if(ok)markDone(id,true);};
+  b.onclick=check;inp.addEventListener('keydown',e=>{if(e.key==='Enter')check();});
+  s.onclick=()=>setFb(c,fbEl(true,'Lösung: '+it[1],' '+it[2]));
+  $('cardsC').appendChild(c);
+});
+/* D */
+D.forEach((it,i)=>{
+  const id='d-'+i,c=card(id,'D'+(i+1));para(c,esc(it.t));
+  const box=document.createElement('div');box.className='checks';
+  seeded(it.opts,i+7).forEach(([o],k)=>{const cid=id+'-k'+k;const l=document.createElement('label');l.htmlFor=cid;
+    l.innerHTML='<input type="checkbox" id="'+cid+'" data-a="'+o[1]+'"><span>'+esc(o[0])+'</span>';box.appendChild(l);});
+  c.appendChild(box);
+  const row=document.createElement('div');row.className='row';const b=document.createElement('button');b.type='button';b.className='btn small primary';b.textContent='Prüfen';row.appendChild(b);c.appendChild(row);
+  b.onclick=()=>{
+    let all=true;box.querySelectorAll('input').forEach(x=>{const ok=x.checked===(x.dataset.a==='1');x.parentElement.classList.toggle('r',ok);x.parentElement.classList.toggle('w',!ok);if(!ok)all=false;});
+    setFb(c,fbEl(all,all?'Richtig abstrahiert.':'Noch nicht ganz.',all?' Genau diese Angaben braucht es, alles andere darf weg.':' Rot umrandet: entweder zu Unrecht angekreuzt oder zu Unrecht weggelassen.'));
+    if(all)markDone(id,true);
+  };
+  $('cardsD').appendChild(c);
+});
+/* E: Reihenfolge */
+E.forEach((it,i)=>{
+  const id='e-'+i,c=card(id,'E'+(i+1));
+  const h=document.createElement('h3');h.style.fontSize='1.05rem';h.textContent=it.t;c.appendChild(h);
+  const ol=document.createElement('div');ol.className='orderlist';c.appendChild(ol);
+  let order=seeded(it.steps,i+20).map(x=>x[1]);
+  if(order.every((v,k)=>v===k))order.reverse();
+  const draw=()=>{ol.innerHTML=order.map((v,k)=>'<div class="it"><span>'+esc(it.steps[v])+'</span><span class="mv"><button type="button" data-u="'+k+'" aria-label="nach oben"'+(k===0?' disabled':'')+'>↑</button><button type="button" data-d="'+k+'" aria-label="nach unten"'+(k===order.length-1?' disabled':'')+'>↓</button></span></div>').join('');};
+  ol.onclick=e=>{const u=e.target.closest('[data-u]'),d=e.target.closest('[data-d]');
+    if(u){const k=+u.dataset.u;[order[k-1],order[k]]=[order[k],order[k-1]];}
+    else if(d){const k=+d.dataset.d;[order[k+1],order[k]]=[order[k],order[k+1]];}else return;draw();
+    const btn=ol.querySelector(u?'[data-u="'+(+u.dataset.u-1)+'"]':'[data-d="'+(+d.dataset.d+1)+'"]');if(btn&&!btn.disabled)btn.focus();};
+  draw();
+  const row=document.createElement('div');row.className='row';const b=document.createElement('button');b.type='button';b.className='btn small primary';b.textContent='Prüfen';row.appendChild(b);c.appendChild(row);
+  b.onclick=()=>{const right=order.filter((v,k)=>v===k).length,ok=right===order.length;
+    setFb(c,fbEl(ok,ok?'Richtige Reihenfolge.':right+' von '+order.length+' Schritten am richtigen Platz.',ok?' Bei einem Algorithmus zählt die Reihenfolge.':' Fragen Sie sich bei jedem Schritt: Was muss vorher schon erledigt sein?'));if(ok)markDone(id,true);};
+  $('cardsE1').appendChild(c);
+});
+/* E: Roboter */
+[1,2,3,4].forEach((lv,k)=>{const id='e-r'+lv,c=card(id,'E'+(E.length+k+1));robotWidget(c,lv,id);$('cardsE2').appendChild(c);});
+/* F */
+F.forEach((it,i)=>{
+  const id='f-'+i,c=card(id,'F'+(i+1));para(c,esc(it[0]));
+  const ch=document.createElement('div');ch.className='choices';
+  seeded(it[1],i+30).forEach(([o,k])=>{const b=document.createElement('button');b.type='button';b.textContent=o;
+    b.onclick=()=>{ch.querySelectorAll('button').forEach(x=>x.classList.remove('right','wrong'));const ok=k===it[2];b.classList.add(ok?'right':'wrong');
+      setFb(c,fbEl(ok,ok?'Richtig.':'Leider nicht.',' '+(ok?it[3]:'Denken Sie an die drei Bedingungen: eindeutig, klare Reihenfolge, endet irgendwann.')));if(ok)markDone(id,true);};
+    ch.appendChild(b);});
+  c.appendChild(ch);$('cardsF').appendChild(c);
+});
+/* G */
+const PILLS=[['pz','Zerlegung'],['pm','Mustererkennung'],['pa','Abstraktion'],['pl','Algorithmus']];
+G.forEach((it,i)=>{
+  const id='g-'+i,c=card(id,'G'+(i+1));
+  const w=document.createElement('div');w.className='task';
+  w.innerHTML='<h3 style="font-size:1.05rem">'+esc(it.t)+'</h3><p>'+esc(it.d)+'</p>';
+  PILLS.forEach((p,k)=>{
+    const fid=id+'-t'+k;const lab=document.createElement('label');lab.className='f';lab.htmlFor=fid;lab.innerHTML='<span class="pill '+p[0]+'">'+p[1]+'</span>';
+    const ta=document.createElement('textarea');ta.id=fid;ta.placeholder='Ihre Überlegungen';ta.value=store.drafts[fid]||'';
+    ta.addEventListener('input',()=>{store.drafts[fid]=ta.value;save();});w.append(lab,ta);
+  });
+  const row=document.createElement('div');row.className='row';
+  const sb=document.createElement('button');sb.type='button';sb.className='btn small';sb.textContent='Lösungsvorschlag zeigen';
+  const db=document.createElement('button');db.type='button';db.className='btn small primary';db.dataset.done='1';
+  const lab=()=>db.textContent=store.done[id]?'Als offen markieren':'Erledigt';lab();
+  let sol=null;
+  sb.onclick=()=>{
+    if(sol){sol.remove();sol=null;sb.textContent='Lösungsvorschlag zeigen';return;}
+    sol=document.createElement('div');sol.className='case';
+    sol.innerHTML=it.s.map((t,k)=>'<div class="st"><span class="pill '+PILLS[k][0]+'">'+PILLS[k][1]+'</span><p>'+esc(t)+'</p></div>').join('')+'<p style="font-size:.88rem;color:var(--text-muted)">Ihre Antworten dürfen anders aussehen. Wichtig ist, dass jedes Werkzeug sinnvoll angewendet wird.</p>';
+    w.appendChild(sol);sb.textContent='Lösungsvorschlag ausblenden';
+  };
+  db.onclick=()=>{markDone(id,!store.done[id]);lab();};
+  row.append(sb,db);w.appendChild(row);c.appendChild(w);$('cardsG').appendChild(c);
+});
+
+let armed=false,armT=null;
+$('resetBtn').onclick=()=>{
+  if(!armed){armed=true;$('resetBtn').textContent='Wirklich alles zurücksetzen?';$('resetHint').textContent='Zum Bestätigen nochmals klicken.';
+    armT=setTimeout(()=>{armed=false;$('resetBtn').textContent='Fortschritt zurücksetzen';$('resetHint').textContent='';},4000);return;}
+  clearTimeout(armT);armed=false;store={done:{},drafts:{},robots:{}};save();
+  $('resetHint').textContent='Zurückgesetzt. Die Seite wird neu aufgebaut …';
+  setTimeout(()=>location.reload(),400);
+};
+updateProgress();
+})();
+</script>
+
+</body></html>
