@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<!-- Entscheidungen:
+Einsatztyp: Lernmaterial Informatik, Zielgruppe Schüler:innen, Gerät gemischt (Desktop und Handy), Sie-Form, Schweizer Rechtschreibung.
+Inhalt: 7 Kapitel (print, Variablen, input, if/else, elif, repeat, def) mit je einer kurzen Einführung und 100 Übungen. Ohne f-Strings, ohne int()/str()/float() und ohne type().
+Übungsformat: gemischt. Ausgabe vorhersagen (automatisch geprüft), Lücken füllen (automatisch geprüft), Auswahl (automatisch geprüft), Programmieraufgaben (Lösung einblendbar, selbst als erledigt markieren).
+Datenhaltung: Fortschritt pro Browser (localStorage, nur Komfort).
+Design: nur dunkles Nord-Design ohne Umschalter (Wunsch von Patrick), Open Sans + Google Sans Code, Syntaxhervorhebung in Nord-Farben, Kopierknopf.
+Navigation: Kapitel über Hash (#print, #variablen, #input, #if, #elif, #repeat, #def).
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interaktiver Einführungskurs in TigerPython mit 100 Übungen zu print, Variablen, input, if/else, elif, repeat und def.">
+<title>TigerPython Grundkurs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: Kapitelleiste links (sticky), rechts Theorie und Übungskarten; auf dem Handy wird die Leiste zur waagrechten Kapitelzeile */
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--muted:var(--nord4);--accent:var(--nord8);
+  --ok:var(--nord14);--warn:var(--nord13);--bad:var(--nord11);--special:var(--nord15);
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--bg)}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+code,pre,kbd,textarea.mono,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 64px}
+
+/* Kopf */
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px 32px;padding-bottom:22px;border-bottom:1px solid var(--surface-2);margin-bottom:28px}
+.brand .eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.08em;color:var(--nord7);text-transform:uppercase}
+.brand .eyebrow a.back{color:var(--nord7);text-decoration:none}.brand .eyebrow a.back:hover{text-decoration:underline}
+.brand h1{margin:2px 0 4px;font-size:clamp(28px,4vw,40px);font-weight:700;line-height:1.15;text-wrap:balance}
+.brand h1 span{font-family:var(--mono);font-weight:600;color:var(--accent)}
+.brand p{margin:0;color:var(--muted);max-width:62ch}
+.overall{min-width:240px;flex:0 1 300px}
+.overall .lbl{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:6px;font-variant-numeric:tabular-nums}
+.bar{height:8px;background:var(--surface-2);border-radius:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:36px;align-items:start}
+nav.chapters{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px)}
+nav.chapters ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+nav.chapters a{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;text-decoration:none;color:var(--muted);border:1px solid transparent}
+nav.chapters a:hover{background:var(--surface);color:var(--text)}
+nav.chapters a[aria-current="page"]{background:var(--surface);color:var(--text);border-color:var(--surface-2)}
+nav.chapters .num{font-family:var(--mono);font-size:13px;color:var(--nord9)}
+nav.chapters a[aria-current="page"] .num{color:var(--accent)}
+nav.chapters .name{font-weight:600;font-size:15px;line-height:1.3}
+nav.chapters .cnt{font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums}
+nav.chapters .mini{grid-column:2 / 4;height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden}
+nav.chapters .mini i{display:block;height:100%;background:var(--ok)}
+.side-tools{margin-top:20px;padding-top:16px;border-top:1px solid var(--surface-2);display:flex;flex-direction:column;gap:10px;font-size:14px;color:var(--muted)}
+.toggle{display:flex;align-items:center;gap:8px;cursor:pointer}
+.toggle input{accent-color:var(--nord8);width:16px;height:16px}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;text-align:left;font-size:14px}
+.linkbtn:hover{color:var(--text)}
+.confirm{background:var(--surface);border:1px solid var(--bad);border-radius:8px;padding:10px 12px;font-size:14px}
+.confirm .row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+
+/* Hauptbereich */
+main{min-width:0}
+.ch-head .eyebrow{font-family:var(--mono);font-size:13px;color:var(--nord7);letter-spacing:.06em;text-transform:uppercase}
+.ch-head h2{font-size:clamp(26px,3.4vw,34px);margin:4px 0 12px;line-height:1.2;text-wrap:balance}
+.theory{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:22px clamp(16px,3vw,28px);margin-bottom:36px;display:flex;flex-direction:column;gap:14px}
+.theory p{margin:0;max-width:70ch}
+.theory h3{margin:0;font-size:15px;font-family:var(--mono);font-weight:600;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.merke{border-left:3px solid var(--special);background:rgba(180,142,173,.10);padding:12px 16px;border-radius:0 8px 8px 0}
+.merke strong{color:var(--special)}
+p code,li code,.merke code,td code,.q code{font-size:.9em;background:var(--nord0);padding:1px 5px;border-radius:4px;border:1px solid var(--surface-2)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;font-size:15px;min-width:420px}
+th,td{text-align:left;padding:6px 14px 6px 0;border-bottom:1px solid var(--surface-2)}
+th{font-weight:600;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.05em}
+td.m{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* Codeblöcke */
+.codebox{position:relative;background:var(--nord0);border:1px solid var(--surface-2);border-radius:10px;overflow:hidden;min-width:0}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;font-size:.9em;line-height:1.5;tab-size:4}
+.codebox .copy{position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--surface-2);border-radius:6px;font-family:var(--mono);font-size:12px;padding:3px 9px;color:var(--muted);cursor:pointer}
+.codebox .copy:hover{color:var(--text);border-color:var(--nord3)}
+.io{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px}
+.outbox{background:var(--nord0);border:1px dashed var(--nord3);border-radius:10px;padding:10px 16px;min-width:0}
+.outbox .t,.label{font-family:var(--mono);font-size:12px;color:var(--nord7);text-transform:uppercase;letter-spacing:.06em}
+.outbox pre{margin:4px 0 0;font-size:.9em;line-height:1.5;overflow-x:auto;color:var(--nord5)}
+.kw{color:var(--nord9);font-weight:600}.st{color:var(--nord14)}.nu{color:var(--nord15)}.fn{color:var(--nord8)}
+.cm{color:var(--nord4);opacity:.6;font-style:italic}
+
+/* Übungen */
+.ex-intro{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.ex-intro h3{margin:0;font-size:22px}
+.ex-intro span{font-family:var(--mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.exlist{display:flex;flex-direction:column;gap:16px}
+.ex{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:16px clamp(14px,2.6vw,22px) 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.ex.done{border-color:rgba(163,190,140,.45)}
+.ex-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ex-no{font-family:var(--mono);font-weight:600;font-size:14px;color:var(--text);background:var(--nord0);border:1px solid var(--surface-2);border-radius:6px;padding:2px 8px;font-variant-numeric:tabular-nums}
+.tag{font-family:var(--mono);font-size:12px;display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+.tag::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--c)}
+.status{margin-left:auto;font-family:var(--mono);font-size:12px;padding:2px 9px;border-radius:999px;border:1px solid var(--surface-2);color:var(--muted)}
+.ex.done .status{background:var(--ok);border-color:var(--ok);color:var(--nord0);font-weight:600}
+.q{margin:0;max-width:70ch}
+.inputs{font-family:var(--mono);font-size:13px;color:var(--nord0);background:var(--nord13);border-radius:6px;padding:2px 9px;align-self:flex-start}
+textarea.answer{width:100%;min-height:3.2em;resize:vertical;background:var(--nord0);border:1px solid var(--nord3);border-radius:8px;padding:10px 14px;font-size:.9em;line-height:1.5;color:var(--nord6)}
+textarea.answer:focus{border-color:var(--accent);outline:none}
+.actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--nord3);background:var(--nord2);border-radius:8px;padding:7px 14px;font-size:15px;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--nord9)}
+.btn.primary{background:var(--nord10);border-color:var(--nord10);color:var(--nord6)}
+.btn.primary:hover{background:var(--nord9);border-color:var(--nord9);color:var(--nord0)}
+.btn.ghost{background:transparent}
+.fb{font-size:15px;padding:9px 14px;border-radius:8px;border:1px solid}
+.fb.good{border-color:var(--ok);background:rgba(163,190,140,.12)}
+.fb.good b{color:var(--ok)}
+.fb.badfb{border-color:var(--bad);background:rgba(191,97,106,.14)}
+.fb.badfb b{color:#e3a2a8}
+.fb.info{border-color:var(--nord3);background:var(--nord0)}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--nord0);border:1px solid var(--surface-2);border-radius:8px;padding:9px 12px;cursor:pointer;font-size:15px}
+.opt:hover{border-color:var(--nord9)}
+.opt .k{font-family:var(--mono);color:var(--nord9);font-weight:600}
+.opt.right{border-color:var(--ok);background:rgba(163,190,140,.12)}
+.opt.wrong{border-color:var(--bad);background:rgba(191,97,106,.12);opacity:.85}
+.opt code{font-family:var(--mono);font-size:.9em}
+input.gap{font-family:var(--mono);font-size:1em;background:var(--nord2);border:1px solid var(--nord9);border-radius:4px;padding:0 4px;color:var(--nord6);min-width:3ch;text-align:center}
+input.gap.ok{border-color:var(--ok);background:rgba(163,190,140,.18)}
+input.gap.no{border-color:var(--bad);background:rgba(191,97,106,.18)}
+.solution{display:flex;flex-direction:column;gap:8px}
+.chk{display:flex;align-items:center;gap:8px;font-size:15px;cursor:pointer}
+.chk input{accent-color:var(--nord14);width:18px;height:18px}
+.hint{font-size:15px;color:var(--muted)}
+.hint b{color:var(--nord13)}
+.next{margin-top:32px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.next a{display:inline-flex;flex-direction:column;padding:12px 18px;border:1px solid var(--surface-2);border-radius:10px;background:var(--surface);text-decoration:none;color:var(--text);min-width:0}
+.next a small{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.next a:hover{border-color:var(--nord9)}
+.empty{color:var(--muted);padding:20px;border:1px dashed var(--nord3);border-radius:12px}
+
+@media (max-width:860px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:20px}
+  nav.chapters{position:static}
+  nav.chapters ol{flex-direction:row;overflow-x:auto;padding-bottom:6px}
+  nav.chapters li{flex:0 0 auto}
+  nav.chapters a{grid-template-columns:auto auto auto}
+  nav.chapters .mini{display:none}
+  .side-tools{flex-direction:row;flex-wrap:wrap;gap:12px 20px;margin-top:10px;padding-top:10px}
+  .io{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow"><a href="index.html" class="back">← Übersicht</a> · Informatik · Einführung</div>
+      <h1>Programmieren mit <span>TigerPython</span></h1>
+      <p>Sieben Kapitel, 100 Übungen. Lesen Sie zuerst die kurze Einführung, lösen Sie dann die Übungen. Programmieraufgaben testen Sie in <a href="https://webtigerpython.ethz.ch/" target="_blank" rel="noopener">WebTigerPython</a>.</p>
+    </div>
+    <div class="overall" aria-live="polite">
+      <div class="lbl"><span>Gesamtfortschritt</span><span id="ovtxt">0 / 100</span></div>
+      <div class="bar"><i id="ovbar"></i></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="chapters" aria-label="Kapitel">
+      <ol id="navlist"></ol>
+      <div class="side-tools">
+        <label class="toggle"><input type="checkbox" id="onlyOpen"> Nur offene Übungen</label>
+        <div id="resetArea"><button class="linkbtn" id="resetBtn" type="button">Fortschritt zurücksetzen</button></div>
+      </div>
+    </nav>
+    <main id="main"></main>
+  </div>
+</div>
+
+<script>
+/* ---------- Kursinhalt ---------- */
+const CH = [
+{ id:"print", title:"Ausgabe mit print", short:"print",
+  theory:[
+    ["p","Mit <code>print()</code> gibt ein Programm etwas auf dem Bildschirm aus. Text steht in Anführungszeichen, Zahlen und Rechnungen schreiben Sie ohne Anführungszeichen. Rechnungen werden zuerst ausgerechnet."],
+    ["code",'print("Hallo Welt")\nprint(12 + 30)\nprint("12 + 30")',"Hallo Welt\n42\n12 + 30"],
+    ["p","Mehrere Werte trennen Sie mit einem Komma. Python setzt dann automatisch ein Leerzeichen dazwischen. So lassen sich Text und Zahlen in einer Zeile mischen."],
+    ["code",'print("Ich bin", 16, "Jahre alt")',"Ich bin 16 Jahre alt"],
+    ["p","Texte lassen sich mit <code>+</code> aneinanderhängen (ohne Leerzeichen) und mit <code>*</code> wiederholen. Ein leeres <code>print()</code> erzeugt eine Leerzeile. Alles nach <code>#</code> ist ein Kommentar und wird nicht ausgeführt."],
+    ["code",'print("Pyth" + "on")\nprint("=" * 10)\nprint()\n# Dieser Kommentar wird ignoriert\nprint("Ende")',"Python\n==========\n\nEnde"],
+    ["merke","Jeder <code>print</code>-Befehl beginnt eine neue Zeile. Text und Zahl lassen sich nicht mit <code>+</code> verbinden: <code>print(\"Alter: \" + 16)</code> ergibt einen Fehler. Verwenden Sie stattdessen das Komma: <code>print(\"Alter:\", 16)</code>."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print("Hallo Welt")',out:"Hallo Welt",why:"Der Text in Anführungszeichen wird genau so ausgegeben, ohne die Anführungszeichen."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print(3 + 4)\nprint("3 + 4")',out:"7\n3 + 4",why:"Ohne Anführungszeichen wird gerechnet, mit Anführungszeichen ist es nur Text."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print("Ich bin", 16, "Jahre alt")',out:"Ich bin 16 Jahre alt",why:"Das Komma trennt die Werte und fügt jeweils ein Leerzeichen ein."},
+    {t:"mc",q:"Welche Zeile erzeugt eine Fehlermeldung?",opts:['<code>print("Guten Morgen")</code>','<code>print(Guten Morgen)</code>',"<code>print('Guten Morgen')</code>",'<code>print("Guten", "Morgen")</code>'],ok:1,why:"Ohne Anführungszeichen hält Python <code>Guten</code> und <code>Morgen</code> für Namen von Variablen, die es nicht gibt. Einfache und doppelte Anführungszeichen sind beide erlaubt."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print("Ha" * 3)',out:"HaHaHa",why:"Ein Text mal eine Zahl wiederholt den Text."},
+    {t:"vor",q:"Achten Sie auf die Leerzeichen. Was wird ausgegeben?",code:'print("Zürich" + "see")\nprint("Zürich", "see")',out:"Zürichsee\nZürich see",why:"<code>+</code> hängt direkt aneinander, das Komma setzt ein Leerzeichen dazwischen."},
+    {t:"lue",q:"Ergänzen Sie die Lücke, sodass <code>Informatik macht Spass</code> ausgegeben wird.",code:'__("Informatik macht Spass")',gaps:[["print"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus? (Leerzeilen zählen mit.)",code:'print("A")\nprint()\nprint("B")',out:"A\n\nB",why:"Ein leeres <code>print()</code> gibt eine leere Zeile aus."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print(2 * 3 + 1)\nprint(2 * (3 + 1))',out:"7\n8",why:"Punkt vor Strich, Klammern zuerst: 6 + 1 = 7 und 2 · 4 = 8."},
+    {t:"mc",q:'Was gibt <code>print("10" + "5")</code> aus?',opts:["15","105","10 5","Eine Fehlermeldung"],ok:1,why:"\"10\" und \"5\" sind Texte. <code>+</code> hängt Texte aneinander, es wird nicht gerechnet."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'# Das ist ein Kommentar\nprint("Sichtbar")\n# print("Unsichtbar")',out:"Sichtbar",why:"Zeilen, die mit <code>#</code> beginnen, werden nicht ausgeführt."},
+    {t:"code",q:"Schreiben Sie ein Programm, das Ihre Visitenkarte in drei Zeilen ausgibt: Name, Schule und Lieblingsfach.",sol:'print("Name: Lea Muster")\nprint("Schule: KZU Bülach")\nprint("Lieblingsfach: Informatik")'},
+    {t:"code",q:"Geben Sie mit einem einzigen <code>print</code>-Befehl eine Linie aus 30 Bindestrichen aus. Tippen Sie die Bindestriche nicht einzeln ein.",hint:"Texte lassen sich mit <code>*</code> wiederholen.",sol:'print("-" * 30)'},
+    {t:"code",q:"Geben Sie dieses Dreieck aus. Verwenden Sie in jeder Zeile <code>*</code> zum Wiederholen.<br><code>*</code> / <code>**</code> / <code>***</code> / <code>****</code> (jeweils auf einer eigenen Zeile)",sol:'print("*" * 1)\nprint("*" * 2)\nprint("*" * 3)\nprint("*" * 4)'}
+  ]},
+{ id:"variablen", title:"Variablen und Rechnen", short:"Variablen",
+  theory:[
+    ["p","Eine Variable ist ein Name für einen gespeicherten Wert. Mit <code>=</code> wird ein Wert zugewiesen: Rechts steht der Wert, links der Name. Beim Ausgeben schreiben Sie den Namen ohne Anführungszeichen."],
+    ["code",'alter = 16\nname = "Lea"\nprint(name, "ist", alter)',"Lea ist 16"],
+    ["p","Eine Variable kann jederzeit einen neuen Wert erhalten, der alte Wert ist dann weg. Rechts vom <code>=</code> darf die Variable selbst vorkommen: Zuerst wird rechts gerechnet, dann links gespeichert."],
+    ["code",'punkte = 10\npunkte = punkte + 5\nprint(punkte)',"15"],
+    ["table",["Operator","Bedeutung","Beispiel","Ergebnis"],[["+","Addition","7 + 2","9"],["-","Subtraktion","7 - 2","5"],["*","Multiplikation","7 * 2","14"],["/","Division","7 / 2","3.5"],["//","Ganzzahldivision","7 // 2","3"],["%","Rest (Modulo)","7 % 2","1"],["**","Potenz","7 ** 2","49"]]],
+    ["merke","Variablennamen bestehen aus Buchstaben, Ziffern und <code>_</code>, beginnen nicht mit einer Ziffer und enthalten keine Leerzeichen und keine Umlaute. Gross- und Kleinschreibung zählt: <code>Alter</code> und <code>alter</code> sind zwei verschiedene Variablen."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'alter = 16\nprint(alter)\nprint("alter")',out:"16\nalter",why:"Ohne Anführungszeichen wird der Wert der Variablen ausgegeben, mit Anführungszeichen das Wort selbst."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'a = 5\nb = 3\nprint(a + b)\nprint(a * b)',out:"8\n15"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'x = 10\nx = 4\nprint(x)',out:"4",why:"Die zweite Zuweisung überschreibt den ersten Wert."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'zahl = 7\nzahl = zahl + 1\nprint(zahl)',out:"8",why:"Rechts wird 7 + 1 gerechnet, das Ergebnis wird wieder in <code>zahl</code> gespeichert."},
+    {t:"mc",q:"Welcher Variablenname ist gültig?",opts:["<code>2zahl</code>","<code>meine zahl</code>","<code>meine_zahl</code>","<code>mein-name</code>"],ok:2,why:"Namen dürfen nicht mit einer Ziffer beginnen, keine Leerzeichen und keinen Bindestrich enthalten (der Bindestrich wäre ein Minus)."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print(17 // 5)\nprint(17 % 5)',out:"3\n2",why:"17 geteilt durch 5 ergibt 3, Rest 2."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'name = "Mia"\nprint("Hallo", name)',out:"Hallo Mia"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'a = 3\nb = a\na = 10\nprint(a, b)',out:"10 3",why:"<code>b = a</code> kopiert den Wert 3. Spätere Änderungen an <code>a</code> ändern <code>b</code> nicht."},
+    {t:"lue",q:"Der Preis soll verdoppelt werden. Ergänzen Sie den Operator, sodass <code>24</code> ausgegeben wird.",code:'preis = 12\npreis = preis __ 2\nprint(preis)',gaps:[["*"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'wort = "Tic"\nprint(wort * 2 + "Tac")',out:"TicTicTac",why:"Zuerst wird wiederholt (TicTic), dann wird \"Tac\" angehängt."},
+    {t:"mc",q:"Was passiert bei diesem Programm?",code:'x = 5\nprint(X)',opts:["Es wird 5 ausgegeben.","Es wird X ausgegeben.","Es gibt eine Fehlermeldung, weil X nicht definiert ist.","Es wird x ausgegeben."],ok:2,why:"Gross- und Kleinschreibung zählt. Die Variable heisst <code>x</code>, nicht <code>X</code>."},
+    {t:"vor",q:"Hier sollten zwei Werte getauscht werden. Was wird tatsächlich ausgegeben?",code:'a = 4\nb = 6\na = b\nb = a\nprint(a, b)',out:"6 6",why:"Nach <code>a = b</code> ist der Wert 4 verloren. Zum Tauschen braucht es eine Hilfsvariable."},
+    {t:"code",q:"Ein Rechteck hat die Länge 8 und die Breite 5. Speichern Sie beide Werte in Variablen und geben Sie Fläche und Umfang aus:<br><code>Fläche: 40</code><br><code>Umfang: 26</code>",sol:'laenge = 8\nbreite = 5\nprint("Fläche:", laenge * breite)\nprint("Umfang:", 2 * (laenge + breite))'},
+    {t:"code",q:"Vertauschen Sie die Werte von <code>a = 1</code> und <code>b = 2</code> mit einer Hilfsvariablen. Am Schluss soll <code>2 1</code> ausgegeben werden.",sol:'a = 1\nb = 2\nhilf = a\na = b\nb = hilf\nprint(a, b)'},
+    {t:"code",q:"Speichern Sie <code>sekunden = 200</code>. Geben Sie mit <code>//</code> und <code>%</code> aus: <code>3 Minuten und 20 Sekunden</code>",hint:"Eine Minute hat 60 Sekunden. <code>//</code> liefert die ganzen Minuten, <code>%</code> den Rest.",sol:'sekunden = 200\nprint(sekunden // 60, "Minuten und", sekunden % 60, "Sekunden")'}
+  ]},
+{ id:"input", title:"Eingaben mit input", short:"input",
+  theory:[
+    ["p","Mit <code>input()</code> fragt das Programm nach einer Eingabe. Der Text in der Klammer wird als Frage angezeigt. Die Eingabe speichern Sie in einer Variablen."],
+    ["code",'name = input("Wie heissen Sie?")\nprint("Hallo", name)',"Hallo Lea","Lea"],
+    ["p","In TigerPython erkennt <code>input()</code> Zahlen automatisch: Geben Sie 7 ein, erhalten Sie die Zahl 7 und können direkt damit rechnen. Geben Sie Text ein, erhalten Sie Text."],
+    ["code",'zahl = input("Geben Sie eine Zahl ein:")\nprint("Das Doppelte ist", zahl * 2)',"Das Doppelte ist 14","7"],
+    ["merke","Ohne Variable geht die Eingabe verloren. Schreiben Sie deshalb immer <code>variable = input(\"Frage\")</code>."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"Noah",code:'name = input("Wie heissen Sie?")\nprint("Hallo", name)',out:"Hallo Noah"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"7",code:'zahl = input("Zahl?")\nprint(zahl * 2)',out:"14",why:"TigerPython liefert bei der Eingabe 7 die Zahl 7, also wird gerechnet."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"4, dann 5",code:'a = input("a?")\nb = input("b?")\nprint(a + b)',out:"9"},
+    {t:"mc",q:'Wozu dient der Text in <code>input("Wie alt sind Sie?")</code>?',opts:["Er wird als Antwort gespeichert.","Er wird als Frage angezeigt.","Er legt fest, ob eine Zahl erwartet wird.","Er ist ein Kommentar und wird ignoriert."],ok:1},
+    {t:"lue",q:"Das Programm soll nach dem Alter fragen und das Alter im nächsten Jahr ausgeben. Füllen Sie die Lücken.",code:'alter = __("Wie alt sind Sie?")\nprint("Nächstes Jahr sind Sie", alter __ 1)',gaps:[["input"],["+"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"3",code:'n = input("n?")\nprint("*" * n)',out:"***"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"Bern",code:'ort = input("Ort?")\nprint(ort + "er Bär")',out:"Berner Bär"},
+    {t:"mc",q:"Was passiert bei dieser Zeile?",code:'input("Zahl?")',opts:["Die Eingabe wird angefordert, geht danach aber verloren.","Es gibt eine Fehlermeldung.","Die Eingabe wird in einer Variablen Zahl gespeichert.","Die Eingabe wird automatisch ausgegeben."],ok:0,why:"Ohne <code>variable = </code> wird die Eingabe nirgends gespeichert."},
+    {t:"code",q:"Fragen Sie nach Vorname und Nachname und geben Sie dann zum Beispiel aus: <code>Willkommen, Lea Muster</code>",sol:'vorname = input("Vorname?")\nnachname = input("Nachname?")\nprint("Willkommen,", vorname, nachname)'},
+    {t:"code",q:"Mini-Rechner: Lesen Sie zwei Zahlen ein und geben Sie Summe, Differenz und Produkt aus, jeweils mit Beschriftung.",sol:'a = input("Erste Zahl?")\nb = input("Zweite Zahl?")\nprint("Summe:", a + b)\nprint("Differenz:", a - b)\nprint("Produkt:", a * b)'},
+    {t:"code",q:"Lesen Sie einen Betrag in Franken ein und rechnen Sie ihn in Euro um. Speichern Sie den Kurs in einer Variablen <code>kurs = 0.95</code>.",sol:'kurs = 0.95\nfranken = input("Betrag in Franken?")\nprint(franken, "Franken sind", franken * kurs, "Euro")'},
+    {t:"code",q:"Fragen Sie nach dem Alter in Jahren und geben Sie ungefähr das Alter in Tagen aus (365 Tage pro Jahr).",sol:'alter = input("Wie alt sind Sie?")\nprint("Sie sind etwa", alter * 365, "Tage alt.")'}
+  ]},
+{ id:"if", title:"Entscheidungen mit if und else", short:"if / else",
+  theory:[
+    ["p","Mit <code>if</code> führt ein Programm einen Block nur aus, wenn eine Bedingung wahr ist. Mit <code>else</code> legen Sie fest, was sonst geschehen soll."],
+    ["code",'temperatur = 28\nif temperatur > 25:\n    print("Ab in die Badi!")\nelse:\n    print("Lieber ins Museum.")\nprint("Schönen Tag!")',"Ab in die Badi!\nSchönen Tag!"],
+    ["p","Nach der Bedingung und nach <code>else</code> steht ein Doppelpunkt. Alle Zeilen, die zum Block gehören, sind eingerückt (4 Leerzeichen oder Tab). Die erste nicht eingerückte Zeile wird wieder in jedem Fall ausgeführt."],
+    ["table",["Vergleich","Bedeutung","Beispiel","Ergebnis"],[["==","gleich","4 == 4","True"],["!=","ungleich","4 != 4","False"],["<","kleiner","3 < 5","True"],[">","grösser","3 > 5","False"],["<=","kleiner oder gleich","5 <= 5","True"],[">=","grösser oder gleich","4 >= 5","False"]]],
+    ["merke","<code>=</code> weist einen Wert zu, <code>==</code> vergleicht. <code>if x = 5:</code> ist ein Fehler, richtig ist <code>if x == 5:</code>. Ob eine Zahl gerade ist, prüfen Sie mit dem Rest: <code>zahl % 2 == 0</code>."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'x = 8\nif x > 5:\n    print("gross")\nprint("fertig")',out:"gross\nfertig"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'x = 3\nif x > 5:\n    print("gross")\nprint("fertig")',out:"fertig",why:"Die Bedingung ist falsch, der eingerückte Block wird übersprungen. <code>print(\"fertig\")</code> ist nicht eingerückt und läuft immer."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'print(4 == 4)\nprint(4 != 4)\nprint(3 >= 5)',out:"True\nFalse\nFalse",why:"Ein Vergleich liefert <code>True</code> (wahr) oder <code>False</code> (falsch)."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'alter = 15\nif alter >= 16:\n    print("Eintritt erlaubt")\nelse:\n    print("Eintritt nur in Begleitung")',out:"Eintritt nur in Begleitung"},
+    {t:"mc",q:"Was ist an dieser Zeile falsch?",code:'if x = 5:',opts:["Der Doppelpunkt fehlt.","Für den Vergleich braucht es <code>==</code> statt <code>=</code>.","Die Zeile muss eingerückt sein.","Nichts, die Zeile ist korrekt."],ok:1},
+    {t:"mc",q:"Warum funktioniert dieses Programm nicht?",code:'x = 10\nif x > 5:\nprint("ja")',opts:["Um <code>x > 5</code> fehlen Klammern.","<code>print(\"ja\")</code> muss eingerückt sein.","<code>x</code> muss in Anführungszeichen stehen.","Es fehlt ein <code>else</code>."],ok:1,why:"Nach dem Doppelpunkt erwartet Python einen eingerückten Block. Ein <code>else</code> ist freiwillig."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'zahl = 7\nif zahl % 2 == 0:\n    print("gerade")\nelse:\n    print("ungerade")',out:"ungerade",why:"7 % 2 ergibt 1, nicht 0."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"geheim",code:'pw = input("Passwort?")\nif pw == "geheim":\n    print("Zugang")\nelse:\n    print("Falsch")',out:"Zugang"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'a = 5\nb = 9\nif a > b:\n    print(a)\nelse:\n    print(b)\nprint("Ende")',out:"9\nEnde"},
+    {t:"lue",q:"Das Programm soll bei negativen Zahlen <code>negativ</code> ausgeben, sonst <code>nicht negativ</code>. Füllen Sie die Lücken.",code:'zahl = input("Zahl?")\nif zahl __ 0:\n    print("negativ")\n__:\n    print("nicht negativ")',gaps:[["<"],["else"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'punkte = 4\nif punkte >= 4:\n    print("bestanden")\n    print("Gratulation")\nprint("Tschüss")',out:"bestanden\nGratulation\nTschüss",why:"Beide eingerückten Zeilen gehören zum if-Block."},
+    {t:"code",q:"Lesen Sie eine Zahl ein und geben Sie aus, ob sie <code>gerade</code> oder <code>ungerade</code> ist.",hint:"Verwenden Sie <code>%</code>.",sol:'zahl = input("Zahl?")\nif zahl % 2 == 0:\n    print("gerade")\nelse:\n    print("ungerade")'},
+    {t:"code",q:"Lesen Sie zwei Zahlen ein und geben Sie die grössere der beiden aus.",sol:'a = input("Erste Zahl?")\nb = input("Zweite Zahl?")\nif a > b:\n    print("Die grössere Zahl ist", a)\nelse:\n    print("Die grössere Zahl ist", b)'},
+    {t:"code",q:"Lesen Sie eine Zahl ein und geben Sie aus, ob sie durch 3 teilbar ist oder nicht.",sol:'zahl = input("Zahl?")\nif zahl % 3 == 0:\n    print(zahl, "ist durch 3 teilbar")\nelse:\n    print(zahl, "ist nicht durch 3 teilbar")'},
+    {t:"code",q:"Ticketpreis: Lesen Sie das Alter ein. Unter 16 Jahren kostet das Ticket 10 Franken, sonst 15 Franken. Speichern Sie den Preis in einer Variablen <code>preis</code> und geben Sie am Schluss aus: <code>Preis: 10 Fr.</code>",sol:'alter = input("Alter?")\nif alter < 16:\n    preis = 10\nelse:\n    preis = 15\nprint("Preis:", preis, "Fr.")'}
+  ]},
+{ id:"elif", title:"Mehrere Fälle mit elif", short:"elif",
+  theory:[
+    ["p","Gibt es mehr als zwei Fälle, verwenden Sie <code>elif</code> (kurz für «else if»). Python prüft die Bedingungen von oben nach unten und führt nur den <em>ersten</em> Block aus, dessen Bedingung zutrifft. <code>else</code> fängt alle übrigen Fälle auf."],
+    ["code",'punkte = 72\nif punkte >= 90:\n    print("Note 6")\nelif punkte >= 75:\n    print("Note 5")\nelif punkte >= 60:\n    print("Note 4")\nelse:\n    print("ungenügend")',"Note 4"],
+    ["p","Bedingungen lassen sich verknüpfen: <code>and</code> verlangt, dass beide Bedingungen wahr sind, bei <code>or</code> genügt eine."],
+    ["code",'alter = 15\nif alter >= 13 and alter <= 19:\n    print("Teenager")',"Teenager"],
+    ["merke","Die Reihenfolge zählt. Stehen allgemeine Bedingungen zuerst, kommen spezielle nie zum Zug. <code>elif</code> und <code>else</code> folgen immer auf ein <code>if</code>, <code>else</code> steht immer zuletzt."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'note = 5\nif note == 6:\n    print("sehr gut")\nelif note >= 4:\n    print("genügend")\nelse:\n    print("ungenügend")',out:"genügend"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'t = 25\nif t > 30:\n    print("heiss")\nelif t > 20:\n    print("warm")\nelif t > 10:\n    print("mild")\nelse:\n    print("kalt")',out:"warm",why:"25 > 20 ist die erste wahre Bedingung. Dass auch 25 > 10 gilt, spielt keine Rolle mehr."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'x = 50\nif x > 10:\n    print("A")\nelif x > 40:\n    print("B")\nelse:\n    print("C")',out:"A",why:"Nur der erste zutreffende Block wird ausgeführt."},
+    {t:"mc",q:"Ein Programm hat die Form <code>if … elif … elif … else</code>. Wie viele dieser Blöcke werden bei einem Durchlauf ausgeführt?",opts:["Keiner oder einer","Genau einer","Alle, deren Bedingung zutrifft","Immer zwei"],ok:1,why:"Wegen <code>else</code> wird immer genau ein Block ausgeführt. Ohne <code>else</code> wären es keiner oder einer."},
+    {t:"vor",q:"Vergleichen Sie mit der vorletzten Übung. Was gibt dieses Programm aus?",code:'x = 50\nif x > 10:\n    print("A")\nif x > 40:\n    print("B")',out:"A\nB",why:"Das sind zwei unabhängige if-Anweisungen. Beide werden geprüft."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'alter = 14\nif alter >= 13 and alter <= 19:\n    print("Teenager")\nelse:\n    print("kein Teenager")',out:"Teenager"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'tag = "Sa"\nif tag == "Sa" or tag == "So":\n    print("Wochenende")\nelse:\n    print("Schultag")',out:"Wochenende"},
+    {t:"lue",q:"Ab 90 Punkten soll <code>A</code>, ab 70 Punkten <code>B</code> und sonst <code>C</code> ausgegeben werden. Füllen Sie die Lücken.",code:'punkte = input("Punkte?")\nif punkte >= 90:\n    print("A")\n__ punkte >= 70:\n    print("B")\n__:\n    print("C")',gaps:[["elif"],["else"]]},
+    {t:"mc",q:"Was ist an diesem Programm falsch?",code:'if x > 5:\n    print("gross")\nelse:\n    print("klein")\nelif x == 5:\n    print("fünf")',opts:["<code>elif</code> muss vor <code>else</code> stehen.","Nach <code>else</code> fehlt eine Bedingung.","<code>==</code> muss <code>=</code> heissen.","Nichts, das Programm ist korrekt."],ok:0},
+    {t:"code",q:"Notenrechner: Lesen Sie eine Punktzahl (0 bis 100) ein. Ab 90 Punkten geben Sie <code>Note 6</code> aus, ab 75 <code>Note 5</code>, ab 60 <code>Note 4</code>, sonst <code>ungenügend</code>.",sol:'punkte = input("Punkte?")\nif punkte >= 90:\n    print("Note 6")\nelif punkte >= 75:\n    print("Note 5")\nelif punkte >= 60:\n    print("Note 4")\nelse:\n    print("ungenügend")'},
+    {t:"code",q:"Lesen Sie eine Zahl ein und geben Sie aus, ob sie <code>positiv</code>, <code>negativ</code> oder <code>null</code> ist.",sol:'zahl = input("Zahl?")\nif zahl > 0:\n    print("positiv")\nelif zahl < 0:\n    print("negativ")\nelse:\n    print("null")'},
+    {t:"code",q:"Schaltjahr: Ein Jahr ist ein Schaltjahr, wenn es durch 4 teilbar ist. Ausnahme: Durch 100 teilbare Jahre sind keine Schaltjahre, ausser sie sind auch durch 400 teilbar. Lesen Sie ein Jahr ein und geben Sie das Ergebnis aus. Testen Sie mit 2024, 1900 und 2000.",hint:"Prüfen Sie die speziellste Regel (400) zuerst.",sol:'jahr = input("Jahr?")\nif jahr % 400 == 0:\n    print("Schaltjahr")\nelif jahr % 100 == 0:\n    print("kein Schaltjahr")\nelif jahr % 4 == 0:\n    print("Schaltjahr")\nelse:\n    print("kein Schaltjahr")'}
+  ]},
+{ id:"repeat", title:"Wiederholen mit repeat", short:"repeat",
+  theory:[
+    ["p","Mit <code>repeat</code> wiederholt TigerPython einen eingerückten Block eine bestimmte Anzahl Mal. Die Anzahl darf auch eine Variable sein."],
+    ["code",'repeat 3:\n    print("Hip hip hurra!")',"Hip hip hurra!\nHip hip hurra!\nHip hip hurra!"],
+    ["p","Soll sich in jedem Durchgang etwas ändern, verwenden Sie eine Zählervariable, die Sie im Block erhöhen."],
+    ["code",'i = 1\nrepeat 3:\n    print(i, "Mal")\n    i = i + 1',"1 Mal\n2 Mal\n3 Mal"],
+    ["p","Um Werte zusammenzuzählen, starten Sie mit einer Summenvariable bei 0 und addieren in jedem Durchgang dazu."],
+    ["code",'summe = 0\nzahl = 1\nrepeat 4:\n    summe = summe + zahl\n    zahl = zahl + 1\nprint("Summe:", summe)',"Summe: 10"],
+    ["merke","<code>repeat</code> gibt es nur in TigerPython, nicht in Standard-Python. Ohne Zahl (<code>repeat:</code>) läuft die Schleife endlos. Repeat-Blöcke lassen sich verschachteln: Der innere Block läuft bei jedem Durchgang des äusseren vollständig durch."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'repeat 3:\n    print("Hallo")',out:"Hallo\nHallo\nHallo"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'repeat 2:\n    print("A")\nprint("B")',out:"A\nA\nB",why:"Nur die eingerückte Zeile wird wiederholt."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'repeat 2:\n    print("A")\n    print("B")',out:"A\nB\nA\nB"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'i = 1\nrepeat 4:\n    print(i)\n    i = i + 1',out:"1\n2\n3\n4"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'summe = 0\nrepeat 5:\n    summe = summe + 2\nprint(summe)',out:"10"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'n = 3\nrepeat n:\n    print("*" * n)',out:"***\n***\n***"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'z = 1\nrepeat 3:\n    print("*" * z)\n    z = z + 1',out:"*\n**\n***"},
+    {t:"mc",q:"Wie oft wird <code>x</code> ausgegeben?",code:'repeat 3:\n    repeat 4:\n        print("x")',opts:["3-mal","4-mal","7-mal","12-mal"],ok:3,why:"Der innere Block läuft bei jedem der 3 äusseren Durchgänge 4-mal: 3 · 4 = 12."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'x = 10\nrepeat 3:\n    x = x - 3\nprint(x)',out:"1"},
+    {t:"lue",q:"Das Programm soll von 5 bis 1 herunterzählen und dann <code>Start!</code> ausgeben. Füllen Sie die Lücken.",code:'z = 5\nrepeat __:\n    print(z)\n    z = z __ 1\nprint("Start!")',gaps:[["5"],["-"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'z = 1\nrepeat 4:\n    if z % 2 == 0:\n        print(z, "gerade")\n    else:\n        print(z, "ungerade")\n    z = z + 1',out:"1 ungerade\n2 gerade\n3 ungerade\n4 gerade"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'p = 1\nrepeat 5:\n    p = p * 2\nprint(p)',out:"32",why:"1 wird fünfmal verdoppelt: 2, 4, 8, 16, 32."},
+    {t:"code",q:"Einmaleins: Lesen Sie eine Zahl ein und geben Sie die Reihe von 1 bis 10 aus, zum Beispiel <code>1 x 7 = 7</code> bis <code>10 x 7 = 70</code>.",sol:'n = input("Zahl?")\ni = 1\nrepeat 10:\n    print(i, "x", n, "=", i * n)\n    i = i + 1'},
+    {t:"code",q:"Berechnen Sie mit <code>repeat</code> die Summe aller Zahlen von 1 bis 100 und geben Sie sie aus. (Ergebnis zur Kontrolle: 5050)",sol:'summe = 0\nzahl = 1\nrepeat 100:\n    summe = summe + zahl\n    zahl = zahl + 1\nprint("Summe:", summe)'},
+    {t:"code",q:"Das Programm fragt fünfmal nach einer Zahl. Am Schluss gibt es die Summe und den Durchschnitt aus.",sol:'summe = 0\nrepeat 5:\n    zahl = input("Zahl?")\n    summe = summe + zahl\nprint("Summe:", summe)\nprint("Durchschnitt:", summe / 5)'},
+    {t:"code",q:"Lesen Sie eine Höhe ein und zeichnen Sie ein Dreieck aus <code>#</code> mit so vielen Zeilen. Bei Höhe 3: <code>#</code>, <code>##</code>, <code>###</code>.",sol:'hoehe = input("Höhe?")\nbreite = 1\nrepeat hoehe:\n    print("#" * breite)\n    breite = breite + 1'}
+  ]},
+{ id:"def", title:"Eigene Funktionen mit def", short:"def",
+  theory:[
+    ["p","Mit <code>def</code> definieren Sie eine eigene Funktion: einen Block mit einem Namen, den Sie beliebig oft aufrufen können. Die Definition allein führt noch nichts aus. Erst der Aufruf mit Namen und Klammern startet den Block."],
+    ["code",'def trennlinie():\n    print("~" * 12)\n\ntrennlinie()\nprint("Menü")\ntrennlinie()',"~~~~~~~~~~~~\nMenü\n~~~~~~~~~~~~"],
+    ["p","In der Klammer können Parameter stehen. Beim Aufruf übergeben Sie Werte dafür."],
+    ["code",'def begruesse(name, anzahl):\n    repeat anzahl:\n        print("Hallo", name)\n\nbegruesse("Ava", 2)',"Hallo Ava\nHallo Ava"],
+    ["p","Mit <code>return</code> gibt eine Funktion einen Wert zurück. Diesen können Sie ausgeben, speichern oder weiterverrechnen. <code>return</code> beendet die Funktion sofort."],
+    ["code",'def quadrat(x):\n    return x * x\n\nergebnis = quadrat(6)\nprint(ergebnis + 1)',"37"],
+    ["merke","Eine Funktion muss definiert sein, bevor sie aufgerufen wird. Schreiben Sie Definitionen deshalb an den Anfang des Programms."]
+  ],
+  ex:[
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def gruss():\n    print("Hallo")\n\ngruss()\ngruss()',out:"Hallo\nHallo"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def gruss():\n    print("Hallo")\n\nprint("Start")',out:"Start",why:"Die Funktion wird definiert, aber nie aufgerufen."},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def linie():\n    print("----")\n\nlinie()\nprint("Titel")\nlinie()',out:"----\nTitel\n----"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def begruesse(name):\n    print("Hallo", name)\n\nbegruesse("Ava")\nbegruesse("Ben")',out:"Hallo Ava\nHallo Ben"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def summe(a, b):\n    print(a + b)\n\nsumme(3, 4)\nsumme(10, -2)',out:"7\n8"},
+    {t:"mc",q:"Was fehlt in dieser Definition?",code:'def hallo()\n    print("Hi")',opts:["Ein Parameter in der Klammer","Der Doppelpunkt nach <code>hallo()</code>","Ein <code>return</code>","Anführungszeichen um <code>hallo</code>"],ok:1},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def sterne(n):\n    print("*" * n)\n\nrepeat 2:\n    sterne(3)',out:"***\n***"},
+    {t:"lue",q:"Die Funktion soll das Quadrat zurückgeben, sodass <code>25</code> ausgegeben wird. Füllen Sie die Lücke.",code:'def quadrat(x):\n    __ x * x\n\nprint(quadrat(5))',gaps:[["return"]]},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def doppelt(x):\n    return 2 * x\n\nprint(doppelt(4) + 1)',out:"9"},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def pruefe(zahl):\n    if zahl > 0:\n        print("positiv")\n    else:\n        print("nicht positiv")\n\npruefe(5)\npruefe(-1)',out:"positiv\nnicht positiv"},
+    {t:"mc",q:"Warum gibt dieses Programm eine Fehlermeldung aus?",code:'hallo()\n\ndef hallo():\n    print("Hi")',opts:["Funktionsnamen müssen mit einem Grossbuchstaben beginnen.","Beim Aufruf ist die Funktion noch nicht definiert.","Zwischen den Zeilen darf keine Leerzeile stehen.","Die Funktion braucht ein <code>return</code>."],ok:1},
+    {t:"vor",q:"Was gibt dieses Programm aus?",code:'def maximum(a, b):\n    if a > b:\n        return a\n    else:\n        return b\n\nprint(maximum(3, 8))',out:"8"},
+    {t:"code",q:"Schreiben Sie eine Funktion <code>rechteck(laenge, breite)</code>, welche die Fläche ausgibt. Rufen Sie sie mit zwei verschiedenen Rechtecken auf.",sol:'def rechteck(laenge, breite):\n    print("Fläche:", laenge * breite)\n\nrechteck(8, 5)\nrechteck(3, 3)'},
+    {t:"code",q:"Schreiben Sie eine Funktion <code>box(breite, hoehe)</code>, die ein Rechteck aus <code>#</code> zeichnet. <code>box(5, 3)</code> ergibt drei Zeilen mit je <code>#####</code>.",sol:'def box(breite, hoehe):\n    repeat hoehe:\n        print("#" * breite)\n\nbox(5, 3)'},
+    {t:"code",q:"Schreiben Sie eine Funktion <code>preis(alter)</code>, die den Ticketpreis zurückgibt: unter 16 Jahren 10 Franken, sonst 15 Franken. Das Hauptprogramm fragt mit <code>repeat</code> nach dem Alter von drei Personen und gibt den Gesamtpreis aus.",sol:'def preis(alter):\n    if alter < 16:\n        return 10\n    else:\n        return 15\n\ntotal = 0\nrepeat 3:\n    alter = input("Alter?")\n    total = total + preis(alter)\nprint("Gesamtpreis:", total, "Fr.")'},
+    {t:"code",q:"Abschlussprojekt Mini-Quiz: Schreiben Sie eine Funktion <code>frage(text, loesung)</code>. Sie stellt die Frage mit <code>input</code>, gibt <code>richtig</code> oder <code>falsch</code> aus und gibt 1 Punkt oder 0 Punkte zurück. Das Hauptprogramm stellt drei Fragen und gibt am Schluss die Punktzahl aus.",sol:'def frage(text, loesung):\n    antwort = input(text)\n    if antwort == loesung:\n        print("richtig")\n        return 1\n    else:\n        print("falsch")\n        return 0\n\npunkte = 0\npunkte = punkte + frage("Hauptstadt der Schweiz?", "Bern")\npunkte = punkte + frage("Wie viel ist 6 * 7?", 42)\npunkte = punkte + frage("Schlüsselwort für Funktionen?", "def")\nprint("Sie haben", punkte, "von 3 Punkten.")'}
+  ]}
+];
+
+const TYPES = {
+  vor:{name:"Ausgabe vorhersagen",c:"var(--nord8)"},
+  lue:{name:"Lücken füllen",c:"var(--nord13)"},
+  mc:{name:"Auswahl",c:"var(--nord15)"},
+  code:{name:"Programmieren",c:"var(--nord14)"}
+};
+
+/* Nummern vergeben */
+let n=0; CH.forEach(c=>c.ex.forEach(e=>{e.n=++n;}));
+const TOTAL=n;
+
+/* ---------- Speicher ---------- */
+const KEY="tigerpython-kurs-v1";
+let done={};
+try{done=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){done={};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(done));}catch(e){}}
+let onlyOpen=false;
+try{onlyOpen=localStorage.getItem(KEY+"-open")==="1";}catch(e){}
+
+/* ---------- Hilfsfunktionen ---------- */
+const esc=s=>s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const KW=new Set(["if","elif","else","def","repeat","return","and","or","not","True","False","None","while","for","in"]);
+function hl(src){
+  const re=/(#.*$)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)\b/gm;
+  let out="",last=0,m;
+  while((m=re.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    if(m[1]) out+='<span class="cm">'+esc(m[1])+'</span>';
+    else if(m[2]) out+='<span class="st">'+esc(m[2])+'</span>';
+    else if(m[3]) out+='<span class="nu">'+m[3]+'</span>';
+    else{
+      const w=m[4];
+      if(KW.has(w)) out+='<span class="kw">'+w+'</span>';
+      else if(/^\s*\(/.test(src.slice(re.lastIndex))) out+='<span class="fn">'+w+'</span>';
+      else out+=w;
+    }
+    last=re.lastIndex;
+  }
+  return out+esc(src.slice(last));
+}
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function codeBox(src,copy=true){
+  const box=el("div","codebox");
+  const pre=el("pre");pre.innerHTML='<code>'+hl(src)+'</code>';box.appendChild(pre);
+  if(copy){
+    const b=el("button","copy","Kopieren");b.type="button";
+    b.addEventListener("click",()=>{
+      const ok=()=>{b.textContent="Kopiert";setTimeout(()=>b.textContent="Kopieren",1400);};
+      const fallback=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Markiert";setTimeout(()=>b.textContent="Kopieren",1400);};
+      try{navigator.clipboard.writeText(src).then(ok,fallback);}catch(e){fallback();}
+    });
+    box.appendChild(b);
+  }
+  return box;
+}
+function outBox(text,title="Ausgabe"){
+  const o=el("div","outbox");o.appendChild(el("div","t",title));
+  const p=el("pre");p.textContent=text;o.appendChild(p);return o;
+}
+function normOut(s){
+  const lines=s.replace(/\r/g,"").split("\n").map(l=>l.replace(/\s+$/,"").replace(/\s+/g," "));
+  while(lines.length&&lines[lines.length-1]==="")lines.pop();
+  while(lines.length&&lines[0]==="")lines.shift();
+  return lines.join("\n");
+}
+const normGap=s=>s.replace(/\s+/g,"").replace(/'/g,'"');
+
+/* ---------- Fortschritt ---------- */
+function chapterDone(c){return c.ex.filter(e=>done[e.n]).length;}
+function updateProgress(){
+  const tot=Object.keys(done).filter(k=>done[k]).length;
+  document.getElementById("ovtxt").textContent=tot+" / "+TOTAL;
+  document.getElementById("ovbar").style.width=(tot/TOTAL*100)+"%";
+  CH.forEach(c=>{
+    const a=document.querySelector('[data-ch="'+c.id+'"]');if(!a)return;
+    const d=chapterDone(c);
+    a.querySelector(".cnt").textContent=d+"/"+c.ex.length;
+    a.querySelector(".mini i").style.width=(d/c.ex.length*100)+"%";
+  });
+  const cnt=document.getElementById("chcount");
+  const cur=CH.find(c=>c.id===current);
+  if(cnt&&cur)cnt.textContent=chapterDone(cur)+" von "+cur.ex.length+" erledigt";
+}
+function setDone(e,card,val){
+  if(val)done[e.n]=1;else delete done[e.n];
+  save();
+  card.classList.toggle("done",!!val);
+  card.querySelector(".status").textContent=val?"✓ erledigt":"offen";
+  updateProgress();
+}
+
+/* ---------- Navigation ---------- */
+const navlist=document.getElementById("navlist");
+CH.forEach((c,i)=>{
+  const li=el("li");
+  li.innerHTML='<a href="#'+c.id+'" data-ch="'+c.id+'"><span class="num">'+String(i+1).padStart(2,"0")+'</span><span class="name">'+c.short+'</span><span class="cnt">0/'+c.ex.length+'</span><span class="mini"><i></i></span></a>';
+  navlist.appendChild(li);
+});
+
+/* ---------- Übungskarten ---------- */
+function exCard(e){
+  const card=el("article","ex");card.id="a"+e.n;
+  if(done[e.n])card.classList.add("done");
+  const top=el("div","ex-top");
+  top.innerHTML='<span class="ex-no">A '+String(e.n).padStart(3,"0")+'</span><span class="tag" style="--c:'+TYPES[e.t].c+'">'+TYPES[e.t].name+'</span><span class="status">'+(done[e.n]?"✓ erledigt":"offen")+'</span>';
+  card.appendChild(top);
+  card.appendChild(el("p","q",e.q));
+
+  if(e.t==="vor"){
+    if(e.inp)card.appendChild(el("span","inputs","Eingabe: "+esc(e.inp)));
+    card.appendChild(codeBox(e.code,false));
+    const lab=el("label","label","Ihre Vorhersage der Ausgabe");lab.htmlFor="t"+e.n;card.appendChild(lab);
+    const ta=el("textarea","answer mono");ta.id="t"+e.n;ta.rows=Math.max(2,e.out.split("\n").length);ta.spellcheck=false;ta.setAttribute("autocapitalize","off");
+    card.appendChild(ta);
+    const act=el("div","actions");
+    const bc=el("button","btn primary","Prüfen");bc.type="button";
+    const bs=el("button","btn ghost","Lösung zeigen");bs.type="button";
+    act.append(bc,bs);card.appendChild(act);
+    const fb=el("div");card.appendChild(fb);
+    const sol=el("div","solution");sol.hidden=true;card.appendChild(sol);
+    const showSol=()=>{sol.innerHTML="";sol.appendChild(outBox(e.out,"Richtige Ausgabe"));if(e.why)sol.appendChild(el("div","hint",e.why));sol.hidden=false;};
+    bc.addEventListener("click",()=>{
+      if(normOut(ta.value)===normOut(e.out)){
+        fb.className="fb good";fb.innerHTML="<b>✓ Richtig.</b> "+(e.why||"");setDone(e,card,true);sol.hidden=true;
+      }else{
+        fb.className="fb badfb";fb.innerHTML="<b>✗ Noch nicht.</b> Gehen Sie das Programm Zeile für Zeile durch. Achten Sie auch auf Leerzeichen und Zeilenumbrüche.";
+      }
+    });
+    bs.addEventListener("click",()=>{if(sol.hidden)showSol();else sol.hidden=true;});
+    if(done[e.n])ta.value=e.out;
+  }
+
+  if(e.t==="mc"){
+    if(e.code)card.appendChild(codeBox(e.code,false));
+    const opts=el("div","opts");const fb=el("div");
+    e.opts.forEach((o,i)=>{
+      const b=el("button","opt",'<span class="k">'+"ABCD"[i]+'</span><span>'+o+'</span>');b.type="button";
+      b.addEventListener("click",()=>{
+        if(i===e.ok){
+          opts.querySelectorAll(".opt").forEach(x=>x.classList.remove("wrong"));
+          b.classList.add("right");fb.className="fb good";fb.innerHTML="<b>✓ Richtig.</b> "+(e.why||"");setDone(e,card,true);
+        }else{
+          b.classList.add("wrong");fb.className="fb badfb";fb.innerHTML="<b>✗ Leider falsch.</b> Versuchen Sie es nochmals.";
+        }
+      });
+      opts.appendChild(b);
+    });
+    card.append(opts,fb);
+    if(done[e.n]){opts.children[e.ok].classList.add("right");}
+  }
+
+  if(e.t==="lue"){
+    const parts=e.code.split("__");
+    const box=el("div","codebox");const pre=el("pre");const code=el("code");
+    const inputs=[];
+    parts.forEach((p,i)=>{
+      const span=el("span");span.innerHTML=hl(p);code.appendChild(span);
+      if(i<parts.length-1){
+        const inp=el("input","gap");inp.type="text";inp.id="g"+e.n+"_"+i;inp.setAttribute("aria-label","Lücke "+(i+1));
+        inp.autocomplete="off";inp.spellcheck=false;inp.setAttribute("autocapitalize","off");
+        inp.size=Math.max(3,e.gaps[i][0].length+1);
+        if(done[e.n])inp.value=e.gaps[i][0];
+        code.appendChild(inp);inputs.push(inp);
+      }
+    });
+    pre.appendChild(code);box.appendChild(pre);card.appendChild(box);
+    const act=el("div","actions");
+    const bc=el("button","btn primary","Prüfen");bc.type="button";
+    const bs=el("button","btn ghost","Lösung zeigen");bs.type="button";
+    act.append(bc,bs);card.appendChild(act);
+    const fb=el("div");card.appendChild(fb);
+    const check=()=>{
+      let all=true;
+      inputs.forEach((inp,i)=>{
+        const ok=e.gaps[i].some(a=>normGap(a)===normGap(inp.value));
+        inp.classList.toggle("ok",ok);inp.classList.toggle("no",!ok);if(!ok)all=false;
+      });
+      if(all){fb.className="fb good";fb.innerHTML="<b>✓ Alle Lücken richtig.</b>";setDone(e,card,true);}
+      else{fb.className="fb badfb";fb.innerHTML="<b>✗ Noch nicht alles richtig.</b> Die rot markierten Lücken stimmen noch nicht.";}
+    };
+    bc.addEventListener("click",check);
+    inputs.forEach(inp=>inp.addEventListener("keydown",ev=>{if(ev.key==="Enter")check();}));
+    bs.addEventListener("click",()=>{fb.className="fb info";fb.innerHTML="Lösung: "+e.gaps.map((g,i)=>"Lücke "+(i+1)+": <code>"+esc(g[0])+"</code>").join(", ");});
+  }
+
+  if(e.t==="code"){
+    if(e.hint){
+      const hb=el("button","btn ghost","Tipp anzeigen");hb.type="button";
+      const h=el("div","hint","<b>Tipp:</b> "+e.hint);h.hidden=true;
+      hb.addEventListener("click",()=>{h.hidden=!h.hidden;hb.textContent=h.hidden?"Tipp anzeigen":"Tipp ausblenden";});
+      const act0=el("div","actions");act0.appendChild(hb);card.append(act0,h);
+    }
+    const act=el("div","actions");
+    const bs=el("button","btn","Lösung anzeigen");bs.type="button";
+    const ln=el("a","btn ghost","WebTigerPython öffnen ↗");ln.href="https://webtigerpython.ethz.ch/";ln.target="_blank";ln.rel="noopener";ln.style.textDecoration="none";ln.style.color="var(--text)";
+    act.append(bs,ln);card.appendChild(act);
+    const sol=el("div","solution");sol.hidden=true;
+    sol.appendChild(el("div","label","Mögliche Lösung"));
+    sol.appendChild(codeBox(e.sol));
+    card.appendChild(sol);
+    bs.addEventListener("click",()=>{sol.hidden=!sol.hidden;bs.textContent=sol.hidden?"Lösung anzeigen":"Lösung ausblenden";});
+    const lab=el("label","chk");
+    const cb=el("input");cb.type="checkbox";cb.id="c"+e.n;cb.checked=!!done[e.n];
+    lab.append(cb,document.createTextNode(" Ich habe die Aufgabe gelöst und mein Programm getestet."));
+    cb.addEventListener("change",()=>setDone(e,card,cb.checked));
+    card.appendChild(lab);
+  }
+  return card;
+}
+
+/* ---------- Kapitel rendern ---------- */
+let current=CH[0].id;
+const main=document.getElementById("main");
+function render(){
+  const id=(location.hash||"").slice(1);
+  const idx=Math.max(0,CH.findIndex(c=>c.id===id));
+  const c=CH[idx];current=c.id;
+  document.querySelectorAll("nav.chapters a").forEach(a=>{if(a.dataset.ch===c.id)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current");});
+  main.innerHTML="";
+  const head=el("div","ch-head");
+  head.innerHTML='<div class="eyebrow">Kapitel '+(idx+1)+' von '+CH.length+' · Übungen '+c.ex[0].n+' bis '+c.ex[c.ex.length-1].n+'</div><h2>'+c.title+'</h2>';
+  main.appendChild(head);
+  const th=el("section","theory");th.setAttribute("aria-label","Einführung");
+  th.appendChild(el("h3",null,"Einführung"));
+  c.theory.forEach(b=>{
+    if(b[0]==="p")th.appendChild(el("p",null,b[1]));
+    if(b[0]==="merke")th.appendChild(el("div","merke","<strong>Merke:</strong> "+b[1]));
+    if(b[0]==="code"){
+      const io=el("div","io");
+      const left=el("div");left.style.minWidth="0";left.style.display="flex";left.style.flexDirection="column";left.style.gap="6px";
+      if(b[3])left.appendChild(el("span","inputs","Eingabe: "+esc(b[3])));
+      left.appendChild(codeBox(b[1]));
+      io.append(left,outBox(b[2]));th.appendChild(io);
+    }
+    if(b[0]==="table"){
+      const w=el("div","tbl");
+      w.innerHTML='<table><thead><tr>'+b[1].map(h=>'<th>'+h+'</th>').join("")+'</tr></thead><tbody>'+
+        b[2].map(r=>'<tr>'+r.map((x,i)=>'<td'+(i===1?'':' class="m"')+'>'+(i===1?x:esc(x))+'</td>').join("")+'</tr>').join("")+'</tbody></table>';
+      th.appendChild(w);
+    }
+  });
+  main.appendChild(th);
+  const intro=el("div","ex-intro");intro.innerHTML='<h3>Übungen</h3><span id="chcount"></span>';
+  main.appendChild(intro);
+  const list=el("div","exlist");
+  const shown=c.ex.filter(e=>!(onlyOpen&&done[e.n]));
+  shown.forEach(e=>list.appendChild(exCard(e)));
+  if(!shown.length)list.appendChild(el("div","empty","Alle Übungen in diesem Kapitel sind erledigt. Schalten Sie «Nur offene Übungen» aus, um sie wieder anzuzeigen."));
+  main.appendChild(list);
+  const nx=el("div","next");
+  if(idx>0)nx.appendChild(el("a",null,'<small>← Zurück</small>'+CH[idx-1].title)).href="#"+CH[idx-1].id;
+  else nx.appendChild(el("span"));
+  if(idx<CH.length-1){const a=el("a",null,'<small>Weiter →</small>'+CH[idx+1].title);a.href="#"+CH[idx+1].id;a.style.textAlign="right";nx.appendChild(a);}
+  main.appendChild(nx);
+  updateProgress();
+}
+window.addEventListener("hashchange",()=>{render();window.scrollTo(0,0);});
+
+/* ---------- Werkzeuge ---------- */
+const oo=document.getElementById("onlyOpen");oo.checked=onlyOpen;
+oo.addEventListener("change",()=>{onlyOpen=oo.checked;try{localStorage.setItem(KEY+"-open",onlyOpen?"1":"0");}catch(e){}render();});
+const resetArea=document.getElementById("resetArea");
+function showResetBtn(){
+  resetArea.innerHTML='<button class="linkbtn" id="resetBtn" type="button">Fortschritt zurücksetzen</button>';
+  document.getElementById("resetBtn").addEventListener("click",()=>{
+    resetArea.innerHTML='<div class="confirm">Alle 100 Übungen wieder auf «offen» setzen?<div class="row"><button class="btn" id="rsYes" type="button">Zurücksetzen</button><button class="btn ghost" id="rsNo" type="button">Abbrechen</button></div></div>';
+    document.getElementById("rsYes").addEventListener("click",()=>{done={};save();render();showResetBtn();});
+    document.getElementById("rsNo").addEventListener("click",showResetBtn);
+  });
+}
+showResetBtn();
+render();
+</script>
+</body>
+</html>
