@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik (Python-Einstieg), Zielgruppe Schüler:innen Gymnasium, Anrede «Sie»
+  Gerät: gemischt (Desktop + Handy)
+  Inhalte: print() · Texte mit + verketten und str() · input() · int() und float() · Schritt-für-Schritt-Ablauf · Stolpersteine · Python-Werkstatt · 4 Übungen
+  Ausdrücklich ohne f-Strings
+  Interaktivität: echtes Python im Browser mit Skulpt 1.2.0 (Pyodide ist im Artefakt blockiert), input() fragt in der Konsole nach; Beispiele per Knopf in die Werkstatt laden; Ablauf mit Vor/Zurück; Lösungen einblendbar
+  Datenhaltung: keine
+  Export: Kopierknopf an jedem Codeblock
+  Variante: A „Terminal“ gewählt; Variante B und Umschalter entfernt
+  Ablage: gehaltvoll/Python/print und input.html, im Index als Gruppe «Ein- und Ausgabe» vor «Daten speichern»
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>print und input</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: eine Lesespalte; Codeblöcke und Konsole als dunkle Terminal-Flächen, die Werkstatt als breites Panel */
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+
+  --bg:var(--nord6);--surface:var(--nord5);--surface-2:var(--nord4);
+  --text:var(--nord0);--text-muted:var(--nord3);
+  --accent:var(--nord10);--accent-soft:var(--nord9);
+  --ok:var(--nord14);--warn:var(--nord13);--err:var(--nord11);--merke:var(--nord15);--info:var(--nord8);
+  --inline-code:var(--nord5);
+
+  /* Terminal-Flächen sind immer dunkel */
+  --term:var(--nord0);--term-2:var(--nord1);--term-line:var(--nord2);--term-fg:var(--nord6);--term-muted:var(--nord4);
+
+  --head:var(--surface);--head-fg:var(--text);--head-muted:var(--text-muted);--head-line:var(--surface-2);
+
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  --radius:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);--accent:var(--nord8);--inline-code:var(--nord1);
+  --term:var(--nord1);--term-2:var(--nord2);--term-line:var(--nord3);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);--accent:var(--nord8);--inline-code:var(--nord1);
+  --term:var(--nord1);--term-2:var(--nord2);--term-line:var(--nord3);
+  color-scheme:dark}
+body{--head:var(--nord0);--head-fg:var(--nord6);--head-muted:var(--nord4);--head-line:var(--nord2)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{font-size:17px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px}
+.wrap{max-width:900px;margin:0 auto}
+.read{max-width:70ch}
+h1,h2,h3{text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(2.1rem,6.5vw,3rem);font-weight:700}
+h2{font-size:1.55rem;font-weight:700;margin-bottom:.6rem}
+h3{font-size:1.1rem;font-weight:600;margin:1.3rem 0 .35rem}
+p+p{margin-top:.75rem}
+a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+code{font-family:var(--font-mono);font-size:.9em;background:var(--inline-code);padding:.08em .35em;border-radius:5px}
+button,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px}
+.eyebrow{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;color:var(--text-muted)}
+
+.hero{background:var(--head);color:var(--head-fg);border:1px solid var(--head-line);border-radius:12px;padding:24px 22px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:center}
+.hero .lead{color:var(--head-muted);margin-top:.6rem}
+.hero .mini{background:var(--term);color:var(--term-fg);border:1px solid var(--term-line);border-radius:8px;font-family:var(--font-mono);font-size:.88rem;padding:12px 14px;line-height:1.55;min-width:0;overflow-x:auto}
+.mini .lbl{font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--term-muted);margin-bottom:4px}
+.mini .in{color:var(--nord13)}
+.mini hr{border:0;border-top:1px dashed var(--term-line);margin:8px 0}
+@media (max-width:680px){.hero{grid-template-columns:1fr}}
+
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+nav.toc a{text-decoration:none;font-size:.88rem;border:1px solid var(--surface-2);background:var(--surface);color:var(--text);border-radius:999px;padding:.25rem .75rem}
+nav.toc a:hover{border-color:var(--accent)}
+
+section{margin-top:52px}
+.kicker{font-family:var(--font-mono);font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem}
+
+/* Codeblöcke */
+.codebox{position:relative;margin-top:12px;background:var(--term);border:1px solid var(--term-line);border-radius:8px;min-width:0}
+.codebox pre{font-family:var(--font-mono);font-size:.9rem;line-height:1.5;color:var(--term-fg);padding:12px 14px;overflow-x:auto;white-space:pre}
+.codebox .bar{display:flex;gap:6px;justify-content:flex-end;padding:6px 8px 0}
+.codebox .bar button{font-size:.75rem;border:1px solid var(--term-line);background:var(--term-2);color:var(--term-fg);border-radius:6px;padding:.15rem .55rem;cursor:pointer}
+.codebox .bar button:hover{border-color:var(--nord8)}
+.codebox .out{border-top:1px dashed var(--term-line);padding:8px 14px 10px;font-family:var(--font-mono);font-size:.88rem;color:var(--term-muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.codebox .out::before{content:"Ausgabe";display:block;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--nord8);margin-bottom:2px}
+.codebox .out .in{color:var(--nord13)}
+.kw{color:var(--nord9)}.st{color:var(--nord14)}.nu{color:var(--nord15)}.cm{color:var(--nord4);opacity:.65;font-style:italic}.fn{color:var(--nord8)}.op{color:var(--nord13)}
+
+.box{border-radius:var(--radius);padding:14px 16px;margin-top:16px;border:1px solid var(--surface-2);background:var(--surface)}
+.box.merke{border-left:4px solid var(--merke)}
+.box.warn{border-left:4px solid var(--warn)}
+.box .bt{font-weight:700;margin-bottom:.25rem}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.cmp>div{min-width:0}
+@media (max-width:620px){.cmp{grid-template-columns:1fr}}
+.cmp h4{font-size:.95rem;font-weight:600}
+.table{overflow-x:auto;margin-top:12px;border:1px solid var(--surface-2);border-radius:var(--radius)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+th,td{padding:.45rem .7rem;text-align:left;border-bottom:1px solid var(--surface-2)}
+th{background:var(--surface);font-weight:600}
+td code{white-space:nowrap}
+tr:last-child td{border-bottom:0}
+
+/* Schritt für Schritt */
+.stepper{margin-top:16px;display:grid;gap:12px;background:var(--head);color:var(--head-fg);border:1px solid var(--head-line);border-radius:12px;padding:16px}
+.stepgrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:12px}
+@media (max-width:680px){.stepgrid{grid-template-columns:1fr}}
+.lines{background:var(--term);border:1px solid var(--term-line);border-radius:8px;padding:8px 0;font-family:var(--font-mono);font-size:.86rem;color:var(--term-fg);overflow-x:auto}
+.lines div{display:flex;gap:10px;padding:2px 12px;white-space:pre;border-left:3px solid transparent}
+.lines div .n{color:var(--term-muted);opacity:.6;width:1.2em;text-align:right;flex:none}
+.lines div.cur{background:rgba(136,192,208,.16);border-left-color:var(--nord8)}
+.panel-s{background:var(--term);border:1px solid var(--term-line);border-radius:8px;padding:10px 12px;color:var(--term-fg);min-width:0}
+.panel-s .lbl{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--nord8);margin-bottom:6px}
+.vars{display:grid;gap:6px;font-family:var(--font-mono);font-size:.86rem}
+.vars .v{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.vars .val{color:var(--nord14);overflow-wrap:anywhere}
+.vars .val.num{color:var(--nord15)}
+.vars .ty{font-size:.72rem;border:1px solid var(--term-line);border-radius:4px;padding:0 5px;color:var(--term-muted)}
+.vars .v.new{animation:flash .6s}
+@keyframes flash{from{background:rgba(235,203,139,.3)}to{background:transparent}}
+.conso{font-family:var(--font-mono);font-size:.86rem;white-space:pre-wrap;min-height:3.2em;overflow-wrap:anywhere}
+.conso .in{color:var(--nord13)}
+.caret{display:inline-block;width:.55em;height:1em;background:var(--nord13);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.note{font-size:.95rem;min-height:3em}
+.note b{font-family:var(--font-mono)}
+.ctrls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{border:1px solid var(--surface-2);background:var(--bg);color:var(--text);border-radius:8px;padding:.4rem .85rem;cursor:pointer;font-size:.9rem}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600}
+.stepper .btn{background:var(--term-2);color:var(--term-fg);border-color:var(--term-line)}
+.stepper .btn.primary{background:var(--nord8);border-color:var(--nord8);color:var(--nord0)}
+.stepper .count{font-family:var(--font-mono);font-size:.8rem;color:var(--head-muted)}
+
+/* Werkstatt */
+.lab{margin-top:16px;background:var(--term);border:1px solid var(--term-line);border-radius:12px;overflow:hidden;color:var(--term-fg)}
+.lab .tb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid var(--term-line);background:var(--term-2)}
+.lab .tb .lbl{font-family:var(--font-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--term-muted)}
+.lab .btn{background:var(--term);color:var(--term-fg);border-color:var(--term-line);font-size:.85rem;padding:.3rem .7rem}
+.lab .btn.primary{background:var(--nord14);border-color:var(--nord14);color:var(--nord0)}
+.lab .btn.stop{background:var(--nord11);border-color:var(--nord11);color:var(--nord0)}
+.editor{display:grid;grid-template-columns:auto 1fr;min-height:200px}
+.gutter{font-family:var(--font-mono);font-size:.9rem;line-height:1.5;color:var(--term-muted);opacity:.55;text-align:right;padding:12px 8px 12px 12px;user-select:none;white-space:pre}
+textarea#code{font-family:var(--font-mono);font-size:.9rem;line-height:1.5;background:transparent;color:var(--term-fg);border:0;resize:vertical;padding:12px 12px 12px 4px;min-height:200px;width:100%;white-space:pre;overflow-x:auto;tab-size:4;caret-color:var(--nord13)}
+textarea#code:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--nord8)}
+.console{border-top:1px solid var(--term-line);padding:10px 14px 14px;font-family:var(--font-mono);font-size:.9rem;min-height:140px;max-height:340px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.console .sys{color:var(--term-muted);font-style:italic}
+.console .in{color:var(--nord13)}
+.console .err{color:var(--nord11)}
+.console .tip{color:var(--nord13);font-family:var(--font);font-size:.88rem;display:block;margin-top:4px}
+.console input.ask{background:var(--term-2);border:1px solid var(--nord13);border-radius:4px;color:var(--nord13);font-family:var(--font-mono);font-size:.9rem;padding:0 6px;width:min(16em,60%)}
+.examples{display:flex;flex-wrap:wrap;gap:6px}
+.examples button{font-size:.8rem;border:1px solid var(--term-line);background:var(--term);color:var(--term-fg);border-radius:999px;padding:.15rem .6rem;cursor:pointer}
+.examples button:hover{border-color:var(--nord8)}
+.hint{font-size:.85rem;color:var(--text-muted);margin-top:8px}
+
+.task{margin-top:16px;background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:14px 16px}
+.task h3{margin-top:0}
+.task details{margin-top:10px}
+.task summary{cursor:pointer;font-weight:600;color:var(--accent)}
+ul.pit{list-style:none;display:grid;gap:10px;margin-top:12px}
+ul.pit li{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--radius);padding:12px 14px}
+ul.pit b{display:block}
+footer{margin-top:56px;font-size:.85rem;color:var(--text-muted)}
+
+/* Terminal */
+h2{font-weight:600}
+.task,ul.pit li,.box{border-radius:6px}
+
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <span class="eyebrow">Informatik · Python · Ein- und Ausgabe</span>
+  </div>
+
+  <header class="hero">
+    <div>
+      <h1>print und input</h1>
+      <p class="lead">Mit <code>print()</code> gibt ein Programm etwas aus, mit <code>input()</code> fragt es nach. Zusammen machen die beiden aus einem Programm ein Gespräch. Unten können Sie alles mit echtem Python im Browser ausprobieren.</p>
+    </div>
+    <div class="mini" aria-label="Beispiel: Programm und Konsole">
+      <div class="lbl">Programm</div>
+      <div><span class="fn">name</span> = <span class="fn">input</span>(<span class="st">"Wie heissen Sie? "</span>)</div>
+      <div><span class="fn">print</span>(<span class="st">"Hallo"</span>, name)</div>
+      <hr>
+      <div class="lbl">Konsole</div>
+      <div>Wie heissen Sie? <span class="in">Lea</span></div>
+      <div>Hallo Lea</div>
+    </div>
+  </header>
+  <nav class="toc" aria-label="Inhalt">
+    <a href="#print">print()</a><a href="#verketten">Texte verbinden</a><a href="#input">input()</a><a href="#umwandeln">int() und float()</a><a href="#ablauf">Schritt für Schritt</a><a href="#werkstatt">Werkstatt</a><a href="#uebungen">Übungen</a>
+  </nav>
+
+  <!-- PRINT -->
+  <section id="print" class="read" style="--c:var(--nord8)">
+    <div class="kicker">1 · Ausgabe</div>
+    <h2>print(): etwas anzeigen</h2>
+    <p><code>print()</code> schreibt das, was in den Klammern steht, in die Konsole. Danach beginnt automatisch eine neue Zeile.</p>
+    <div class="codebox" data-run><pre class="code"># Text steht immer in Anführungszeichen
+print("Guten Morgen!")
+print('Einfache Anführungszeichen gehen auch.')
+
+# Zahlen und Rechnungen ohne Anführungszeichen
+print(42)
+print(7 * 6)
+
+# Mit Anführungszeichen ist es Text – es wird nicht gerechnet
+print("7 * 6")</pre><div class="out">Guten Morgen!
+Einfache Anführungszeichen gehen auch.
+42
+42
+7 * 6</div></div>
+
+    <h3>Mehrere Werte mit Komma</h3>
+    <p>Trennen Sie mehrere Werte mit Kommas. <code>print()</code> setzt dann automatisch ein Leerzeichen dazwischen. So lassen sich Text und Zahlen problemlos mischen.</p>
+    <div class="codebox" data-run><pre class="code">punkte = 18
+print("Sie haben", punkte, "Punkte erreicht.")
+print("Doppelt so viele wären", punkte * 2)
+print()          # leere Zeile
+print("Ende")</pre><div class="out">Sie haben 18 Punkte erreicht.
+Doppelt so viele wären 36
+
+Ende</div></div>
+    <div class="box merke">
+      <div class="bt">Merke</div>
+      <p>Was in Anführungszeichen steht, gibt Python genau so aus. Was ohne Anführungszeichen steht, rechnet Python zuerst aus oder ersetzt es durch den Wert der Variable.</p>
+    </div>
+  </section>
+
+  <!-- VERKETTEN -->
+  <section id="verketten" class="read" style="--c:var(--nord12)">
+    <div class="kicker">2 · Texte verbinden</div>
+    <h2>Mit + zusammensetzen und str()</h2>
+    <p>Statt mit Kommas können Sie Texte auch mit <code>+</code> aneinanderhängen. Man nennt das <b>Verketten</b>. Dabei setzt Python <b>kein</b> Leerzeichen ein – das müssen Sie selbst in die Anführungszeichen schreiben.</p>
+    <div class="codebox" data-run><pre class="code">vorname = "Lea"
+nachname = "Meier"
+print(vorname + nachname)
+print(vorname + " " + nachname)
+print("Hallo " + vorname + "!")</pre><div class="out">LeaMeier
+Lea Meier
+Hallo Lea!</div></div>
+
+    <h3>Text und Zahl: str() hilft</h3>
+    <p>Eine Zahl lässt sich nicht direkt mit Text verketten. Python weiss nicht, ob es rechnen oder Text anhängen soll, und meldet einen Fehler. Mit <code>str()</code> verwandeln Sie die Zahl zuerst in Text.</p>
+    <div class="codebox" data-run><pre class="code">alter = 16
+# print("Ich bin " + alter + " Jahre alt.")   → TypeError
+print("Ich bin " + str(alter) + " Jahre alt.")
+print("Nächstes Jahr: " + str(alter + 1))</pre><div class="out">Ich bin 16 Jahre alt.
+Nächstes Jahr: 17</div></div>
+
+    <div class="table">
+      <table>
+        <thead><tr><th></th><th>Komma <code>,</code></th><th>Plus <code>+</code></th></tr></thead>
+        <tbody>
+          <tr><td>Leerzeichen</td><td>automatisch</td><td>selbst einfügen</td></tr>
+          <tr><td>Zahlen</td><td>direkt möglich</td><td>erst mit <code>str()</code> umwandeln</td></tr>
+          <tr><td>Beispiel</td><td><code>print("Alter:", 16)</code></td><td><code>print("Alter: " + str(16))</code></td></tr>
+          <tr><td>Wo verwendbar</td><td>nur in <code>print()</code></td><td>überall, z. B. auch in <code>input()</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- INPUT -->
+  <section id="input" class="read" style="--c:var(--nord13)">
+    <div class="kicker">3 · Eingabe</div>
+    <h2>input(): nachfragen und speichern</h2>
+    <p><code>input()</code> zeigt den Text in den Klammern an, die sogenannte <b>Eingabeaufforderung</b>, und wartet dann, bis jemand etwas eintippt und Enter drückt. Das Eingetippte gibt <code>input()</code> zurück. Damit es nicht verloren geht, speichern Sie es in einer Variable.</p>
+    <div class="codebox" data-run><pre class="code">stadt = input("Wo wohnen Sie? ")
+print("Schön, ich war auch schon in", stadt)</pre><div class="out">Wo wohnen Sie? <span class="in">Bülach</span>
+Schön, ich war auch schon in Bülach</div></div>
+    <p>Schreiben Sie am Ende der Eingabeaufforderung ein Leerzeichen, also <code>"Wo wohnen Sie? "</code>. Sonst klebt die Eingabe direkt am Fragezeichen.</p>
+
+    <div class="box warn">
+      <div class="bt">Wichtig: input() liefert immer Text</div>
+      <p>Auch wenn jemand <code>5</code> eintippt, speichert Python den Text <code>"5"</code>. Mit Text kann man nicht rechnen: <code>"5" + "3"</code> ergibt <code>"53"</code>.</p>
+    </div>
+  </section>
+
+  <!-- UMWANDELN -->
+  <section id="umwandeln" class="read" style="--c:var(--nord15)">
+    <div class="kicker">4 · Umwandeln</div>
+    <h2>int() und float(): aus Text wird eine Zahl</h2>
+    <p>Um mit einer Eingabe zu rechnen, wandeln Sie sie um: <code>int()</code> für ganze Zahlen, <code>float()</code> für Kommazahlen.</p>
+    <div class="cmp">
+      <div>
+        <h4>✗ Ohne Umwandlung</h4>
+        <div class="codebox"><pre class="code">a = input("Zahl 1: ")
+b = input("Zahl 2: ")
+print(a + b)</pre><div class="out">Zahl 1: <span class="in">5</span>
+Zahl 2: <span class="in">3</span>
+53</div></div>
+      </div>
+      <div>
+        <h4>✓ Mit int()</h4>
+        <div class="codebox" data-run><pre class="code">a = int(input("Zahl 1: "))
+b = int(input("Zahl 2: "))
+print(a + b)</pre><div class="out">Zahl 1: <span class="in">5</span>
+Zahl 2: <span class="in">3</span>
+8</div></div>
+      </div>
+    </div>
+    <p style="margin-top:12px"><code>int(input(...))</code> liest man von innen nach aussen: Zuerst fragt <code>input()</code> nach dem Text, dann macht <code>int()</code> daraus eine Zahl.</p>
+
+    <h3>Kommazahlen mit float()</h3>
+    <div class="codebox" data-run><pre class="code">preis = float(input("Preis in CHF: "))
+anzahl = int(input("Anzahl: "))
+total = preis * anzahl
+print("Total:", total, "CHF")
+print("Total: " + str(total) + " CHF")</pre><div class="out">Preis in CHF: <span class="in">2.50</span>
+Anzahl: <span class="in">3</span>
+Total: 7.5 CHF
+Total: 7.5 CHF</div></div>
+    <div class="table">
+      <table>
+        <thead><tr><th>Eingabe</th><th><code>int(...)</code></th><th><code>float(...)</code></th></tr></thead>
+        <tbody>
+          <tr><td><code>"7"</code></td><td><code>7</code></td><td><code>7.0</code></td></tr>
+          <tr><td><code>"2.5"</code></td><td>✗ ValueError</td><td><code>2.5</code></td></tr>
+          <tr><td><code>"2,5"</code></td><td>✗ ValueError</td><td>✗ ValueError – Python braucht einen Punkt</td></tr>
+          <tr><td><code>"sieben"</code></td><td>✗ ValueError</td><td>✗ ValueError</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ABLAUF -->
+  <section id="ablauf" style="--c:var(--nord8)">
+    <div class="read">
+      <div class="kicker">5 · Schritt für Schritt</div>
+      <h2>Was passiert in welcher Zeile?</h2>
+      <p>Klicken Sie sich durch das Programm. Links sehen Sie die aktuelle Zeile, rechts die Variablen mit ihrem Typ und die Konsole.</p>
+    </div>
+    <div class="stepper">
+      <div class="stepgrid">
+        <div class="lines" id="lines"></div>
+        <div style="display:grid;gap:10px;align-content:start">
+          <div class="panel-s"><div class="lbl">Variablen</div><div class="vars" id="vars"></div></div>
+          <div class="panel-s"><div class="lbl">Konsole</div><div class="conso" id="conso"></div></div>
+        </div>
+      </div>
+      <p class="note" id="note" aria-live="polite"></p>
+      <div class="ctrls">
+        <button class="btn" type="button" id="back">◀ Zurück</button>
+        <button class="btn primary" type="button" id="next">Weiter ▶</button>
+        <button class="btn" type="button" id="reset">Von vorne</button>
+        <span class="count" id="count"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- STOLPERSTEINE -->
+  <section class="read" style="--c:var(--nord11)">
+    <div class="kicker">Stolpersteine</div>
+    <h2>Die häufigsten Fehler</h2>
+    <ul class="pit">
+      <li><b>Anführungszeichen vergessen</b><code>print(Hallo)</code> sucht eine Variable namens <code>Hallo</code> und meldet <code>NameError</code>. Richtig: <code>print("Hallo")</code>.</li>
+      <li><b>Text und Zahl mit + verbinden</b><code>"Alter: " + 16</code> ergibt <code>TypeError</code>. Lösung: <code>str(16)</code> oder ein Komma in <code>print()</code>.</li>
+      <li><b>Mit der Eingabe rechnen, ohne umzuwandeln</b>Aus <code>"5" + "3"</code> wird <code>"53"</code>. Lösung: <code>int(input(...))</code>.</li>
+      <li><b>Komma statt Punkt bei Dezimalzahlen</b><code>float("2,5")</code> ergibt <code>ValueError</code>. In Python schreibt man <code>2.5</code>.</li>
+      <li><b>Klammer vergessen</b>Bei <code>int(input("Zahl: ")</code> fehlt die letzte Klammer. Zählen Sie: Jede geöffnete Klammer braucht eine schliessende.</li>
+    </ul>
+  </section>
+
+  <!-- WERKSTATT -->
+  <section id="werkstatt" style="--c:var(--nord14)">
+    <div class="read">
+      <div class="kicker">Ausprobieren</div>
+      <h2>Python-Werkstatt</h2>
+      <p>Schreiben Sie hier eigene Programme und klicken Sie auf «Ausführen». Wenn das Programm <code>input()</code> aufruft, erscheint in der Konsole ein Eingabefeld. Mit dem Knopf «In der Werkstatt öffnen» unter den Beispielen oben laden Sie diese hierher.</p>
+    </div>
+    <div class="lab">
+      <div class="tb">
+        <span class="lbl">Programm</span>
+        <div class="examples" id="examples" aria-label="Beispiele laden"></div>
+      </div>
+      <div class="editor">
+        <div class="gutter" id="gutter" aria-hidden="true">1</div>
+        <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Python-Code"></textarea>
+      </div>
+      <div class="tb">
+        <span class="lbl">Konsole</span>
+        <div class="ctrls">
+          <button class="btn primary" type="button" id="run">▶ Ausführen</button>
+          <button class="btn stop" type="button" id="stop" hidden>■ Stopp</button>
+          <button class="btn" type="button" id="clearc">Konsole leeren</button>
+        </div>
+      </div>
+      <div class="console" id="console" aria-live="polite"><span class="sys">Python wird geladen …</span></div>
+    </div>
+    <p class="hint">Die Werkstatt verwendet Skulpt, eine Python-Version für den Browser. Einige Fehlermeldungen sind etwas anders formuliert als in Thonny, bedeuten aber dasselbe.</p>
+  </section>
+
+  <!-- ÜBUNGEN -->
+  <section id="uebungen" class="read" style="--c:var(--nord14)">
+    <div class="kicker">Übungen</div>
+    <h2>Jetzt sind Sie dran</h2>
+
+    <div class="task">
+      <h3>Übung 1 · Was erscheint?</h3>
+      <p>Überlegen Sie zuerst, was dieses Programm ausgibt. Prüfen Sie dann in der Werkstatt.</p>
+      <div class="codebox" data-run><pre class="code">x = 4
+print("x")
+print(x)
+print("x =", x)
+print("x" + "x")
+print(x + x)</pre></div>
+      <details><summary>Lösung anzeigen</summary><div class="codebox"><div class="out">x
+4
+x = 4
+xx
+8</div></div><p style="margin-top:8px">Mit Anführungszeichen ist <code>x</code> ein Buchstabe, ohne Anführungszeichen die Variable mit dem Wert 4.</p></details>
+    </div>
+
+    <div class="task">
+      <h3>Übung 2 · Begrüssung</h3>
+      <p>Schreiben Sie ein Programm, das nach Vor- und Nachnamen fragt und dann <code>Willkommen, Lea Meier!</code> ausgibt – einmal mit Kommas, einmal mit <code>+</code>.</p>
+      <details><summary>Lösung anzeigen</summary><div class="codebox" data-run><pre class="code">vorname = input("Vorname: ")
+nachname = input("Nachname: ")
+print("Willkommen,", vorname, nachname + "!")
+print("Willkommen, " + vorname + " " + nachname + "!")</pre></div><p style="margin-top:8px">Beim Ausrufezeichen hilft <code>+</code>, sonst stünde ein Leerzeichen davor.</p></details>
+    </div>
+
+    <div class="task">
+      <h3>Übung 3 · Geburtsjahr</h3>
+      <p>Das Programm fragt nach dem Alter und gibt aus: <code>Sie sind etwa im Jahr 2010 geboren.</code> Verwenden Sie das aktuelle Jahr 2026.</p>
+      <details><summary>Lösung anzeigen</summary><div class="codebox" data-run><pre class="code">alter = int(input("Wie alt sind Sie? "))
+jahr = 2026 - alter
+print("Sie sind etwa im Jahr " + str(jahr) + " geboren.")</pre></div><p style="margin-top:8px">Ohne <code>int()</code> könnte Python <code>2026 - "16"</code> nicht berechnen.</p></details>
+    </div>
+
+    <div class="task">
+      <h3>Übung 4 · Fehler finden</h3>
+      <p>Dieses Programm soll den Durchschnitt zweier Noten berechnen, hat aber drei Fehler. Finden und korrigieren Sie sie.</p>
+      <div class="codebox" data-run><pre class="code">note1 = input("Note 1: ")
+note2 = input("Note 2: ")
+schnitt = (note1 + note2) / 2
+print("Ihr Schnitt ist " + schnitt)</pre></div>
+      <details><summary>Lösung anzeigen</summary><div class="codebox" data-run><pre class="code">note1 = float(input("Note 1: "))
+note2 = float(input("Note 2: "))
+schnitt = (note1 + note2) / 2
+print("Ihr Schnitt ist " + str(schnitt))</pre></div><p style="margin-top:8px">Noten können Kommazahlen sein, deshalb <code>float()</code> für beide Eingaben. Beim Verketten braucht <code>schnitt</code> ein <code>str()</code>.</p></details>
+    </div>
+  </section>
+
+  <footer>Kantonsschule Zürcher Unterland · Informatik · Python</footer>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+/* Syntaxhervorhebung */
+const KW=new Set(['if','else','elif','for','while','def','return','in','and','or','not','True','False','None','import','from']);
+const FN=new Set(['print','input','int','float','str','type','len','round']);
+function hl(src){const re=/(#[^\n]*)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_]\w*)|([=+\-*/<>!]=?|→)/g;
+  let out='',last=0,m;while((m=re.exec(src))){out+=esc(src.slice(last,m.index));const t=m[0];
+    if(m[1])out+=`<span class="cm">${esc(t)}</span>`;else if(m[2])out+=`<span class="st">${esc(t)}</span>`;else if(m[3])out+=`<span class="nu">${t}</span>`;
+    else if(m[4])out+=KW.has(t)?`<span class="kw">${t}</span>`:FN.has(t)?`<span class="fn">${t}</span>`:t;else out+=`<span class="op">${esc(t)}</span>`;last=re.lastIndex}
+  return out+esc(src.slice(last))}
+document.querySelectorAll('pre.code').forEach(pre=>{const raw=pre.textContent;pre.dataset.raw=raw;pre.innerHTML=hl(raw);
+  const box=pre.parentElement;const bar=document.createElement('div');bar.className='bar';
+  const cp=document.createElement('button');cp.type='button';cp.textContent='Kopieren';
+  cp.onclick=async()=>{try{await navigator.clipboard.writeText(raw);cp.textContent='✓ Kopiert'}catch(e){const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent='Markiert – Cmd/Ctrl+C'}setTimeout(()=>cp.textContent='Kopieren',1800)};
+  bar.appendChild(cp);
+  if(box.hasAttribute('data-run')){const rb=document.createElement('button');rb.type='button';rb.textContent='▶ In der Werkstatt öffnen';
+    rb.onclick=()=>{setCode(raw);$('werkstatt').scrollIntoView({behavior:'smooth',block:'start'});setTimeout(runCode,350)};bar.appendChild(rb)}
+  box.insertBefore(bar,pre)});
+
+/* Schritt für Schritt */
+const PROG=['name = input("Wie heissen Sie? ")','alter = input("Wie alt sind Sie? ")','alter = int(alter)','print("Hallo " + name + "!")','print("Nächstes Jahr sind Sie", alter + 1)'];
+const S=[
+ {l:-1,v:[],c:'',w:false,n:'Das Programm startet in Zeile 1 und läuft von oben nach unten. Noch gibt es keine Variablen.'},
+ {l:0,v:[],c:'Wie heissen Sie? ',w:true,n:'<b>input()</b> zeigt die Eingabeaufforderung an und <b>wartet</b>. Das Programm steht still, bis jemand tippt und Enter drückt.'},
+ {l:0,v:[['name','"Lea"','str',1]],c:'Wie heissen Sie? <span class="in">Lea</span>\n',w:false,n:'Lea tippt ihren Namen. input() gibt den Text <b>"Lea"</b> zurück, und er wird in <b>name</b> gespeichert.'},
+ {l:1,v:[['name','"Lea"','str'],['alter','"16"','str',1]],c:'Wie heissen Sie? <span class="in">Lea</span>\nWie alt sind Sie? <span class="in">16</span>\n',w:false,n:'Achtung: Auch die Eingabe 16 ist Text, also <b>"16"</b> vom Typ str. Damit kann man noch nicht rechnen.'},
+ {l:2,v:[['name','"Lea"','str'],['alter','16','int',1]],c:'Wie heissen Sie? <span class="in">Lea</span>\nWie alt sind Sie? <span class="in">16</span>\n',w:false,n:'<b>int()</b> macht aus dem Text "16" die Zahl <b>16</b>. Der neue Wert überschreibt den alten in derselben Variable.'},
+ {l:3,v:[['name','"Lea"','str'],['alter','16','int']],c:'Wie heissen Sie? <span class="in">Lea</span>\nWie alt sind Sie? <span class="in">16</span>\nHallo Lea!\n',w:false,n:'Mit <b>+</b> werden drei Texte zu "Hallo Lea!" verkettet. Das Leerzeichen steht in "Hallo ", das Ausrufezeichen kommt ohne Abstand dahinter.'},
+ {l:4,v:[['name','"Lea"','str'],['alter','16','int']],c:'Wie heissen Sie? <span class="in">Lea</span>\nWie alt sind Sie? <span class="in">16</span>\nHallo Lea!\nNächstes Jahr sind Sie 17\n',w:false,n:'Python rechnet zuerst <b>alter + 1 = 17</b>. Das Komma in print() setzt automatisch ein Leerzeichen zwischen Text und Zahl. Fertig!'}];
+let st=0;
+function drawStep(){const s=S[st];
+  $('lines').innerHTML=PROG.map((l,i)=>`<div class="${i===s.l?'cur':''}"><span class="n">${i+1}</span><span>${hl(l)}</span></div>`).join('');
+  $('vars').innerHTML=s.v.length?s.v.map(([k,val,t,isNew])=>`<div class="v${isNew?' new':''}"><span>${k}</span><span class="val${t==='int'?' num':''}">${esc(val)}</span><span class="ty">${t}</span></div>`).join(''):'<span style="color:var(--term-muted);font-style:italic">noch keine</span>';
+  $('conso').innerHTML=s.c+(s.w?'<span class="caret"></span>':'');
+  $('note').innerHTML=s.n;$('count').textContent=`Schritt ${st+1} von ${S.length}`;
+  $('back').disabled=st===0;$('next').disabled=st===S.length-1}
+$('next').onclick=()=>{if(st<S.length-1){st++;drawStep()}};$('back').onclick=()=>{if(st>0){st--;drawStep()}};$('reset').onclick=()=>{st=0;drawStep()};
+drawStep();
+
+/* Werkstatt */
+const code=$('code'),cons=$('console'),gut=$('gutter');
+const EX={
+ 'Begrüssung':'name = input("Wie heissen Sie? ")\nprint("Hallo", name)\nprint("Schön, dass Sie da sind, " + name + "!")',
+ 'Rechner':'a = int(input("Erste Zahl: "))\nb = int(input("Zweite Zahl: "))\nprint("Summe:", a + b)\nprint("Produkt: " + str(a * b))',
+ 'Kaufen':'preis = float(input("Preis in CHF: "))\nanzahl = int(input("Anzahl: "))\nprint("Total:", preis * anzahl, "CHF")',
+ 'Fehler zeigen':'alter = input("Alter: ")\nprint("In 5 Jahren: " + alter + 5)'};
+function lines(){gut.textContent=Array.from({length:Math.max(1,code.value.split('\n').length)},(_,i)=>i+1).join('\n')}
+function setCode(t){code.value=t;lines()}
+code.addEventListener('input',lines);
+code.addEventListener('scroll',()=>{gut.scrollTop=code.scrollTop});
+code.addEventListener('keydown',e=>{if(e.key==='Tab'&&!e.shiftKey){e.preventDefault();const s=code.selectionStart;code.setRangeText('    ',s,code.selectionEnd,'end');lines()}
+  if(e.key==='Enter'&&(e.metaKey||e.ctrlKey)){e.preventDefault();runCode()}});
+Object.keys(EX).forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=k;b.onclick=()=>setCode(EX[k]);$('examples').appendChild(b)});
+setCode(EX['Begrüssung']);
+
+const write=(t,cls)=>{const s=document.createElement('span');if(cls)s.className=cls;s.textContent=t;cons.appendChild(s);cons.scrollTop=cons.scrollHeight};
+let running=false,pending=null;
+function ask(){return new Promise((res,rej)=>{const inp=document.createElement('input');inp.className='ask';inp.type='text';inp.id='ask-'+Date.now();inp.setAttribute('aria-label','Eingabe für input()');
+  cons.appendChild(inp);inp.focus({preventScroll:true});cons.scrollTop=cons.scrollHeight;
+  pending={rej,inp};
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();const v=inp.value;inp.remove();write(v,'in');write('\n');pending=null;res(v)}})})}
+function tip(msg){
+  if(/concatenate|unsupported operand/.test(msg))return 'Tipp: Text und Zahl lassen sich nicht mit + verbinden. Wandeln Sie die Zahl mit str() um – oder die Eingabe mit int()/float().';
+  if(/invalid literal for int/.test(msg))return 'Tipp: int() braucht eine ganze Zahl ohne Buchstaben und ohne Dezimalstellen.';
+  if(/convert string to float/.test(msg))return 'Tipp: float() braucht eine Zahl mit Punkt, z. B. 2.5 statt 2,5.';
+  if(/NameError/.test(msg))return 'Tipp: Diese Variable gibt es nicht. Tippfehler? Oder fehlen Anführungszeichen um einen Text?';
+  if(/SyntaxError|EOF/.test(msg))return 'Tipp: Prüfen Sie Klammern und Anführungszeichen – jede geöffnete braucht eine schliessende.';
+  return ''}
+function setRunning(r){running=r;$('run').hidden=r;$('stop').hidden=!r}
+function runCode(){if(typeof Sk==='undefined'){cons.innerHTML='';write('Python konnte nicht geladen werden. Prüfen Sie die Internetverbindung und laden Sie die Seite neu.','err');return}
+  if(running)return;cons.innerHTML='';setRunning(true);
+  Sk.configure({output:t=>write(t),read:x=>{if(!Sk.builtinFiles||!Sk.builtinFiles.files[x])throw "File not found: '"+x+"'";return Sk.builtinFiles.files[x]},
+    inputfun:ask,inputfunTakesPrompt:false,__future__:Sk.python3,yieldLimit:100,killableWhile:true,killableFor:true});
+  Sk.execLimit=Number.POSITIVE_INFINITY;Sk.execStart=Date.now();
+  Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody('<stdin>',false,code.value,true))
+   .then(()=>{write('\n— Programm beendet —','sys')},e=>{const m=String(e&&e.toString?e.toString():e);
+      if(/TimeLimit|gestoppt/.test(m))write('\n■ Programm gestoppt','sys');
+      else{write('\n'+m.replace(/ on line (\d+)/,' (Zeile $1)'),'err');const t=tip(m);if(t)write(t,'tip')}})
+   .finally(()=>{setRunning(false);pending=null})}
+$('run').onclick=runCode;
+$('stop').onclick=()=>{Sk.execLimit=1;if(pending){pending.inp.remove();pending.rej('gestoppt');pending=null}};
+$('clearc').onclick=()=>{cons.innerHTML=''};
+if(typeof Sk==='undefined'){cons.innerHTML='';write('Python konnte nicht geladen werden. Prüfen Sie die Internetverbindung und laden Sie die Seite neu.','err')}
+else{cons.innerHTML='';write('Bereit. Klicken Sie auf «Ausführen» oder drücken Sie Cmd/Ctrl + Enter.','sys')}
+})();
+</script>
+
+</body>
+</html>
