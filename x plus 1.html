@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<!-- Entscheidungen:
+Einsatztyp: Lernmaterial Informatik, Zielgruppe Schüler:innen, Gerät gemischt, Sie-Form, Schweizer Rechtschreibung, kein Geviertstrich.
+Inhalt: Konstruktion x = x + 1 in 6 Stufen mit 52 Übungen. Nur Grundkurs: print, Variablen, input, if/elif/else, repeat, def, return, Operatoren inkl. // und %. Ohne while, for, +=, f-Strings, Casts, type().
+Übungsformat: Vorhersage, Wertetabelle, Lücke, Auswahl, Zeilen ordnen, Fehler finden (alle sofort geprüft), Programmieraufgaben (Lösung einblendbar, selbst abhaken).
+Simulation: Schritt für Schritt mit Vor/Zurück in Stufe 1, 3 und 4.
+Datenhaltung: Fortschritt pro Browser (localStorage, nur Komfort).
+Design: nur dunkles Nord-Design ohne Umschalter (Wunsch von Patrick), Open Sans + Google Sans Code. Keine zweite Variante.
+Navigation: Stufen über Hash (#stufe-1 bis #stufe-6).
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interaktive Lernseite zu x = x + 1 mit Schritt-für-Schritt-Simulation und 52 Übungen in sechs Stufen.">
+<title>x = x + 1 üben</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: eine Lesespalte, darüber die Zeile x = x + 1 als Titel und eine Treppe als Stufennavigation.
+   Farbcode überall gleich: lesen = Frost (nord8), schreiben = Gelb (nord13). */
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);--line:var(--nord2);
+  --text:var(--nord6);--muted:var(--nord4);--accent:var(--nord8);
+  --read:var(--nord8);--write:var(--nord13);
+  --ok:var(--nord14);--bad:var(--nord11);--special:var(--nord15);
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+h1,h2,h3,p,ol,ul,table,pre{margin:0}
+code,pre,kbd,samp,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:820px;margin:0 auto;padding-block:32px 72px;display:flex;flex-direction:column;gap:32px}
+
+/* Kopf */
+.top{display:flex;flex-wrap:wrap;gap:20px 32px;align-items:flex-end;justify-content:space-between}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--nord7)}
+.hero{display:flex;align-items:flex-start;gap:.32em;font-family:var(--mono);font-weight:600;font-size:clamp(44px,12vw,84px);line-height:1.1;margin-top:6px}
+.hero>span{display:flex;flex-direction:column;align-items:center;gap:6px}
+.hero small{font-size:13px;font-weight:400;line-height:1.3;letter-spacing:.02em;white-space:nowrap}
+.hero .w{color:var(--write)}.hero .r{color:var(--read)}
+.lead{color:var(--muted);max-width:62ch;margin-top:12px}
+.counter{font-family:var(--mono);font-size:15px;background:var(--surface);padding:10px 14px;border-radius:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.counter b{font-weight:600;color:var(--ok)}
+.counter span{color:var(--muted)}
+
+/* Treppe */
+.stairs ol{list-style:none;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;align-items:end}
+.stairs a{display:flex;flex-direction:column;gap:6px;text-decoration:none;color:var(--muted);border-radius:4px}
+.stairs .step{position:relative;display:block;height:calc(18px + var(--lvl)*13px);background:var(--surface);border-radius:3px 3px 0 0;overflow:hidden}
+.stairs .step i{position:absolute;inset:auto 0 0 0;height:var(--p,0%);background:var(--ok);opacity:.75;transition:height .25s}
+.stairs .num{font-family:var(--mono);font-size:13px}
+.stairs .nm{font-size:13px;line-height:1.25;min-height:2.5em}
+.stairs a:hover{color:var(--text)}
+.stairs a:hover .step{background:var(--surface-2)}
+.stairs a[aria-current="page"]{color:var(--text)}
+.stairs a[aria-current="page"] .step{box-shadow:inset 0 -3px 0 var(--accent);background:var(--surface-2)}
+.stairs a[aria-current="page"] .num{color:var(--accent);font-weight:600}
+@media (max-width:560px){.stairs .nm{display:none}.stairs a{align-items:stretch;text-align:center}}
+
+/* Text */
+.sect{display:flex;flex-direction:column;gap:16px}
+.kicker{font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--nord7)}
+h2{font-size:clamp(26px,5vw,34px);font-weight:700;line-height:1.2;text-wrap:balance}
+.sect p{max-width:68ch}
+p code,li code,td code,label code,.fb code,.merke code,.q code{font-size:.9em;background:var(--surface);padding:.1em .32em;border-radius:3px}
+.merke{background:rgba(180,142,173,.16);padding:12px 16px;border-radius:6px}
+.merke strong:first-child{color:var(--text)}
+.tbl{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;font-variant-numeric:tabular-nums}
+th{font-weight:600;text-align:left;font-size:14px;color:var(--muted)}
+th,td{padding:7px 14px 7px 0;border-bottom:1px solid var(--line);vertical-align:middle}
+.lookup td:first-child{font-family:var(--mono);font-size:.9em;white-space:nowrap;padding-right:24px}
+
+/* Code */
+.code{position:relative;background:var(--surface);border-radius:6px;font-size:.9em;line-height:1.5;min-width:0}
+.code pre{overflow-x:auto;padding:12px 56px 12px 14px;white-space:pre}
+.copy{position:absolute;top:6px;right:6px;font-family:var(--mono);font-size:12px;padding:3px 8px;border:0;border-radius:4px;background:var(--surface-2);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--text)}
+.k{color:var(--nord9)}.s{color:var(--nord14)}.n{color:var(--nord15)}.f{color:var(--nord8)}.c{color:var(--nord4);opacity:.7;font-style:italic}
+
+/* Simulation */
+.sim{background:var(--surface);border-radius:8px;padding:16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 20px}
+.sim h3{grid-column:1/-1;font-size:17px;font-weight:600}
+.sim .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.sim .col{min-width:0}
+.simcode{font-family:var(--mono);font-size:15px;line-height:1.5;background:var(--bg);border-radius:6px;padding:8px 0;overflow-x:auto}
+.simcode div{padding:1px 12px;white-space:pre;min-width:max-content}
+.simcode div.on{background:var(--surface-2)}
+.simcode .tr.on{color:var(--nord0);background:var(--read);border-radius:2px}
+.simcode .tw.on{color:var(--nord0);background:var(--write);border-radius:2px}
+.simcode .tr.on *,.simcode .tw.on *{color:inherit}
+.mem{display:flex;flex-wrap:wrap;gap:10px;min-height:72px}
+.cell{background:var(--bg);border-radius:6px;padding:6px 12px;min-width:92px;border:2px solid transparent;font-family:var(--mono)}
+.cell.read{border-color:var(--read)}.cell.write{border-color:var(--write)}
+.cell .name{font-size:13px;color:var(--muted)}
+.cell .val{font-size:28px;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums}
+.cell .old{font-size:13px;color:var(--muted);min-height:1.4em}
+.cell .old s{margin-right:6px}
+.empty{color:var(--muted);font-size:15px}
+.calc{font-family:var(--mono);font-size:15px;min-height:1.5em;margin-top:8px;color:var(--read)}
+.console{font-family:var(--mono);font-size:15px;background:var(--bg);border-radius:6px;padding:6px 12px;min-height:38px;white-space:pre;margin-top:12px;overflow-x:auto}
+.note{grid-column:1/-1;min-height:3.2em;max-width:none}
+.note b{font-weight:600}
+.sim p code{background:var(--bg)}
+.simbar{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.simbar .pos{font-family:var(--mono);font-size:13px;color:var(--muted);margin-left:auto;font-variant-numeric:tabular-nums}
+@media (max-width:620px){.sim{grid-template-columns:minmax(0,1fr)}}
+
+/* Knöpfe */
+.btn{padding:7px 14px;border-radius:5px;border:1px solid transparent;cursor:pointer;background:var(--accent);color:var(--nord0);font-weight:600;font-size:15px;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--nord7)}
+.btn:disabled{opacity:.45;cursor:default}
+.btn.ghost{background:transparent;border-color:var(--nord3);color:var(--text);font-weight:400}
+.btn.ghost:hover{background:var(--surface)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+
+/* Übungen */
+.exs{display:flex;flex-direction:column}
+.ex{padding-block:24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px;scroll-margin-top:12px}
+.exh{display:flex;gap:10px;align-items:baseline;font-family:var(--mono);font-size:13px;color:var(--muted)}
+.exh .id{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.exh .st{margin-left:auto;color:var(--ok)}
+.q{max-width:68ch}
+.ta{width:100%;background:var(--bg);border:1px solid var(--nord3);border-radius:5px;padding:8px 10px;font-family:var(--mono);font-size:15px;line-height:1.5;resize:vertical;display:block}
+.fld{display:flex;flex-direction:column;gap:4px}
+.fld label{font-size:14px;color:var(--muted)}
+.gap{background:var(--bg);border:1px solid var(--nord9);border-radius:3px;padding:0 4px;font-family:var(--mono);font-size:inherit;line-height:1.3;text-align:center}
+.gap.bad,.tin.bad{border-color:var(--bad);background:rgba(191,97,106,.2)}
+.gap.good,.tin.good{border-color:var(--ok)}
+.tin{width:6ch;background:var(--bg);border:1px solid var(--nord3);border-radius:4px;padding:3px 6px;font-family:var(--mono);text-align:center}
+.trace th,.trace td{padding-right:16px}
+.trace .rl{font-family:var(--mono);font-size:14px;white-space:pre}
+.trace th.v{font-family:var(--mono);text-align:center}
+.trace td.g{font-family:var(--mono);text-align:center}
+.opts{display:flex;flex-direction:column;gap:6px;border:0;padding:0;margin:0}
+.opts label{display:flex;gap:10px;align-items:flex-start;padding:7px 10px;border-radius:5px;background:var(--surface);cursor:pointer}
+.opts label:hover{background:var(--surface-2)}
+.opts input{margin-top:.35em;accent-color:var(--nord8);flex:none}
+.pz{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.pz>div{min-width:0}
+.pzl{font-size:14px;color:var(--muted);margin-bottom:4px}
+.pzb{display:flex;flex-direction:column;gap:4px;min-height:44px;background:var(--bg);border:1px dashed var(--nord3);border-radius:6px;padding:6px}
+.ln{font-family:var(--mono);font-size:14px;white-space:pre;text-align:left;background:var(--surface);border:0;border-radius:4px;padding:5px 8px;cursor:pointer;overflow-x:auto}
+.ln:hover{background:var(--surface-2)}
+@media (max-width:620px){.pz{grid-template-columns:minmax(0,1fr)}}
+.bugl{display:flex;flex-direction:column;gap:2px;background:var(--surface);border-radius:6px;padding:8px;overflow-x:auto}
+.bugl .ln{background:transparent;display:flex;gap:12px;min-width:max-content;padding:2px 8px}
+.bugl .ln:hover{background:var(--surface-2)}
+.bugl .ln[aria-pressed="true"]{background:rgba(235,203,139,.22);box-shadow:inset 0 0 0 1px var(--write)}
+.bugl .no{color:var(--muted);user-select:none;font-variant-numeric:tabular-nums}
+.fb{padding:10px 14px;border-radius:6px;max-width:68ch}
+.fb.ok{background:rgba(163,190,140,.2)}
+.fb.no{background:rgba(191,97,106,.24)}
+.fb.sol{background:var(--surface)}
+.fb b{font-weight:600}
+.fb pre{font-size:.9em;margin-top:6px;white-space:pre;overflow-x:auto}
+.tests{font-size:15px}
+.tests pre{font-size:.9em;white-space:pre}
+.tests td{vertical-align:top}
+.check{display:inline-flex;gap:8px;align-items:center;font-size:15px;cursor:pointer}
+.check input{accent-color:var(--nord14)}
+.foot{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:20px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.eyebrow a.back{color:var(--nord7);text-decoration:none}.eyebrow a.back:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow"><a href="index.html" class="back">← Übersicht</a> · TigerPython · Übungsreihe</div>
+      <h1 class="hero" aria-label="x = x + 1"><span class="w">x<small>2. schreiben</small></span><span>=</span><span class="r">x + 1<small>1. lesen und rechnen</small></span></h1>
+      <p class="lead">Sechs Stufen, 52 Übungen, von sehr einfach bis schwierig. Programmieraufgaben testen Sie in <a href="https://webtigerpython.ethz.ch/" target="_blank" rel="noopener">WebTigerPython</a>.</p>
+    </div>
+    <div class="counter" id="counter" aria-live="polite"></div>
+  </header>
+  <nav class="stairs" aria-label="Stufen"><ol id="stairs"></ol></nav>
+  <main class="sect" id="view"></main>
+</div>
+
+<script type="application/json" id="daten">{"stufen": [{"id": "stufe-1", "name": "Grundidee", "niveau": "sehr einfach", "titel": "Rechts lesen, links schreiben", "intro": ["In der Mathematik ist <code>x = x + 1<\/code> falsch, denn keine Zahl ist um 1 grösser als sie selbst. In Python ist <code>=<\/code> keine Gleichung. Das Zeichen ist ein Auftrag: Berechne die rechte Seite und speichere das Ergebnis in der Variable links.", "Python arbeitet die Zeile deshalb immer von rechts nach links ab. Es liest den aktuellen Wert von <code>x<\/code>, rechnet <code>+ 1<\/code> und schreibt das Ergebnis zurück in <code>x<\/code>. Der alte Wert ist danach weg."], "sim": "grund", "merke": "Eine Variable speichert immer genau einen Wert. Ohne <code>x =<\/code> am Anfang wird das Ergebnis nirgends gespeichert.", "ex": [{"t": "mc", "q": "Was bewirkt die Zeile <code>x = x + 1<\/code>?", "opts": ["Sie liest den Wert von <code>x<\/code>, zählt 1 dazu und speichert das Ergebnis wieder in <code>x<\/code>.", "Sie prüft, ob <code>x<\/code> gleich gross ist wie <code>x + 1<\/code>.", "Sie erstellt eine zweite Variable mit dem Namen <code>x + 1<\/code>.", "Sie setzt <code>x<\/code> auf den Wert 1."], "ok": 0, "why": "Das Zeichen <code>=<\/code> weist einen Wert zu. Vergleichen würde man mit <code>==<\/code>.", "id": "1.1"}, {"t": "pred", "code": "x = 5\nx = x + 1\nprint(x)", "why": "Python liest 5, rechnet 5 + 1 und speichert 6 in <code>x<\/code>.", "id": "1.2", "out": "6"}, {"t": "pred", "code": "x = 10\nx = x + 1\nx = x + 1\nprint(x)", "why": "Die erste Erhöhung ergibt 11, die zweite liest diese 11 und ergibt 12.", "id": "1.3", "out": "12"}, {"t": "mc", "q": "Was macht Python bei <code>x = x + 1<\/code> zuerst?", "opts": ["Es speichert einen neuen Wert in <code>x<\/code>.", "Es berechnet die rechte Seite mit dem aktuellen Wert von <code>x<\/code>.", "Es löscht die Variable <code>x<\/code>.", "Es gibt <code>x<\/code> auf dem Bildschirm aus."], "ok": 1, "why": "Zuerst wird rechts gerechnet. Erst wenn das Ergebnis feststeht, wird es links gespeichert.", "id": "1.4"}, {"t": "trace", "q": "Tragen Sie ein, welchen Wert <code>a<\/code> nach jeder Zeile hat.", "code": "a = 3\na = a + 1\na = a + 1\na = a + 1", "vars": ["a"], "mode": "line", "why": "Jede Zeile liest das Ergebnis der Zeile davor.", "id": "1.5", "rows": [{"label": "a = 3", "vals": [3]}, {"label": "a = a + 1", "vals": [4]}, {"label": "a = a + 1", "vals": [5]}, {"label": "a = a + 1", "vals": [6]}]}, {"t": "pred", "code": "x = 1\nprint(x)\nx = x + 1\nprint(x)", "why": "<code>print<\/code> zeigt den Wert, den die Variable in diesem Moment hat.", "id": "1.6", "out": "1\n2"}, {"t": "pred", "q": "Achtung, hier fehlt etwas. Was gibt dieses Programm aus?", "code": "x = 5\nprint(x + 1)\nprint(x)", "why": "<code>print(x + 1)<\/code> rechnet und zeigt 6, speichert das Ergebnis aber nicht. In <code>x<\/code> bleibt 5.", "id": "1.7", "out": "6\n5"}, {"t": "fill", "q": "Ergänzen Sie die Lücke, damit <code>punkte<\/code> um 1 steigt und das Programm 8 ausgibt.", "code": "punkte = 7\npunkte = ___ + 1\nprint(punkte)", "answers": [["punkte"]], "expect": "8", "why": "Rechts muss der bisherige Wert stehen, also wieder die Variable <code>punkte<\/code>.", "id": "1.8"}]}, {"id": "stufe-2", "name": "Andere Rechnungen", "niveau": "einfach", "titel": "Jede Rechnung funktioniert gleich", "intro": ["Das Muster gilt für alle Rechnungen. Die Variable steht links und rechts, dazwischen steht, wie sich der Wert verändert. Rechts darf auch eine zweite Variable stehen."], "table": [["Zeile", "Wirkung"], ["x = x + 3", "erhöht <code>x<\/code> um 3"], ["x = x - 1", "verkleinert <code>x<\/code> um 1"], ["x = x * 2", "verdoppelt <code>x<\/code>"], ["x = x // 2", "halbiert <code>x<\/code> ganzzahlig"], ["x = x + y", "zählt den Wert von <code>y<\/code> dazu, <code>y<\/code> bleibt gleich"]], "ex": [{"t": "pred", "code": "x = 10\nx = x - 1\nprint(x)", "why": "Python liest 10, rechnet 10 - 1 und speichert 9.", "id": "2.1", "out": "9"}, {"t": "pred", "code": "x = 2\nx = x * 2\nx = x * 2\nprint(x)", "why": "Aus 2 wird 4, aus 4 wird 8.", "id": "2.2", "out": "8"}, {"t": "fill", "q": "Sie haben 50 Franken und erhalten 20 Franken Taschengeld. Ergänzen Sie das fehlende Zeichen.", "code": "geld = 50\ngeld = geld ___ 20\nprint(geld)", "answers": [["+"]], "expect": "70", "why": "Das Taschengeld wird zum bisherigen Betrag addiert.", "id": "2.3"}, {"t": "trace", "q": "Tragen Sie den Wert von <code>x<\/code> nach jeder Zeile ein.", "code": "x = 20\nx = x - 5\nx = x * 2\nx = x + 3", "vars": ["x"], "mode": "line", "why": "Rechnen Sie immer mit dem Ergebnis der Zeile davor: 20, 15, 30, 33.", "id": "2.4", "rows": [{"label": "x = 20", "vals": [20]}, {"label": "x = x - 5", "vals": [15]}, {"label": "x = x * 2", "vals": [30]}, {"label": "x = x + 3", "vals": [33]}]}, {"t": "pred", "code": "a = 3\nb = 4\na = a + b\nprint(a, b)", "why": "Nur links steht die Variable, die sich ändert. <code>a<\/code> wird 7, <code>b<\/code> bleibt 4.", "id": "2.5", "out": "7 4"}, {"t": "trace", "q": "Hier ändern sich zwei Variablen. Tragen Sie beide nach jeder Zeile ein. Noch nicht vorhandene Werte sind schon markiert.", "code": "a = 2\nb = 5\na = a + b\nb = b + a", "vars": ["a", "b"], "mode": "line", "why": "Die letzte Zeile liest das neue <code>a<\/code>, also 7. Deshalb wird <code>b<\/code> zu 12.", "id": "2.6", "rows": [{"label": "a = 2", "vals": [2, null]}, {"label": "b = 5", "vals": [2, 5]}, {"label": "a = a + b", "vals": [7, 5]}, {"label": "b = b + a", "vals": [7, 12]}]}, {"t": "mc", "q": "<code>x<\/code> hat den Wert 7 und soll 10 werden. Welche Zeile ist korrekt?", "opts": ["<code>x + 3 = x<\/code>", "<code>x == x + 3<\/code>", "<code>x = x + 3<\/code>", "<code>x + 3<\/code>"], "ok": 2, "why": "Links vom <code>=<\/code> muss eine Variable stehen, sonst meldet Python einen Fehler. <code>==<\/code> vergleicht nur, und <code>x + 3<\/code> allein speichert nichts.", "id": "2.7"}, {"t": "parsons", "q": "Ordnen Sie die Zeilen so, dass das Programm 12 ausgibt. Klicken Sie die Zeilen der Reihe nach an.", "lines": ["z = 5", "z = z + 1", "z = z * 2", "print(z)"], "expect": "12", "why": "Zuerst 5 + 1 = 6, dann 6 * 2 = 12. In der anderen Reihenfolge entstünde 11.", "id": "2.8"}, {"t": "prog", "q": "Speichern Sie <code>kontostand = 100<\/code>. Zahlen Sie 50 Franken ein und heben Sie danach 30 Franken ab. Verwenden Sie für beide Schritte eine eigene Zeile, die <code>kontostand<\/code> verändert. Geben Sie den neuen Kontostand aus.", "sol": "kontostand = 100\nkontostand = kontostand + 50\nkontostand = kontostand - 30\nprint(\"Kontostand:\", kontostand)", "tests": [{"in": [], "out": "Kontostand: 120"}], "id": "2.9"}]}, {"id": "stufe-3", "name": "Zähler in repeat", "niveau": "einfach bis mittel", "titel": "Der Zähler in der Schleife", "intro": ["Im Grundkurs läuft <code>repeat<\/code> eine feste Anzahl Male, weiss aber nicht, im wievielten Durchlauf es gerade steckt. Das übernimmt ein Zähler: eine Variable, die vor der Schleife einen Startwert erhält und in der Schleife mit <code>i = i + 1<\/code> erhöht wird.", "Entscheidend sind drei Fragen. Wo steht der Startwert? Steht <code>print<\/code> eingerückt in der Schleife oder danach? Wird vor oder nach dem Erhöhen ausgegeben?"], "sim": "zaehler", "merke": "Der Startwert gehört <strong>vor<\/strong> die Schleife. Stünde er in der Schleife, begänne der Zähler in jedem Durchlauf von vorne.", "ex": [{"t": "pred", "code": "z = 0\nrepeat 3:\n    z = z + 1\nprint(z)", "why": "<code>print<\/code> ist nicht eingerückt und läuft erst nach der Schleife, also einmal.", "id": "3.1", "out": "3"}, {"t": "pred", "code": "z = 0\nrepeat 3:\n    z = z + 1\n    print(z)", "why": "Jetzt ist <code>print<\/code> eingerückt und läuft in jedem Durchlauf.", "id": "3.2", "out": "1\n2\n3"}, {"t": "pred", "code": "z = 0\nrepeat 3:\n    print(z)\n    z = z + 1", "why": "Hier wird ausgegeben, bevor der Zähler steigt. Deshalb erscheint zuerst 0, und die 3 wird nie ausgegeben.", "id": "3.3", "out": "0\n1\n2"}, {"t": "trace", "q": "Tragen Sie den Wert von <code>z<\/code> nach jedem Durchlauf ein.", "code": "z = 10\nrepeat 4:\n    z = z - 2", "vars": ["z"], "mode": "loop", "why": "Ein Zähler kann auch rückwärts laufen.", "id": "3.4", "rows": [{"label": "Start", "vals": [10], "given": true}, {"label": "Durchlauf 1", "vals": [8]}, {"label": "Durchlauf 2", "vals": [6]}, {"label": "Durchlauf 3", "vals": [4]}, {"label": "Durchlauf 4", "vals": [2]}]}, {"t": "fill", "q": "Ergänzen Sie das Programm so, dass es die Zahlen 1 bis 5 untereinander ausgibt.", "code": "i = ___\nrepeat ___:\n    i = i + 1\n    print(i)", "answers": [["0"], ["5"]], "expect": "1\n2\n3\n4\n5", "why": "Weil zuerst erhöht und dann ausgegeben wird, startet <code>i<\/code> bei 0.", "id": "3.5"}, {"t": "parsons", "q": "Ordnen Sie die Zeilen so, dass das Programm 5, 10 und 15 untereinander ausgibt.", "lines": ["z = 0", "repeat 3:", "    z = z + 5", "    print(z)"], "expect": "5\n10\n15", "why": "Startwert vor der Schleife, dann in jedem Durchlauf erhöhen und ausgeben.", "id": "3.6"}, {"t": "bug", "q": "Dieses Programm soll 5 ausgeben, gibt aber 1 aus. Klicken Sie die Zeile an, die falsch steht.", "code": "repeat 5:\n    z = 0\n    z = z + 1\nprint(z)", "line": 1, "fixed": "z = 0\nrepeat 5:\n    z = z + 1\nprint(z)", "expect": "5", "why": "<code>z = 0<\/code> steht in der Schleife und setzt den Zähler in jedem Durchlauf zurück. Die Zeile gehört vor <code>repeat<\/code>.", "id": "3.7", "bugOut": "1"}, {"t": "mc", "q": "Was passiert bei diesem Programm?", "code": "repeat 3:\n    z = z + 1\nprint(z)", "raises": "NameError", "opts": ["Es gibt 3 aus, weil Variablen automatisch bei 0 beginnen.", "Es gibt 1 aus.", "Python meldet einen Fehler, weil <code>z<\/code> gelesen wird, bevor es einen Wert hat.", "Es gibt nichts aus."], "ok": 2, "why": "Rechts steht <code>z<\/code>, und diesen Wert gibt es beim ersten Durchlauf noch nicht. Jeder Zähler braucht einen Startwert.", "id": "3.8"}, {"t": "prog", "q": "Schreiben Sie einen Countdown. Das Programm gibt die Zahlen von 10 bis 1 untereinander aus und danach <code>Start!<\/code>", "hint": "Beginnen Sie mit <code>c = 10<\/code>. Was muss zuerst passieren: ausgeben oder verkleinern?", "sol": "c = 10\nrepeat 10:\n    print(c)\n    c = c - 1\nprint(\"Start!\")", "tests": [{"in": [], "out": "10\n9\n8\n7\n6\n5\n4\n3\n2\n1\nStart!"}], "id": "3.9"}]}, {"id": "stufe-4", "name": "Summen und Produkte", "niveau": "mittel", "titel": "Werte aufsammeln", "intro": ["Dieselbe Zeile kann mehr als zählen. Mit <code>s = s + i<\/code> sammelt die Variable <code>s<\/code> Werte auf. Man nennt sie deshalb Summenvariable. Oft arbeitet sie mit einem Zähler zusammen: <code>i<\/code> läuft durch die Zahlen, <code>s<\/code> addiert sie."], "sim": "summe", "merke": "Eine Summe startet bei 0, weil 0 beim Addieren nichts verändert. Ein Produkt startet bei 1, weil alles mal 0 für immer 0 bliebe.", "ex": [{"t": "pred", "code": "s = 0\ni = 0\nrepeat 4:\n    i = i + 1\n    s = s + i\nprint(s)", "why": "<code>s<\/code> sammelt 1 + 2 + 3 + 4.", "id": "4.1", "out": "10"}, {"t": "trace", "q": "Tragen Sie <code>i<\/code> und <code>s<\/code> nach jedem Durchlauf ein.", "code": "s = 0\ni = 0\nrepeat 3:\n    i = i + 2\n    s = s + i", "vars": ["i", "s"], "mode": "loop", "why": "<code>s<\/code> liest in jedem Durchlauf das neue <code>i<\/code>: 2, dann 2 + 4, dann 6 + 6.", "id": "4.2", "rows": [{"label": "Start", "vals": [0, 0], "given": true}, {"label": "Durchlauf 1", "vals": [2, 2]}, {"label": "Durchlauf 2", "vals": [4, 6]}, {"label": "Durchlauf 3", "vals": [6, 12]}]}, {"t": "pred", "q": "Die beiden Zeilen in der Schleife sind vertauscht. Was gibt das Programm jetzt aus?", "code": "s = 0\ni = 0\nrepeat 4:\n    s = s + i\n    i = i + 1\nprint(s)", "why": "Jetzt addiert <code>s<\/code> die Werte 0, 1, 2 und 3. Die 4 kommt nie dazu.", "id": "4.3", "out": "6"}, {"t": "fill", "q": "Das Programm soll 1 * 2 * 3 * 4 * 5 berechnen und 120 ausgeben. Ergänzen Sie die Lücken.", "code": "p = ___\ni = 0\nrepeat 5:\n    i = i + 1\n    p = p ___ i\nprint(p)", "answers": [["1"], ["*"]], "expect": "120", "why": "Ein Produkt startet bei 1. Mit dem Startwert 0 bliebe das Ergebnis 0.", "id": "4.4"}, {"t": "bug", "q": "Das Programm soll 1 + 2 + ... + 10 berechnen und 55 ausgeben, es gibt aber 10 aus. Klicken Sie die falsche Zeile an.", "code": "s = 0\ni = 0\nrepeat 10:\n    i = i + 1\n    s = s + 1\nprint(s)", "line": 4, "fixed": "s = 0\ni = 0\nrepeat 10:\n    i = i + 1\n    s = s + i\nprint(s)", "expect": "55", "why": "<code>s = s + 1<\/code> zählt nur die Durchläufe. Richtig ist <code>s = s + i<\/code>.", "id": "4.5", "bugOut": "10"}, {"t": "parsons", "q": "Ordnen Sie die Zeilen so, dass das Programm 1 + 4 + 9 berechnet und 14 ausgibt.", "lines": ["s = 0", "i = 0", "repeat 3:", "    i = i + 1", "    s = s + i * i", "print(s)"], "expect": "14", "alts": [[1, 0, 2, 3, 4, 5]], "why": "Beide Startwerte stehen vor der Schleife. In der Schleife wird zuerst <code>i<\/code> erhöht, danach das Quadrat addiert.", "id": "4.6"}, {"t": "prog", "q": "Berechnen Sie die Summe aller Zahlen von 1 bis 100 und geben Sie das Ergebnis aus.", "hint": "Sie brauchen zwei Variablen: einen Zähler und eine Summe.", "sol": "s = 0\ni = 0\nrepeat 100:\n    i = i + 1\n    s = s + i\nprint(s)", "tests": [{"in": [], "out": "5050"}], "id": "4.7"}, {"t": "prog", "q": "Berechnen Sie die Summe der ungeraden Zahlen 1 + 3 + 5 + ... + 19 und geben Sie sie aus.", "hint": "Das sind 10 Zahlen. Der Zähler wächst jeweils um 2.", "sol": "s = 0\ni = 1\nrepeat 10:\n    s = s + i\n    i = i + 2\nprint(s)", "tests": [{"in": [], "out": "100"}], "id": "4.8"}]}, {"id": "stufe-5", "name": "Zählen mit Bedingung", "niveau": "anspruchsvoll", "titel": "Nur zählen, was zählt", "intro": ["Steht <code>n = n + 1<\/code> eingerückt unter einem <code>if<\/code>, steigt der Zähler nur, wenn die Bedingung erfüllt ist. So lässt sich zählen, wie oft etwas vorkommt: Treffer, richtige Antworten oder gerade Zahlen.", "Mit <code>input<\/code> kommen die Werte von aussen. Die Programme bleiben gleich aufgebaut: Startwert vor der Schleife, Eingabe und Prüfung in der Schleife, Ausgabe danach."], "merke": "Die Einrückung entscheidet. Unter dem <code>if<\/code> zählt die Zeile nur manchmal, auf Höhe des <code>if<\/code> zählt sie in jedem Durchlauf.", "ex": [{"t": "pred", "code": "i = 0\nt = 0\nrepeat 6:\n    i = i + 1\n    if i % 3 == 0:\n        t = t + 1\nprint(t)", "why": "Von 1 bis 6 sind nur 3 und 6 durch 3 teilbar.", "id": "5.1", "out": "2"}, {"t": "trace", "q": "Tragen Sie <code>i<\/code> und <code>g<\/code> nach jedem Durchlauf ein.", "code": "i = 0\ng = 0\nrepeat 5:\n    i = i + 1\n    if i % 2 == 0:\n        g = g + i", "vars": ["i", "g"], "mode": "loop", "why": "<code>g<\/code> ändert sich nur, wenn <code>i<\/code> gerade ist.", "id": "5.2", "rows": [{"label": "Start", "vals": [0, 0], "given": true}, {"label": "Durchlauf 1", "vals": [1, 0]}, {"label": "Durchlauf 2", "vals": [2, 2]}, {"label": "Durchlauf 3", "vals": [3, 2]}, {"label": "Durchlauf 4", "vals": [4, 6]}, {"label": "Durchlauf 5", "vals": [5, 6]}]}, {"t": "pred", "q": "Das Programm erhält nacheinander die Eingaben 12, 5, 30 und 10. Was gibt es aus?", "code": "n = 0\nrepeat 4:\n    z = input(\"Zahl?\")\n    if z > 10:\n        n = n + 1\nprint(n)", "inputs": [12, 5, 30, 10], "why": "Nur 12 und 30 sind grösser als 10. Die 10 selbst zählt bei <code>&gt;<\/code> nicht.", "id": "5.3", "out": "2"}, {"t": "pred", "q": "Der Wert steigt und fällt. Was gibt dieses Programm aus?", "code": "s = 0\nrepeat 5:\n    if s < 3:\n        s = s + 2\n    else:\n        s = s - 1\n    print(s)", "why": "Bei jedem Durchlauf entscheidet der aktuelle Wert von <code>s<\/code>, welche Zeile läuft.", "id": "5.4", "out": "2\n4\n3\n2\n4"}, {"t": "fill", "q": "Das Programm zählt die geraden und die ungeraden Zahlen von 1 bis 7 und gibt <code>3 4<\/code> aus. Ergänzen Sie die Lücken.", "code": "i = 0\ngerade = 0\nungerade = 0\nrepeat 7:\n    i = i + 1\n    if i % 2 == ___:\n        gerade = gerade + 1\n    else:\n        ungerade = ___ + 1\nprint(gerade, ungerade)", "answers": [["0"], ["ungerade"]], "expect": "3 4", "why": "Gerade Zahlen haben beim Teilen durch 2 den Rest 0. Im <code>else<\/code> steigt der zweite Zähler.", "id": "5.5"}, {"t": "bug", "q": "Das Programm soll zählen, wie viele Eingaben positiv sind. Bei 3, -1 und 4 müsste am Schluss 2 stehen, es steht aber 3. Klicken Sie die falsche Zeile an.", "code": "n = 0\nrepeat 3:\n    z = input(\"Zahl?\")\n    if z > 0:\n        print(\"positiv\")\n    n = n + 1\nprint(n)", "line": 5, "inputs": [3, -1, 4], "fixed": "n = 0\nrepeat 3:\n    z = input(\"Zahl?\")\n    if z > 0:\n        print(\"positiv\")\n        n = n + 1\nprint(n)", "expect": "positiv\npositiv\n2", "why": "<code>n = n + 1<\/code> ist zu wenig eingerückt und läuft deshalb in jedem Durchlauf. Die Zeile muss unter das <code>if<\/code>.", "id": "5.6", "bugOut": "positiv\npositiv\n3"}, {"t": "prog", "q": "Mini-Quiz: Stellen Sie mit <code>input<\/code> drei Rechenfragen, zum Beispiel 7 * 8, 12 + 13 und 9 * 9. Zählen Sie in <code>punkte<\/code> die richtigen Antworten und geben Sie am Schluss die Punktzahl aus.", "hint": "Jede Frage braucht ein eigenes <code>if<\/code>. Mit <code>elif<\/code> würde nach der ersten richtigen Antwort nichts mehr geprüft.", "sol": "punkte = 0\na = input(\"7 * 8 = ?\")\nif a == 56:\n    punkte = punkte + 1\nb = input(\"12 + 13 = ?\")\nif b == 25:\n    punkte = punkte + 1\nc = input(\"9 * 9 = ?\")\nif c == 81:\n    punkte = punkte + 1\nprint(\"Punkte:\", punkte)", "tests": [{"in": [56, 25, 81], "out": "Punkte: 3"}, {"in": [56, 24, 81], "out": "Punkte: 2"}], "id": "5.7"}, {"t": "prog", "q": "Lesen Sie drei Preise ein und berechnen Sie das Total. Beträgt es mehr als 100 Franken, gibt es 10 Franken Rabatt. Geben Sie das Total aus.", "hint": "Der Rabatt ist eine weitere Veränderung derselben Variable, er kommt nach der Schleife.", "sol": "total = 0\nrepeat 3:\n    preis = input(\"Preis?\")\n    total = total + preis\nif total > 100:\n    total = total - 10\nprint(\"Total:\", total)", "tests": [{"in": [50, 40, 30], "out": "Total: 110"}, {"in": [10, 20, 30], "out": "Total: 60"}], "id": "5.8"}]}, {"id": "stufe-6", "name": "Knacknüsse", "niveau": "schwierig", "titel": "Knacknüsse", "intro": ["In dieser Stufe verändern sich mehrere Variablen gleichzeitig, Schleifen liegen ineinander und Funktionen kommen dazu. Arbeiten Sie mit Papier und Bleistift: Schreiben Sie für jede Variable eine Spalte und streichen Sie alte Werte durch."], "merke": "Eine Variable in einer Funktion gehört nur der Funktion. Ein Wert kommt mit einem Parameter hinein und mit <code>return<\/code> wieder heraus.", "ex": [{"t": "pred", "code": "z = 0\nrepeat 3:\n    repeat 4:\n        z = z + 1\nprint(z)", "why": "Die innere Schleife läuft bei jedem der 3 äusseren Durchläufe 4 Mal, also 3 * 4 Mal.", "id": "6.1", "out": "12"}, {"t": "pred", "code": "def plus(x):\n    x = x + 1\n    return x\n\na = 5\nplus(a)\nprint(a)\na = plus(a)\nprint(a)", "why": "Die Funktion verändert nur ihre eigene Kopie. Beim ersten Aufruf wird das Ergebnis weggeworfen, erst <code>a = plus(a)<\/code> speichert es.", "id": "6.2", "out": "5\n6"}, {"t": "mc", "q": "Was passiert bei diesem Programm?", "code": "z = 0\n\ndef ticken():\n    z = z + 1\n\nticken()\nprint(z)", "raises": "UnboundLocalError", "opts": ["Es gibt 1 aus.", "Es gibt 0 aus.", "Python meldet einen Fehler, weil <code>z<\/code> in der Funktion als eigene Variable gilt und dort noch keinen Wert hat.", "Es gibt nichts aus, weil die Funktion nie aufgerufen wird."], "ok": 2, "why": "Weil in der Funktion etwas in <code>z<\/code> gespeichert wird, gilt <code>z<\/code> dort als lokale Variable. Das äussere <code>z<\/code> ist nicht gemeint. Die Lösung: Parameter und <code>return<\/code> verwenden.", "id": "6.3"}, {"t": "fill", "q": "Das Programm soll 12 ausgeben. Ergänzen Sie die Lücken.", "code": "def verdopple(n):\n    n = n * 2\n    ___ n\n\nz = 3\nz = verdopple(z)\nz = ___(z)\nprint(z)", "answers": [["return"], ["verdopple"]], "expect": "12", "why": "Aus 3 wird 6, aus 6 wird 12. Ohne <code>return<\/code> käme kein Wert aus der Funktion zurück.", "id": "6.4"}, {"t": "trace", "q": "Tragen Sie <code>a<\/code> und <code>b<\/code> nach jeder Zeile ein. Das Programm kommt ohne dritte Variable aus.", "code": "a = 3\nb = 8\na = a + b\nb = a - b\na = a - b", "vars": ["a", "b"], "mode": "line", "why": "Am Ende sind die Werte vertauscht. Die Summe in <code>a<\/code> dient als Zwischenspeicher.", "id": "6.5", "rows": [{"label": "a = 3", "vals": [3, null]}, {"label": "b = 8", "vals": [3, 8]}, {"label": "a = a + b", "vals": [11, 8]}, {"label": "b = a - b", "vals": [11, 3]}, {"label": "a = a - b", "vals": [8, 3]}]}, {"t": "trace", "q": "Dies sind die Fibonacci-Zahlen. Tragen Sie <code>a<\/code>, <code>b<\/code> und <code>c<\/code> nach jedem Durchlauf ein.", "code": "a = 0\nb = 1\nrepeat 5:\n    c = a + b\n    a = b\n    b = c", "vars": ["a", "b", "c"], "mode": "loop", "why": "Jede neue Zahl ist die Summe der beiden vorherigen. <code>a<\/code> und <code>b<\/code> rücken danach um eine Stelle nach.", "id": "6.6", "rows": [{"label": "Start", "vals": [0, 1, null], "given": true}, {"label": "Durchlauf 1", "vals": [1, 1, 1]}, {"label": "Durchlauf 2", "vals": [1, 2, 2]}, {"label": "Durchlauf 3", "vals": [2, 3, 3]}, {"label": "Durchlauf 4", "vals": [3, 5, 5]}, {"label": "Durchlauf 5", "vals": [5, 8, 8]}]}, {"t": "prog", "q": "Schreiben Sie eine Funktion <code>summeBis(n)<\/code>, welche die Summe von 1 bis <code>n<\/code> berechnet und mit <code>return<\/code> zurückgibt. Geben Sie die Ergebnisse für 4 und für 100 aus.", "hint": "<code>repeat n:<\/code> ist erlaubt. Summe und Zähler stehen in der Funktion.", "sol": "def summeBis(n):\n    s = 0\n    i = 0\n    repeat n:\n        i = i + 1\n        s = s + i\n    return s\n\nprint(summeBis(4))\nprint(summeBis(100))", "tests": [{"in": [], "out": "10\n5050"}], "id": "6.7"}, {"t": "prog", "q": "Ziffernsumme: Lesen Sie eine dreistellige Zahl ein und geben Sie die Summe ihrer Ziffern aus. Bei 472 ist das 4 + 7 + 2 = 13.", "hint": "<code>n % 10<\/code> liefert die letzte Ziffer. <code>n = n // 10<\/code> streicht sie weg.", "sol": "n = input(\"Zahl?\")\ns = 0\nrepeat 3:\n    s = s + n % 10\n    n = n // 10\nprint(s)", "tests": [{"in": [472], "out": "13"}, {"in": [905], "out": "14"}], "id": "6.8"}, {"t": "prog", "q": "Die Legende vom Reiskorn: Auf das erste Feld eines Schachbretts kommt 1 Korn, auf jedes weitere doppelt so viele wie auf das vorherige. Wie viele Körner liegen auf allen 64 Feldern zusammen? Geben Sie die Zahl aus.", "hint": "Sie brauchen zwei Variablen: die Körner auf dem aktuellen Feld und die Summe.", "sol": "feld = 1\nsumme = 0\nrepeat 64:\n    summe = summe + feld\n    feld = feld * 2\nprint(summe)", "tests": [{"in": [], "out": "18446744073709551615"}], "id": "6.9"}, {"t": "prog", "q": "Beste Serie: Ein Basketballteam wirft 8 Mal. Lesen Sie für jeden Wurf 1 für einen Treffer oder 0 für einen Fehlwurf ein. Geben Sie aus, wie viele Treffer die längste Serie hintereinander hatte.", "hint": "Verwenden Sie <code>serie<\/code> für die laufende Serie und <code>beste<\/code> für den bisherigen Rekord. Bei einem Fehlwurf beginnt <code>serie<\/code> wieder bei 0.", "sol": "serie = 0\nbeste = 0\nrepeat 8:\n    wurf = input(\"Treffer (1) oder Fehlwurf (0)?\")\n    if wurf == 1:\n        serie = serie + 1\n        if serie > beste:\n            beste = serie\n    else:\n        serie = 0\nprint(\"Beste Serie:\", beste)", "tests": [{"in": [1, 1, 0, 1, 1, 1, 0, 1], "out": "Beste Serie: 3"}, {"in": [0, 0, 0, 0, 0, 0, 0, 0], "out": "Beste Serie: 0"}], "id": "6.10"}]}], "sims": {"grund": {"titel": "Schritt für Schritt", "code": "x = 5\nx = x + 1\nx = x + 1\nprint(x)"}, "zaehler": {"titel": "Der Zähler im Ablauf", "code": "i = 0\nrepeat 3:\n    i = i + 1\n    print(i)"}, "summe": {"titel": "Die Summe im Ablauf", "code": "s = 0\ni = 0\nrepeat 3:\n    i = i + 1\n    s = s + i\nprint(s)"}}}</script>
+<script>
+(function(){
+const D=JSON.parse(document.getElementById("daten").textContent);
+const STUFEN=D.stufen, SIMS=D.sims, KEY="xplus1-v1";
+const TOTAL=STUFEN.reduce((a,s)=>a+s.ex.length,0);
+const TYP={pred:"Ausgabe vorhersagen",trace:"Wertetabelle",fill:"Lücke füllen",mc:"Auswahl",parsons:"Zeilen ordnen",bug:"Fehler finden",prog:"Programmieren"};
+let solved={};
+try{solved=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){solved={}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(solved))}catch(e){}}
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e}
+function btn(txt,cls,fn){const b=el("button",cls||"btn",txt);b.type="button";if(fn)b.addEventListener("click",fn);return b}
+
+function hl(src){
+  const re=/("[^"\n]*")|(#.*$)|\b(repeat|if|elif|else|def|return|and|or|not)\b|\b(print|input)\b|\b(\d+)\b/gm;
+  let o="",i=0,m;
+  while((m=re.exec(src))){
+    o+=esc(src.slice(i,m.index));
+    const c=m[1]?"s":m[2]?"c":m[3]?"k":m[4]?"f":"n";
+    o+='<span class="'+c+'">'+esc(m[0])+'</span>';
+    i=m.index+m[0].length;
+  }
+  return o+esc(src.slice(i));
+}
+function copyText(t,b){
+  const done=()=>{const o=b.textContent;b.textContent="kopiert";setTimeout(()=>b.textContent=o,1200)};
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(done).catch(()=>sel(b));
+  }else sel(b);
+  function sel(b){const p=b.parentNode.querySelector("pre");if(!p)return;const r=document.createRange();r.selectNodeContents(p);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="markiert"}
+}
+function codeBox(src){
+  const w=el("div","code");const p=el("pre");p.innerHTML="<code>"+hl(src)+"</code>";w.append(p);
+  const c=btn("kopieren","copy",()=>copyText(src,c));c.setAttribute("aria-label","Code kopieren");w.append(c);return w;
+}
+function seed(id){let h=2166136261;for(const c of id){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function shuffled(arr,id){
+  const a=arr.slice();let s=seed(id);
+  const r=()=>{s=Math.imul(s^(s>>>15),2246822519)>>>0;s=(s+12345)>>>0;return s/4294967296};
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  return a;
+}
+function norm(s){return s.replace(/\r/g,"").split("\n").map(l=>l.replace(/\s+$/,"")).join("\n").trim()}
+
+/* Fortschritt */
+function nSolved(){return Object.keys(solved).length}
+function counter(flash){
+  const c=document.getElementById("counter");
+  const plain='geloest = <b>'+nSolved()+'</b> <span># von '+TOTAL+'</span>';
+  if(flash){c.innerHTML='geloest = geloest + 1';clearTimeout(counter.t);counter.t=setTimeout(()=>c.innerHTML=plain,1100)}
+  else c.innerHTML=plain;
+}
+function stairs(){
+  const ol=document.getElementById("stairs");ol.innerHTML="";
+  STUFEN.forEach((s,i)=>{
+    const d=s.ex.filter(e=>solved[e.id]).length;
+    const li=el("li");const a=el("a");a.href="#"+s.id;
+    a.setAttribute("aria-label","Stufe "+(i+1)+", "+s.name+", "+d+" von "+s.ex.length+" gelöst");
+    if(s.id===cur)a.setAttribute("aria-current","page");
+    a.innerHTML='<span class="step" style="--lvl:'+(i+1)+';--p:'+(d/s.ex.length*100)+'%"><i></i></span><span class="num">'+(i+1)+' <small>'+d+'/'+s.ex.length+'</small></span><span class="nm">'+s.name+'</span>';
+    li.append(a);ol.append(li);
+  });
+}
+function setSolved(ex,art,on){
+  const was=!!solved[ex.id];
+  if(on)solved[ex.id]=1;else delete solved[ex.id];
+  save();
+  art.querySelector(".st").textContent=on?"✓ gelöst":"";
+  if(on!==was){counter(on);stairs()}
+}
+
+/* Simulation */
+function frames(src){
+  const L=src.split("\n"),F=[],V={},O=[];
+  const snap=(f)=>{const v={};for(const k in V)v[k]={val:V[k].val,old:V[k].old.slice()};F.push(Object.assign({line:-1,side:"",read:[],write:"",calc:"",note:"",vars:v,out:O.slice()},f))};
+  const num=t=>/^-?\d+$/.test(t);
+  const val=t=>num(t)?Number(t):V[t].val;
+  const put=(k,x)=>{if(V[k]){V[k].old.push(V[k].val);V[k].val=x}else V[k]={val:x,old:[]}};
+  function run(a,b){
+    for(let i=a;i<b;i++){
+      const t=L[i].trim();let m;
+      if((m=t.match(/^repeat (\d+):$/))){
+        let e=i+1;while(e<b&&L[e].startsWith("    "))e++;
+        const n=+m[1];
+        for(let k=1;k<=n;k++){snap({line:i,note:"<b>Durchlauf "+k+" von "+n+"</b> beginnt. Python führt die eingerückten Zeilen aus."});run(i+1,e)}
+        snap({line:i,note:"Alle "+n+" Durchläufe sind fertig. Python macht nach der Schleife weiter."});
+        i=e-1;
+      }else if((m=t.match(/^print\((\w+)\)$/))){
+        O.push(String(val(m[1])));
+        snap({line:i,read:[m[1]],side:"read",note:"<code>print</code> liest <code>"+m[1]+"</code> und zeigt den aktuellen Wert "+val(m[1])+"."});
+      }else if((m=t.match(/^(\w+) = (\S+) ([-+*]) (\S+)$/))){
+        const [,v,x,op,y]=m,p=val(x),q=val(y),r=op==="+"?p+q:op==="-"?p-q:p*q;
+        const rn=[x,y].filter(z=>!num(z));
+        snap({line:i,side:"read",read:rn,note:"<b>Lesen:</b> Python holt die Werte der rechten Seite. "+rn.map(z=>"<code>"+z+"</code> ist "+val(z)).join(", ")+"."});
+        snap({line:i,side:"read",read:rn,calc:p+" "+op+" "+q+" = "+r,note:"<b>Rechnen:</b> "+p+" "+op+" "+q+" ergibt "+r+". In <code>"+v+"</code> steht noch immer "+V[v].val+"."});
+        const o=V[v].val;put(v,r);
+        snap({line:i,side:"write",write:v,note:"<b>Schreiben:</b> Das Ergebnis "+r+" kommt in <code>"+v+"</code>. Der alte Wert "+o+" ist überschrieben."});
+      }else if((m=t.match(/^(\w+) = (-?\d+)$/))){
+        put(m[1],+m[2]);
+        snap({line:i,side:"write",write:m[1],note:"Python legt die Variable <code>"+m[1]+"</code> an und speichert den Startwert "+m[2]+"."});
+      }
+    }
+  }
+  snap({note:"Der Speicher ist noch leer. Klicken Sie auf <b>Weiter</b>."});
+  run(0,L.length);
+  snap({note:"Das Programm ist fertig."});
+  return F;
+}
+function simWidget(key){
+  const S=SIMS[key],F=frames(S.code),L=S.code.split("\n");let p=0;
+  const w=el("section","sim");w.setAttribute("aria-label",S.titel);
+  w.append(el("h3",null,S.titel));
+  const c1=el("div","col"),c2=el("div","col");
+  c1.innerHTML='<div class="lbl">Programm</div>';
+  const code=el("div","simcode");c1.append(code);
+  c2.innerHTML='<div class="lbl">Speicher</div>';
+  const mem=el("div","mem"),calc=el("div","calc"),con=el("div","console");
+  const cl=el("div","lbl","Ausgabe");cl.style.marginTop="12px";con.style.marginTop="0";
+  c2.append(mem,calc,cl,con);w.append(c1,c2);
+  const note=el("p","note");note.setAttribute("aria-live","polite");w.append(note);
+  const back=btn("Zurück","btn ghost",()=>go(p-1)),next=btn("Weiter","btn",()=>go(p+1)),again=btn("Von vorne","btn ghost",()=>go(0));
+  const pos=el("span","pos");const bar=el("div","simbar");bar.append(back,next,again,pos);w.append(bar);
+  function line(i,f){
+    const raw=L[i];const m=raw.match(/^(\s*)(\w+) = (.+)$/);
+    if(f&&f.line===i&&m){
+      return esc(m[1])+'<span class="tw'+(f.side==="write"?" on":"")+'">'+hl(m[2])+'</span> = <span class="tr'+(f.side==="read"?" on":"")+'">'+hl(m[3])+'</span>';
+    }
+    return hl(raw);
+  }
+  function go(n){
+    p=Math.max(0,Math.min(F.length-1,n));const f=F[p];
+    code.innerHTML=L.map((_,i)=>'<div class="'+(f.line===i?"on":"")+'">'+(line(i,f)||" ")+'</div>').join("");
+    const ks=Object.keys(f.vars);
+    mem.innerHTML=ks.length?ks.map(k=>{
+      const v=f.vars[k];
+      const c=f.read.includes(k)?" read":f.write===k?" write":"";
+      return '<div class="cell'+c+'"><div class="name">'+k+'</div><div class="val">'+v.val+'</div><div class="old">'+v.old.slice(-3).map(o=>"<s>"+o+"</s>").join("")+'</div></div>';
+    }).join(""):'<span class="empty">noch leer</span>';
+    calc.textContent=f.calc;
+    con.textContent=f.out.join("\n");
+    note.innerHTML=f.note;
+    pos.textContent="Schritt "+p+" von "+(F.length-1);
+    back.disabled=p===0;next.disabled=p===F.length-1;
+  }
+  go(0);return w;
+}
+
+/* Rückmeldung */
+function feedback(art){const f=el("div","fb");f.hidden=true;f.setAttribute("role","status");art.append(f);return f}
+function show(f,kind,html){f.className="fb "+kind;f.innerHTML=html;f.hidden=false}
+function fbOk(ex){return "<b>✓ Richtig.</b> "+(ex.why||"")}
+
+function renderEx(ex){
+  const art=el("article","ex");art.id="ex-"+ex.id.replace(".","-");
+  art.innerHTML='<div class="exh"><span class="id">'+ex.id+'</span><span>'+TYP[ex.t]+'</span><span class="st">'+(solved[ex.id]?"✓ gelöst":"")+'</span></div>';
+  ({pred:rPred,trace:rTrace,fill:rFill,mc:rMc,parsons:rPar,bug:rBug,prog:rProg})[ex.t](ex,art);
+  return art;
+}
+function rPred(ex,art){
+  art.append(el("p","q",ex.q||"Was gibt dieses Programm aus?"),codeBox(ex.code));
+  const id="a"+ex.id.replace(".","_"),f=el("div","fld");
+  f.innerHTML='<label for="'+id+'">Ihre Antwort, jede Ausgabe auf einer eigenen Zeile</label>';
+  const t=el("textarea","ta");t.id=id;t.rows=3;t.spellcheck=false;f.append(t);art.append(f);
+  const fb=el("div");const row=el("div","row");art.append(row);const box=feedback(art);fb.remove();
+  row.append(btn("Prüfen","btn",()=>{
+    if(!t.value.trim()){show(box,"no","Tragen Sie zuerst Ihre Antwort ein.");return}
+    if(norm(t.value)===norm(ex.out)){show(box,"ok",fbOk(ex));setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ Noch nicht.</b> Gehen Sie das Programm Zeile für Zeile durch und notieren Sie den Wert der Variable.");
+  }),btn("Lösung zeigen","btn ghost",()=>show(box,"sol","<b>Ausgabe:</b><pre>"+esc(ex.out)+"</pre>"+(ex.why||""))));
+}
+function rTrace(ex,art){
+  art.append(el("p","q",ex.q),codeBox(ex.code));
+  const wrap=el("div","tbl trace"),tb=el("table");
+  tb.innerHTML="<thead><tr><th>"+(ex.mode==="line"?"nach Zeile":"nach")+"</th>"+ex.vars.map(v=>'<th class="v">'+v+"</th>").join("")+"</tr></thead>";
+  const body=el("tbody"),inputs=[];
+  ex.rows.forEach((r,ri)=>{
+    const tr=el("tr");tr.append(el("td","rl",esc(r.label)));
+    r.vals.forEach((v,vi)=>{
+      const td=el("td");
+      if(r.given||v===null){td.className="g";td.textContent=v===null?"·":v;td.title=v===null?"noch kein Wert":""}
+      else{const i=el("input","tin");i.id="t"+ex.id.replace(".","_")+"_"+ri+"_"+vi;i.inputMode="numeric";i.autocomplete="off";i.setAttribute("aria-label",ex.vars[vi]+", "+r.label);inputs.push([i,v]);td.append(i)}
+      tr.append(td);
+    });
+    body.append(tr);
+  });
+  tb.append(body);wrap.append(tb);art.append(wrap);
+  const row=el("div","row");art.append(row);const box=feedback(art);
+  row.append(btn("Prüfen","btn",()=>{
+    let ok=0;
+    inputs.forEach(([i,v])=>{const g=i.value.trim()===String(v);ok+=g?1:0;i.classList.toggle("bad",!g);i.classList.toggle("good",g);g?i.removeAttribute("aria-invalid"):i.setAttribute("aria-invalid","true")});
+    if(ok===inputs.length){show(box,"ok",fbOk(ex));setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ "+ok+" von "+inputs.length+" Feldern stimmen.</b> Die falschen Felder sind rot markiert.");
+  }),btn("Lösung zeigen","btn ghost",()=>{inputs.forEach(([i,v])=>{i.value=v;i.classList.remove("bad")});show(box,"sol",ex.why||"")}));
+}
+function rFill(ex,art){
+  art.append(el("p","q",ex.q));
+  const w=el("div","code"),pre=el("pre"),cod=el("code"),parts=ex.code.split("___"),inputs=[];
+  parts.forEach((p,i)=>{
+    const s=el("span",null,hl(p));cod.append(s);
+    if(i<parts.length-1){
+      const inp=el("input","gap");inp.id="g"+ex.id.replace(".","_")+"_"+i;inp.autocomplete="off";inp.spellcheck=false;inp.setAttribute("autocapitalize","off");
+      inp.setAttribute("aria-label","Lücke "+(i+1));
+      inp.style.width=(Math.max(ex.answers[i][0].length,3)+2)+"ch";cod.append(inp);inputs.push(inp);
+    }
+  });
+  pre.append(cod);w.append(pre);art.append(w);
+  const row=el("div","row");art.append(row);const box=feedback(art);
+  row.append(btn("Prüfen","btn",()=>{
+    let all=true;
+    inputs.forEach((inp,i)=>{const g=ex.answers[i].includes(inp.value.trim());all=all&&g;inp.classList.toggle("bad",!g);inp.classList.toggle("good",g)});
+    if(all){show(box,"ok",fbOk(ex));setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ Noch nicht.</b> Rot markierte Lücken stimmen nicht.");
+  }),btn("Lösung zeigen","btn ghost",()=>{inputs.forEach((inp,i)=>{inp.value=ex.answers[i][0];inp.classList.remove("bad")});show(box,"sol",ex.why||"")}));
+}
+function rMc(ex,art){
+  art.append(el("p","q",ex.q));
+  if(ex.code)art.append(codeBox(ex.code));
+  const fs=el("fieldset","opts"),leg=el("legend",null,"Antwort wählen");leg.style.cssText="position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)";fs.append(leg);
+  const name="m"+ex.id.replace(".","_");
+  shuffled(ex.opts.map((o,i)=>[o,i]),ex.id).forEach(([o,i],k)=>{
+    const l=el("label"),r=el("input");r.type="radio";r.name=name;r.value=i;r.id=name+"_"+k;
+    l.append(r,el("span",null,o));fs.append(l);
+  });
+  art.append(fs);
+  const row=el("div","row");art.append(row);const box=feedback(art);
+  row.append(btn("Prüfen","btn",()=>{
+    const c=fs.querySelector("input:checked");
+    if(!c){show(box,"no","Wählen Sie zuerst eine Antwort.");return}
+    if(+c.value===ex.ok){show(box,"ok",fbOk(ex));setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ Das stimmt nicht.</b> Überlegen Sie, was Python zuerst macht, und versuchen Sie es nochmals.");
+  }));
+}
+function rPar(ex,art){
+  art.append(el("p","q",ex.q));
+  let pool=shuffled(ex.lines.map((l,i)=>i),ex.id);
+  if(pool.every((v,i)=>v===i))pool.reverse();
+  let ans=[];
+  const g=el("div","pz"),a=el("div"),b=el("div");
+  a.innerHTML='<div class="pzl">Verfügbare Zeilen</div>';b.innerHTML='<div class="pzl">Ihr Programm</div>';
+  const pa=el("div","pzb"),pb=el("div","pzb");a.append(pa);b.append(pb);g.append(a,b);art.append(g);
+  function draw(){
+    pa.innerHTML="";pb.innerHTML="";
+    pool.forEach(i=>pa.append(btn(esc(ex.lines[i]),"ln",()=>{pool=pool.filter(x=>x!==i);ans.push(i);draw()})));
+    ans.forEach(i=>pb.append(btn(esc(ex.lines[i]),"ln",()=>{ans=ans.filter(x=>x!==i);pool.push(i);draw()})));
+  }
+  draw();
+  const row=el("div","row");art.append(row);const box=feedback(art);
+  const right=[ex.lines.map((_,i)=>i)].concat(ex.alts||[]);
+  row.append(btn("Prüfen","btn",()=>{
+    if(pool.length){show(box,"no","Verwenden Sie alle Zeilen.");return}
+    if(right.some(r=>r.every((v,i)=>v===ans[i]))){show(box,"ok",fbOk(ex));setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ Noch nicht.</b> Klicken Sie eine Zeile in Ihrem Programm an, um sie zurückzulegen.");
+  }),btn("Lösung zeigen","btn ghost",()=>show(box,"sol","<pre>"+esc(ex.lines.join("\n"))+"</pre>"+(ex.why||""))));
+}
+function rBug(ex,art){
+  art.append(el("p","q",ex.q));
+  const w=el("div","bugl");let pick=-1;const bs=[];
+  ex.code.split("\n").forEach((l,i)=>{
+    const b=btn('<span class="no">'+(i+1)+'</span><span>'+(hl(l)||" ")+'</span>',"ln",()=>{pick=i;bs.forEach((x,k)=>x.setAttribute("aria-pressed",k===i))});
+    b.setAttribute("aria-pressed","false");b.setAttribute("aria-label","Zeile "+(i+1)+": "+l.trim());bs.push(b);w.append(b);
+  });
+  art.append(w);
+  const row=el("div","row");art.append(row);const box=feedback(art);
+  const fix="<b>So stimmt es:</b><pre>"+esc(ex.fixed)+"</pre>";
+  row.append(btn("Prüfen","btn",()=>{
+    if(pick<0){show(box,"no","Klicken Sie zuerst eine Zeile an.");return}
+    if(pick===ex.line){show(box,"ok",fbOk(ex)+fix);setSolved(ex,art,true)}
+    else show(box,"no","<b>✗ Diese Zeile ist nicht das Problem.</b> Spielen Sie das Programm in Gedanken durch.");
+  }),btn("Lösung zeigen","btn ghost",()=>show(box,"sol",(ex.why||"")+fix)));
+}
+function rProg(ex,art){
+  art.append(el("p","q",ex.q));
+  const tb=el("div","tbl tests"),t=el("table"),hasIn=ex.tests.some(x=>x.in.length);
+  t.innerHTML="<thead><tr>"+(hasIn?"<th>Eingaben</th>":"")+"<th>Erwartete Ausgabe</th></tr></thead><tbody>"+ex.tests.map(x=>{
+    const out=x.out.split("\n"),s=out.length>8?out.slice(0,3).concat("...",out.slice(-2)):out;
+    return "<tr>"+(hasIn?'<td class="mono">'+x.in.join(", ")+"</td>":"")+"<td><pre>"+esc(s.join("\n"))+"</pre></td></tr>"}).join("")+"</tbody>";
+  tb.append(t);art.append(tb);
+  const row=el("div","row");art.append(row);
+  const hint=el("div","fb sol");hint.hidden=true;hint.innerHTML="<b>Tipp:</b> "+(ex.hint||"");
+  const sol=el("div");sol.hidden=true;sol.append(codeBox(ex.sol));
+  if(ex.hint)row.append(btn("Tipp zeigen","btn ghost",function(){hint.hidden=!hint.hidden;this.textContent=hint.hidden?"Tipp zeigen":"Tipp ausblenden"}));
+  row.append(btn("Lösung zeigen","btn ghost",function(){sol.hidden=!sol.hidden;this.textContent=sol.hidden?"Lösung zeigen":"Lösung ausblenden"}));
+  const a=el("a","btn ghost","WebTigerPython öffnen ↗");a.href="https://webtigerpython.ethz.ch/";a.target="_blank";a.rel="noopener";row.append(a);
+  art.append(hint,sol);
+  const l=el("label","check"),c=el("input");c.type="checkbox";c.id="c"+ex.id.replace(".","_");c.checked=!!solved[ex.id];
+  c.addEventListener("change",()=>setSolved(ex,art,c.checked));
+  l.append(c,document.createTextNode("Mein Programm läuft, Aufgabe erledigt"));art.append(l);
+}
+
+/* Ansicht */
+let cur=STUFEN[0].id;
+function renderView(){
+  const i=STUFEN.findIndex(s=>s.id===cur),s=STUFEN[i],v=document.getElementById("view");
+  v.innerHTML="";
+  v.append(el("div","kicker","Stufe "+(i+1)+" von 6 · "+s.niveau),el("h2",null,s.titel));
+  s.intro.forEach(p=>v.append(el("p",null,p)));
+  if(s.table){
+    const w=el("div","tbl lookup"),t=el("table");
+    t.innerHTML="<thead><tr>"+s.table[0].map(h=>"<th>"+h+"</th>").join("")+"</tr></thead><tbody>"+s.table.slice(1).map(r=>"<tr>"+r.map(c=>"<td>"+c+"</td>").join("")+"</tr>").join("")+"</tbody>";
+    w.append(t);v.append(w);
+  }
+  if(s.sim)v.append(simWidget(s.sim));
+  if(s.merke)v.append(el("p","merke","<strong>Merke:</strong> "+s.merke));
+  const l=el("div","exs");s.ex.forEach(e=>l.append(renderEx(e)));v.append(l);
+  const ft=el("div","foot"),left=el("div"),right=el("div","row");
+  const reset=btn("Fortschritt zurücksetzen","btn ghost",function(){
+    if(this.dataset.sure){solved={};save();counter();stairs();renderView();return}
+    this.dataset.sure="1";this.textContent="Wirklich alles zurücksetzen?";
+  });
+  left.append(reset);
+  if(i>0){const a=el("a","btn ghost","Zurück zu Stufe "+i);a.href="#"+STUFEN[i-1].id;right.append(a)}
+  if(i<STUFEN.length-1){const a=el("a","btn","Weiter zu Stufe "+(i+2));a.href="#"+STUFEN[i+1].id;right.append(a)}
+  ft.append(left,right);v.append(ft);
+}
+function route(first){
+  const h=location.hash.slice(1),hit=STUFEN.find(s=>s.id===h);
+  cur=hit?hit.id:STUFEN[0].id;
+  renderView();stairs();counter();
+  if(!first)document.querySelector(".stairs").scrollIntoView({block:"start"});
+}
+addEventListener("hashchange",()=>route(false));
+route(true);
+})();
+</script>
+</body>
+</html>
