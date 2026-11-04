@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<!-- Entscheidungen:
+Einsatztyp: Lernmaterial Informatik, Zielgruppe Schüler:innen, Gerät gemischt, Sie-Form, Schweizer Rechtschreibung.
+Inhalt: Partnerwahl-Algorithmus mit vier Datentypen (str, float, bool, int), Bedingungen frei mit and/or verknüpfbar.
+Funktionen: Baukasten für Bedingungen, Python-Code live generiert (Kopierknopf), 10 fiktive Profile werden live ausgewertet,
+Schritt-für-Schritt-Auswertung (Vor/Zurück) inkl. Vorrang and vor or, Umschalter «von links nach rechts klammern» zum Vergleich,
+Wahrheitstabelle, 7 Übungen mit sofortiger Rückmeldung.
+Datenhaltung: keine. Design: nur dunkles Nord-Design, keine Varianten (Wunsch von Patrick), Open Sans + Google Sans Code.
+-->
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Partnerwahl-Algorithmus mit str, float, bool und int: Bedingungen mit and und or verknüpfen, Python-Code live sehen und Schritt für Schritt auswerten.">
+<title>Partnerwahl mit and und or</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: oben Datentypen, dann Baukasten (links) neben Live-Code (rechts), darunter Profilraster, Schrittfolge, Übungen */
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);--line:var(--nord3);
+  --text:var(--nord6);--muted:var(--nord4);--accent:var(--nord8);
+  --ok:var(--nord14);--bad:var(--nord11);--warn:var(--nord13);--special:var(--nord15);
+  --t-str:var(--nord14);--t-float:var(--nord13);--t-bool:var(--nord9);--t-int:var(--nord15);
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select{font:inherit;color:inherit}
+code,pre,.mono{font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:28px 72px;display:flex;flex-direction:column;gap:48px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow a.back{color:var(--nord7);text-decoration:none}.eyebrow a.back:hover{text-decoration:underline}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--nord7)}
+p{margin:0;max-width:70ch}
+p code,li code,td code,.q code,.merke code{font-size:.9em;background:var(--surface);border:1px solid var(--surface-2);padding:1px 5px;border-radius:4px}
+section{display:flex;flex-direction:column;gap:16px}
+.sec-head{display:flex;flex-direction:column;gap:4px}
+.sec-head h2{font-size:clamp(22px,2.8vw,28px);font-weight:700}
+.sec-head .no{font-family:var(--mono);font-size:13px;color:var(--accent)}
+
+header.top{display:flex;flex-direction:column;gap:10px;padding-bottom:24px;border-bottom:1px solid var(--surface-2)}
+header.top h1{font-size:clamp(30px,4.6vw,46px);line-height:1.1;font-weight:700}
+header.top h1 span{font-family:var(--mono);font-weight:600;color:var(--accent)}
+header.top p{color:var(--muted)}
+
+/* Datentypen */
+.types{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.type{background:var(--surface);border:1px solid var(--surface-2);border-top:3px solid var(--c);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.type .tn{font-family:var(--mono);font-size:13px;color:var(--c);font-weight:600}
+.type h3{font-size:18px;font-weight:600}
+.type .ex{font-family:var(--mono);font-size:.88em;color:var(--nord5);overflow-x:auto;white-space:nowrap}
+.type p{font-size:15px;color:var(--muted)}
+
+/* Baukasten */
+.builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
+.panel{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:18px clamp(14px,2.4vw,22px);display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h3{font-size:15px;font-family:var(--mono);font-weight:600;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
+.cond{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px 10px;align-items:center;background:var(--nord0);border:1px solid var(--surface-2);border-left:3px solid var(--c);border-radius:8px;padding:10px 12px}
+.cond.off{opacity:.5;border-left-color:var(--line)}
+.cond label.on{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:600;font-size:15px;cursor:pointer;grid-column:1 / -1}
+.cond label.on input{accent-color:var(--nord8);width:17px;height:17px}
+.cond label.on small{font-weight:400;color:var(--c);font-size:12px}
+.cond select,.cond input[type=number]{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:var(--mono);font-size:15px;min-width:0;width:100%}
+.cond select:focus,.cond input:focus{border-color:var(--accent);outline:none}
+.conn{display:flex;justify-content:center;gap:0}
+.conn button{font-family:var(--mono);font-weight:600;font-size:14px;padding:4px 16px;background:var(--nord0);border:1px solid var(--line);cursor:pointer;color:var(--muted)}
+.conn button:first-child{border-radius:999px 0 0 999px}
+.conn button:last-child{border-radius:0 999px 999px 0;border-left:0}
+.conn button[aria-pressed="true"]{background:var(--nord9);border-color:var(--nord9);color:var(--nord0)}
+.conn.inactive{opacity:.35;pointer-events:none}
+.mode{display:flex;align-items:flex-start;gap:8px;font-size:15px;color:var(--muted);cursor:pointer;padding-top:4px}
+.mode input{accent-color:var(--nord13);width:17px;height:17px;margin-top:3px;flex:0 0 auto}
+
+.codebox{position:relative;background:var(--nord0);border:1px solid var(--surface-2);border-radius:10px;min-width:0}
+.codebox pre{margin:0;padding:14px 16px;overflow-x:auto;font-size:.88em;line-height:1.55}
+.codebox .copy{position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--surface-2);border-radius:6px;font-family:var(--mono);font-size:12px;padding:3px 9px;color:var(--muted);cursor:pointer}
+.codebox .copy:hover{color:var(--text)}
+.kw{color:var(--nord9);font-weight:600}.st{color:var(--nord14)}.nu{color:var(--nord15)}.fn{color:var(--nord8)}
+.cm{color:var(--nord4);opacity:.55;font-style:italic}
+.outline{font-family:var(--mono);font-size:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:var(--muted)}
+.outline b{color:var(--text)}
+.note{font-size:15px;color:var(--muted)}
+.note.warn{border-left:3px solid var(--warn);padding:8px 12px;background:rgba(235,203,139,.08);border-radius:0 8px 8px 0;color:var(--text)}
+
+/* Profile */
+.summary{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.summary strong{font-size:22px}
+.summary span{color:var(--muted);font-size:15px}
+.profiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(225px,1fr));gap:12px}
+.pcard{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;text-align:left;cursor:pointer;min-width:0;transition:border-color .15s}
+.pcard:hover{border-color:var(--nord9)}
+.pcard[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.pcard.match{border-color:rgba(163,190,140,.55)}
+.pcard.match[aria-pressed="true"]{border-color:var(--accent)}
+.ph{display:flex;align-items:center;gap:10px}
+.av{width:38px;height:38px;border-radius:50%;background:var(--hc);display:grid;place-items:center;font-weight:700;color:var(--nord0);flex:0 0 auto;border:2px solid var(--nord0);box-shadow:0 0 0 1px var(--line)}
+.ph .nm{font-weight:700;font-size:17px;line-height:1.2}
+.res{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.res.y{background:var(--ok);color:var(--nord0)}
+.res.n{border:1px solid var(--line);color:var(--muted)}
+.attrs{display:grid;grid-template-columns:auto 1fr auto;gap:2px 8px;font-family:var(--mono);font-size:13px;align-items:center}
+.attrs .k{color:var(--muted)}
+.attrs .v{color:var(--nord5)}
+.tf{font-size:11px;font-weight:600;padding:0 6px;border-radius:4px;text-align:center}
+.tf.t{background:rgba(163,190,140,.22);color:var(--ok)}
+.tf.f{background:rgba(191,97,106,.22);color:#e3a2a8}
+.tf.x{color:var(--line)}
+
+/* Schritte */
+.steps{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:18px clamp(14px,2.4vw,22px);display:flex;flex-direction:column;gap:14px}
+.step-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.step-top .who{font-weight:600}
+.step-no{font-family:var(--mono);font-size:13px;color:var(--accent)}
+.step-title{font-weight:600;font-size:18px}
+.expr{font-family:var(--mono);font-size:clamp(14px,1.8vw,17px);background:var(--nord0);border:1px solid var(--surface-2);border-radius:10px;padding:14px 16px;overflow-x:auto;white-space:nowrap;line-height:1.8}
+.expr mark{background:rgba(235,203,139,.20);color:var(--nord13);border-radius:4px;padding:2px 4px;outline:1px solid rgba(235,203,139,.5)}
+.expr .T{color:var(--ok);font-weight:600}.expr .F{color:#e3a2a8;font-weight:600}
+.expr .op{color:var(--nord9);font-weight:600}
+.step-text{color:var(--muted);font-size:15px;max-width:70ch}
+.nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 14px;font-size:15px;font-weight:600;cursor:pointer}
+.btn:hover:not(:disabled){border-color:var(--nord9)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary{background:var(--nord10);border-color:var(--nord10)}
+.dots{display:flex;gap:6px;margin-left:auto}
+.dots i{width:9px;height:9px;border-radius:50%;background:var(--surface-2)}
+.dots i.on{background:var(--accent)}
+.verdict{font-family:var(--mono);font-weight:600;font-size:15px;padding:6px 12px;border-radius:8px;align-self:flex-start}
+.verdict.y{background:var(--ok);color:var(--nord0)}
+.verdict.n{background:var(--nord11);color:var(--nord0)}
+
+/* Merke und Tabelle */
+.duo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:20px;align-items:start}
+.merke{border-left:3px solid var(--special);background:rgba(180,142,173,.10);padding:14px 18px;border-radius:0 10px 10px 0;display:flex;flex-direction:column;gap:10px}
+.merke strong{color:var(--special)}
+.merke ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:6px 16px}
+table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:14px;min-width:330px}
+th,td{padding:7px 10px 7px 0;text-align:left;border-bottom:1px solid var(--surface-2)}
+tr:last-child td{border-bottom:0}
+th{font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+td.T{color:var(--ok)}td.F{color:#e3a2a8}
+
+/* Übungen */
+.exlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.ex{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.ex.solved{border-color:rgba(163,190,140,.5)}
+.ex-top{display:flex;align-items:center;gap:10px}
+.ex-no{font-family:var(--mono);font-weight:600;font-size:13px;background:var(--nord0);border:1px solid var(--surface-2);border-radius:6px;padding:2px 8px}
+.ex .who{font-size:14px;color:var(--muted)}
+.ex .q{font-size:16px}
+.ans{display:flex;gap:8px;flex-wrap:wrap}
+.ans button{font-family:var(--mono);font-weight:600;font-size:15px;padding:6px 16px;border-radius:8px;border:1px solid var(--line);background:var(--nord0);cursor:pointer}
+.ans button:hover{border-color:var(--nord9)}
+.ans button.right{border-color:var(--ok);background:rgba(163,190,140,.15)}
+.ans button.wrong{border-color:var(--bad);background:rgba(191,97,106,.15)}
+.fb{font-size:15px;padding:8px 12px;border-radius:8px;border:1px solid}
+.fb.good{border-color:var(--ok);background:rgba(163,190,140,.10)}
+.fb.good b{color:var(--ok)}
+.fb.badfb{border-color:var(--bad);background:rgba(191,97,106,.12)}
+.fb.badfb b{color:#e3a2a8}
+
+@media (max-width:900px){
+  .types{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .builder,.duo{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:480px){
+  .types{grid-template-columns:minmax(0,1fr)}
+  .exlist{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow"><a href="index.html" class="back">← Übersicht</a> · Informatik · Datentypen und Bedingungen</div>
+    <h1>Partnerwahl mit <span>and</span> und <span>or</span></h1>
+    <p>Eine Dating-App entscheidet mit einem Algorithmus, wer zu wem passt. Bauen Sie hier Ihren eigenen Algorithmus aus vier Eigenschaften. Jede Eigenschaft hat einen anderen Datentyp. Sie sehen sofort den Python-Code und welche der zehn erfundenen Profile zu Ihnen passen.</p>
+  </header>
+
+  <!-- 1 Datentypen -->
+  <section aria-labelledby="h-types">
+    <div class="sec-head"><span class="no">01</span><h2 id="h-types">Vier Eigenschaften, vier Datentypen</h2></div>
+    <div class="types">
+      <div class="type" style="--c:var(--t-str)"><span class="tn">str · Text</span><h3>haarfarbe</h3><div class="ex">haarfarbe = "braun"</div><p>Text steht in Anführungszeichen. Vergleiche mit <code>==</code> oder <code>!=</code>. Gross- und Kleinschreibung zählt.</p></div>
+      <div class="type" style="--c:var(--t-float)"><span class="tn">float · Kommazahl</span><h3>groesse</h3><div class="ex">groesse = 1.78</div><p>Kommazahlen schreiben Sie mit Punkt. Vergleiche mit <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>.</p></div>
+      <div class="type" style="--c:var(--t-bool)"><span class="tn">bool · Wahrheitswert</span><h3>humor</h3><div class="ex">humor = True</div><p>Nur zwei Werte: <code>True</code> oder <code>False</code>, gross geschrieben, ohne Anführungszeichen.</p></div>
+      <div class="type" style="--c:var(--t-int)"><span class="tn">int · ganze Zahl</span><h3>intelligenz</h3><div class="ex">intelligenz = 7</div><p>Ganze Zahl ohne Komma, hier auf einer Skala von 1 bis 10.</p></div>
+    </div>
+  </section>
+
+  <!-- 2 Baukasten -->
+  <section aria-labelledby="h-build">
+    <div class="sec-head"><span class="no">02</span><h2 id="h-build">Ihr Algorithmus</h2></div>
+    <p>Jede Bedingung liefert <code>True</code> oder <code>False</code>. Schalten Sie Bedingungen ein oder aus und wählen Sie zwischen zwei Bedingungen <code>and</code> oder <code>or</code>.</p>
+    <div class="builder">
+      <div class="panel">
+        <h3>Bedingungen</h3>
+        <div id="conds" style="display:flex;flex-direction:column;gap:8px"></div>
+        <label class="mode"><input type="checkbox" id="l2r"> <span>Zum Vergleich: von links nach rechts klammern, statt <code>and</code> zuerst auszuwerten. So rechnet Python <em>nicht</em>.</span></label>
+      </div>
+      <div class="panel">
+        <h3>Python-Code</h3>
+        <div class="outline" id="forWho"></div>
+        <div class="codebox"><pre id="code"></pre><button class="copy" id="copyBtn" type="button">Kopieren</button></div>
+        <div id="modeNote"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 Profile -->
+  <section aria-labelledby="h-prof">
+    <div class="sec-head"><span class="no">03</span><h2 id="h-prof">Wer passt?</h2></div>
+    <div class="summary" id="summary"></div>
+    <p class="note">Die Kärtchen zeigen für jede Bedingung, ob sie <span class="tf t">True</span> oder <span class="tf f">False</span> ist. Klicken Sie auf ein Profil, um die Auswertung unten Schritt für Schritt zu sehen.</p>
+    <div class="profiles" id="profiles"></div>
+  </section>
+
+  <!-- 4 Schritte -->
+  <section aria-labelledby="h-steps">
+    <div class="sec-head"><span class="no">04</span><h2 id="h-steps">Schritt für Schritt ausgewertet</h2></div>
+    <div class="steps" aria-live="polite">
+      <div class="step-top"><span class="step-no" id="stepNo"></span><span class="step-title" id="stepTitle"></span><span class="dots" id="dots"></span></div>
+      <div class="expr" id="expr"></div>
+      <p class="step-text" id="stepText"></p>
+      <div class="nav">
+        <button class="btn" id="prev" type="button">← Zurück</button>
+        <button class="btn primary" id="next" type="button">Weiter →</button>
+        <span class="note" id="stepWho"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 Merke -->
+  <section aria-labelledby="h-rules">
+    <div class="sec-head"><span class="no">05</span><h2 id="h-rules">and, or und der Vorrang</h2></div>
+    <div class="duo">
+      <div class="merke">
+        <p><strong>Merke:</strong></p>
+        <ul>
+          <li><code>A and B</code> ist nur <code>True</code>, wenn <em>beide</em> Bedingungen wahr sind. Streng.</li>
+          <li><code>A or B</code> ist <code>True</code>, wenn <em>mindestens eine</em> Bedingung wahr ist. Grosszügig.</li>
+          <li><code>and</code> bindet stärker als <code>or</code>, so wie Punkt vor Strich. <code>A or B and C</code> bedeutet <code>A or (B and C)</code>.</li>
+          <li>Wollen Sie eine andere Reihenfolge, setzen Sie Klammern: <code>(A or B) and C</code>.</li>
+          <li>Bei einem <code>bool</code> genügt der Name: <code>if humor:</code> bedeutet dasselbe wie <code>if humor == True:</code>.</li>
+        </ul>
+      </div>
+      <div class="tbl">
+        <table>
+          <thead><tr><th>A</th><th>B</th><th>A and B</th><th>A or B</th></tr></thead>
+          <tbody>
+            <tr><td class="T">True</td><td class="T">True</td><td class="T">True</td><td class="T">True</td></tr>
+            <tr><td class="T">True</td><td class="F">False</td><td class="F">False</td><td class="T">True</td></tr>
+            <tr><td class="F">False</td><td class="T">True</td><td class="F">False</td><td class="T">True</td></tr>
+            <tr><td class="F">False</td><td class="F">False</td><td class="F">False</td><td class="F">False</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 Übungen -->
+  <section aria-labelledby="h-ex">
+    <div class="sec-head"><span class="no">06</span><h2 id="h-ex">Übungen</h2></div>
+    <p>Werten Sie die Bedingung für das genannte Profil aus. Die Werte finden Sie bei den Profilen oben. Lösen Sie im Kopf, bevor Sie es im Baukasten ausprobieren.</p>
+    <div class="exlist" id="exlist"></div>
+  </section>
+</div>
+
+<script>
+/* ---------- Daten ---------- */
+const P=[
+ {name:"Alex",haarfarbe:"blond",groesse:1.82,humor:true,intelligenz:7},
+ {name:"Sam",haarfarbe:"braun",groesse:1.68,humor:true,intelligenz:9},
+ {name:"Mika",haarfarbe:"schwarz",groesse:1.75,humor:false,intelligenz:8},
+ {name:"Robin",haarfarbe:"rot",groesse:1.60,humor:true,intelligenz:6},
+ {name:"Jona",haarfarbe:"braun",groesse:1.91,humor:false,intelligenz:5},
+ {name:"Noa",haarfarbe:"blond",groesse:1.72,humor:false,intelligenz:10},
+ {name:"Luca",haarfarbe:"schwarz",groesse:1.85,humor:true,intelligenz:4},
+ {name:"Kim",haarfarbe:"blau",groesse:1.65,humor:true,intelligenz:8},
+ {name:"Elia",haarfarbe:"braun",groesse:1.78,humor:true,intelligenz:7},
+ {name:"Charlie",haarfarbe:"rot",groesse:1.88,humor:false,intelligenz:9}
+];
+const HAIR={blond:"var(--nord13)",braun:"var(--nord12)",schwarz:"var(--nord3)",rot:"var(--nord11)",blau:"var(--nord10)"};
+const ATTR=[
+ {key:"haarfarbe",type:"str",c:"var(--t-str)",ops:["==","!="],vals:Object.keys(HAIR)},
+ {key:"groesse",type:"float",c:"var(--t-float)",ops:[">=","<=",">","<"]},
+ {key:"humor",type:"bool",c:"var(--t-bool)",ops:["=="],vals:["True","False"]},
+ {key:"intelligenz",type:"int",c:"var(--t-int)",ops:[">=","<=",">","<","=="]}
+];
+/* Zustand: Standard-Algorithmus */
+const S={
+ conds:[
+  {on:true,op:"==",val:"braun"},
+  {on:true,op:">=",val:"1.70"},
+  {on:true,op:"==",val:"True"},
+  {on:false,op:">=",val:"7"}
+ ],
+ conn:[null,"and","or","and"],
+ l2r:false, sel:8, step:0
+};
+
+/* ---------- Hilfen ---------- */
+const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const KW=new Set(["if","else","and","or","True","False","def","return","not"]);
+function hl(src){
+  const re=/(#.*$)|("(?:[^"\\\n]|\\.)*")|\b(\d+(?:\.\d+)?)\b|\b([A-Za-z_]\w*)\b/gm;let o="",l=0,m;
+  while((m=re.exec(src))){o+=esc(src.slice(l,m.index));
+    if(m[1])o+='<span class="cm">'+esc(m[1])+'</span>';
+    else if(m[2])o+='<span class="st">'+esc(m[2])+'</span>';
+    else if(m[3])o+='<span class="nu">'+m[3]+'</span>';
+    else{const w=m[4];if(KW.has(w))o+='<span class="kw">'+w+'</span>';else if(/^\s*\(/.test(src.slice(re.lastIndex)))o+='<span class="fn">'+w+'</span>';else o+=w;}
+    l=re.lastIndex;}
+  return o+esc(src.slice(l));
+}
+function litVal(i){const a=ATTR[i],v=S.conds[i].val;
+  if(a.type==="str")return '"'+v+'"';if(a.type==="bool")return v;return v;}
+function cmp(a,op,b){switch(op){case"==":return a===b;case"!=":return a!==b;case">=":return a>=b;case"<=":return a<=b;case">":return a>b;case"<":return a<b;}}
+function condVal(i,p){const a=ATTR[i],c=S.conds[i];let b;
+  if(a.type==="str")b=c.val;else if(a.type==="bool")b=c.val==="True";else b=parseFloat(c.val);
+  if(a.type!=="str"&&a.type!=="bool"&&isNaN(b))b=0;
+  return cmp(p[a.key],c.op,b);}
+function active(){return S.conds.map((c,i)=>c.on?i:-1).filter(i=>i>=0);}
+function opsFor(idx){return idx.slice(1).map(i=>S.conn[i]);}
+function condText(i){return ATTR[i].key+" "+S.conds[i].op+" "+litVal(i);}
+function exprText(idx,parts){const ops=opsFor(idx);
+  if(S.l2r&&idx.length>2){    s=parts[0];for(let k=1;k<parts.length;k++){s=s+" "+ops[k-1]+" "+parts[k];if(k<parts.length-1)s="("+s+")";}return s;}
+  return parts.map((p,k)=>k?ops[k-1]+" "+p:p).join(" ");}
+/* Auswertung: liefert Endwert */
+function evaluate(vals,ops){vals=vals.slice();ops=ops.slice();
+  if(!S.l2r){while(ops.includes("and")){const i=ops.indexOf("and");vals.splice(i,2,vals[i]&&vals[i+1]);ops.splice(i,1);}}
+  while(ops.length){const v=ops[0]==="and"?vals[0]&&vals[1]:vals[0]||vals[1];vals.splice(0,2,v);ops.shift();}
+  return vals[0];}
+function judge(p){const idx=active();return evaluate(idx.map(i=>condVal(i,p)),opsFor(idx));}
+
+/* ---------- Baukasten ---------- */
+const condsEl=document.getElementById("conds");
+function buildConds(){
+  condsEl.innerHTML="";
+  ATTR.forEach((a,i)=>{
+    if(i>0){const cn=document.createElement("div");cn.className="conn";cn.id="conn"+i;
+      ["and","or"].forEach(o=>{const b=document.createElement("button");b.type="button";b.textContent=o;b.setAttribute("aria-label","Verknüpfung vor "+a.key+": "+o);
+        b.addEventListener("click",()=>{S.conn[i]=o;update();});cn.appendChild(b);});condsEl.appendChild(cn);}
+    const c=S.conds[i];const row=document.createElement("div");row.className="cond";row.style.setProperty("--c",a.c);row.id="row"+i;
+    const lab=document.createElement("label");lab.className="on";
+    const cb=document.createElement("input");cb.type="checkbox";cb.id="on"+i;cb.checked=c.on;
+    cb.addEventListener("change",()=>{if(!cb.checked&&active().length===1){cb.checked=true;return;}c.on=cb.checked;update();});
+    lab.append(cb,document.createTextNode(a.key+" "));const sm=document.createElement("small");sm.textContent=a.type;lab.appendChild(sm);
+    row.appendChild(lab);
+    const op=document.createElement("select");op.id="op"+i;op.setAttribute("aria-label","Vergleich für "+a.key);
+    a.ops.forEach(o=>{const e=document.createElement("option");e.value=o;e.textContent=o;op.appendChild(e);});op.value=c.op;
+    op.addEventListener("change",()=>{c.op=op.value;update();});row.appendChild(op);
+    let v;
+    if(a.vals){v=document.createElement("select");a.vals.forEach(x=>{const e=document.createElement("option");e.value=x;e.textContent=a.type==="str"?'"'+x+'"':x;v.appendChild(e);});}
+    else{v=document.createElement("input");v.type="number";if(a.type==="float"){v.step="0.01";v.min="1.40";v.max="2.20";}else{v.step="1";v.min="1";v.max="10";}}
+    v.id="val"+i;v.value=c.val;v.setAttribute("aria-label","Wert für "+a.key);
+    v.addEventListener(a.vals?"change":"input",()=>{c.val=v.value;update();});
+    row.appendChild(v);condsEl.appendChild(row);
+  });
+}
+function syncConds(){
+  const idx=active();
+  ATTR.forEach((a,i)=>{
+    document.getElementById("row"+i).classList.toggle("off",!S.conds[i].on);
+    if(i>0){const cn=document.getElementById("conn"+i);
+      const live=S.conds[i].on&&idx.some(j=>j<i);cn.classList.toggle("inactive",!live);
+      [...cn.children].forEach(b=>b.setAttribute("aria-pressed",String(b.textContent===S.conn[i])));}
+  });
+}
+
+/* ---------- Code ---------- */
+function renderCode(){
+  const p=P[S.sel],idx=active();
+  const cond=exprText(idx,idx.map(condText));
+  const L=(t,c)=>t.padEnd(24)+"# "+c;
+  const src=['# Profil von '+p.name,L('haarfarbe = "'+p.haarfarbe+'"',"str"),L('groesse = '+p.groesse.toFixed(2),"float"),L('humor = '+(p.humor?"True":"False"),"bool"),L('intelligenz = '+p.intelligenz,"int"),'','if '+cond+':','    print("Match!")','else:','    print("Kein Match")'].join("\n");
+  document.getElementById("code").innerHTML="<code>"+hl(src)+"</code>";
+  document.getElementById("code").dataset.src=src;
+  const r=judge(p);
+  document.getElementById("forWho").innerHTML="Ausgabe für <b>"+esc(p.name)+"</b>: <span class=\"res "+(r?"y":"n")+"\">"+(r?"Match!":"Kein Match")+"</span>";
+  const ops=opsFor(idx);const mixed=ops.includes("and")&&ops.includes("or");
+  const mn=document.getElementById("modeNote");
+  if(S.l2r){mn.className="note warn";mn.innerHTML="Die Klammern im Code erzwingen jetzt die Auswertung von links nach rechts.";}
+  else if(mixed){mn.className="note warn";mn.innerHTML="Ihr Algorithmus mischt <code>and</code> und <code>or</code>. Python wertet zuerst alle <code>and</code> aus, dann die <code>or</code>.";}
+  else{mn.className="note";mn.textContent="Tipp: Mischen Sie and und or und beobachten Sie, wie sich die Treffer ändern.";}
+}
+
+/* ---------- Profile ---------- */
+const profEl=document.getElementById("profiles");
+function renderProfiles(){
+  const idx=active();let hits=0;profEl.innerHTML="";
+  P.forEach((p,k)=>{
+    const r=judge(p);if(r)hits++;
+    const b=document.createElement("button");b.type="button";b.className="pcard"+(r?" match":"");b.setAttribute("aria-pressed",String(k===S.sel));
+    let rows="";
+    ATTR.forEach((a,i)=>{const v=p[a.key];const shown=a.type==="str"?'"'+v+'"':a.type==="bool"?(v?"True":"False"):a.type==="float"?v.toFixed(2):v;
+      const t=S.conds[i].on?(condVal(i,p)?'<span class="tf t">True</span>':'<span class="tf f">False</span>'):'<span class="tf x">aus</span>';
+      rows+='<span class="k">'+a.key+'</span><span class="v">'+shown+'</span>'+t;});
+    b.innerHTML='<div class="ph"><span class="av" style="--hc:'+HAIR[p.haarfarbe]+'">'+p.name[0]+'</span><span class="nm">'+p.name+'</span><span class="res '+(r?"y":"n")+'">'+(r?"✓ Match":"✗ nein")+'</span></div><div class="attrs">'+rows+'</div>';
+    b.addEventListener("click",()=>{S.sel=k;S.step=0;update();document.getElementById("h-steps").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});});
+    profEl.appendChild(b);
+  });
+  document.getElementById("summary").innerHTML="<strong>"+hits+" von "+P.length+" Profilen passen</strong><span>"+(hits===0?"Ihr Algorithmus ist sehr streng.":hits===P.length?"Ihr Algorithmus lässt alle durch.":"")+"</span>";
+}
+
+/* ---------- Schritte ---------- */
+const tf=v=>'<span class="'+(v?"T":"F")+'">'+(v?"True":"False")+'</span>';
+const opS=o=>'<span class="op">'+o+'</span>';
+function buildSteps(){
+  const p=P[S.sel],idx=active(),ops=opsFor(idx);const steps=[];
+  const cTxt=idx.map(i=>esc(condText(i)));
+  steps.push({t:"Die Bedingung",h:joinX(cTxt,ops,-1),x:"So steht die Bedingung im Code. Python setzt jetzt die Werte von "+p.name+" ein."});
+  const vTxt2=idx.map(i=>{const a=ATTR[i];const v=p[a.key];const s=a.type==="str"?'"'+v+'"':a.type==="bool"?(v?"True":"False"):a.type==="float"?v.toFixed(2):String(v);return esc(s+" "+S.conds[i].op+" "+litVal(i));});
+  steps.push({t:"Werte einsetzen",h:joinX(vTxt2,ops,-1),x:"Anstelle der Variablennamen stehen jetzt die Werte aus dem Profil."});
+  let vals=idx.map(i=>condVal(i,p));
+  steps.push({t:"Vergleiche auswerten",h:joinX(vals.map(tf),ops,-1),x:"Jeder Vergleich ergibt True oder False."});
+  let v=vals.slice(),o=ops.slice();
+  const pick=()=>{if(!S.l2r){const i=o.indexOf("and");if(i>=0)return i;}return 0;};
+  while(o.length){
+    const i=pick(),op=o[i];
+    const before=joinX(v.map(tf),o,i);
+    const r=op==="and"?v[i]&&v[i+1]:v[i]||v[i+1];
+    const why=op==="and"?(S.l2r?"Von links nach rechts: ":"and zuerst: ")+(r?"beide sind True, also True.":"mindestens eine ist False, also False."):(S.l2r?"Von links nach rechts: ":"Jetzt or: ")+(r?"mindestens eine ist True, also True.":"beide sind False, also False.");
+    steps.push({t:(op==="and"?"and":"or")+" auswerten",h:before,x:why});
+    v.splice(i,2,r);o.splice(i,1);
+  }
+  const fin=v[0];
+  steps.push({t:"Ergebnis",h:tf(fin),x:fin?"Die Bedingung ist True. Das Programm gibt «Match!» aus.":"Die Bedingung ist False. Das Programm führt den else-Block aus und gibt «Kein Match» aus.",fin});
+  return steps;
+}
+function joinX(parts,ops,mark){
+  /* mark: Index des Operators, dessen beide Seiten markiert werden */
+  if(S.l2r&&parts.length>2&&mark<0){let s=parts[0];for(let k=1;k<parts.length;k++){s=s+" "+opS(ops[k-1])+" "+parts[k];if(k<parts.length-1)s="("+s+")";}return s;}
+  let out="";
+  for(let k=0;k<parts.length;k++){
+    if(k===mark)out+="<mark>";
+    if(k>0&&k!==mark+1)out+=" "+opS(ops[k-1])+" ";
+    if(k===mark+1&&mark>=0)out+=" "+opS(ops[k-1])+" ";
+    out+=parts[k];
+    if(k===mark+1&&mark>=0)out+="</mark>";
+  }
+  return out;
+}
+function renderSteps(){
+  const st=buildSteps();if(S.step>=st.length)S.step=st.length-1;
+  const s=st[S.step];
+  document.getElementById("stepNo").textContent="Schritt "+(S.step+1)+" von "+st.length;
+  document.getElementById("stepTitle").textContent=s.t;
+  document.getElementById("expr").innerHTML=s.h;
+  const tx=document.getElementById("stepText");tx.innerHTML=esc(s.x);
+  if(s.fin!==undefined){tx.innerHTML='<span class="verdict '+(s.fin?"y":"n")+'">'+(s.fin?"✓ Match!":"✗ Kein Match")+'</span> '+esc(s.x);}
+  document.getElementById("dots").innerHTML=st.map((_,k)=>'<i class="'+(k<=S.step?"on":"")+'"></i>').join("");
+  document.getElementById("prev").disabled=S.step===0;
+  document.getElementById("next").disabled=S.step===st.length-1;
+  document.getElementById("stepWho").textContent="Profil: "+P[S.sel].name+" (oben anklicken, um zu wechseln)";
+}
+document.getElementById("prev").addEventListener("click",()=>{S.step--;renderSteps();});
+document.getElementById("next").addEventListener("click",()=>{S.step++;renderSteps();});
+
+/* ---------- Übungen ---------- */
+const by=n=>P.find(p=>p.name===n);
+const EX=[
+ {who:"Alex",c:'haarfarbe == "blond" and humor',f:p=>p.haarfarbe==="blond"&&p.humor,why:'"blond" == "blond" ist True, humor ist True. True and True ergibt True.'},
+ {who:"Sam",c:"groesse > 1.80 or intelligenz >= 9",f:p=>p.groesse>1.8||p.intelligenz>=9,why:"1.68 > 1.80 ist False, 9 >= 9 ist True. Bei or genügt eine wahre Bedingung."},
+ {who:"Robin",c:"humor and intelligenz > 8",f:p=>p.humor&&p.intelligenz>8,why:"humor ist True, aber 6 > 8 ist False. and verlangt, dass beide wahr sind."},
+ {who:"Jona",c:'haarfarbe != "braun" and groesse < 1.70',f:p=>p.haarfarbe!=="braun"&&p.groesse<1.7,why:'"braun" != "braun" ist False. Damit ist die ganze and-Verknüpfung schon False.'},
+ {who:"Sam",c:'haarfarbe == "Braun"',f:p=>p.haarfarbe==="Braun",why:'Sam hat "braun" mit kleinem b. Bei Strings zählt die Gross- und Kleinschreibung: "braun" == "Braun" ist False.'},
+ {who:"Robin",c:'humor or haarfarbe == "rot" and groesse > 1.80',f:p=>p.humor||(p.haarfarbe==="rot"&&p.groesse>1.8),why:"and zuerst: True and False ergibt False. Dann True or False ergibt True. Wer von links nach rechts rechnet, erhält fälschlich False."},
+ {who:"Noa",c:"(humor or intelligenz == 10) and groesse >= 1.75",f:p=>(p.humor||p.intelligenz===10)&&p.groesse>=1.75,why:"Die Klammer zuerst: False or True ergibt True. Dann 1.72 >= 1.75 ist False. True and False ergibt False."}
+];
+const exEl=document.getElementById("exlist");
+EX.forEach((e,k)=>{
+  const p=by(e.who),sol=e.f(p);
+  const card=document.createElement("article");card.className="ex";
+  card.innerHTML='<div class="ex-top"><span class="ex-no">Ü '+(k+1)+'</span><span class="who">Profil: '+p.name+'</span></div><div class="codebox"><pre><code>'+hl(e.c)+'</code></pre></div><p class="q">Ist diese Bedingung für '+p.name+' True oder False?</p>';
+  const ans=document.createElement("div");ans.className="ans";const fb=document.createElement("div");
+  [true,false].forEach(v=>{const b=document.createElement("button");b.type="button";b.textContent=v?"True":"False";
+    b.addEventListener("click",()=>{
+      if(v===sol){[...ans.children].forEach(x=>x.classList.remove("wrong"));b.classList.add("right");fb.className="fb good";fb.innerHTML="<b>✓ Richtig.</b> "+esc(e.why);card.classList.add("solved");}
+      else{b.classList.add("wrong");fb.className="fb badfb";fb.innerHTML="<b>✗ Noch nicht.</b> Werten Sie jeden Vergleich einzeln aus und denken Sie daran: and vor or.";}
+    });ans.appendChild(b);});
+  card.append(ans,fb);exEl.appendChild(card);
+});
+
+/* ---------- Kopieren ---------- */
+document.getElementById("copyBtn").addEventListener("click",()=>{
+  const b=document.getElementById("copyBtn"),pre=document.getElementById("code"),src=pre.dataset.src;
+  const ok=()=>{b.textContent="Kopiert";setTimeout(()=>b.textContent="Kopieren",1400);};
+  const fb=()=>{const r=document.createRange();r.selectNodeContents(pre);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent="Markiert";setTimeout(()=>b.textContent="Kopieren",1400);};
+  try{navigator.clipboard.writeText(src).then(ok,fb);}catch(e){fb();}
+});
+document.getElementById("l2r").addEventListener("change",e=>{S.l2r=e.target.checked;S.step=0;update();});
+
+function update(){syncConds();renderCode();renderProfiles();renderSteps();}
+buildConds();update();
+</script>
+</body>
+</html>
