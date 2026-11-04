@@ -4,14 +4,14 @@ Einsatztyp: Lernmaterial Informatik, Zielgruppe Schüler:innen, Gerät gemischt,
 Inhalt: Partnerwahl-Algorithmus mit vier Datentypen (str, float, bool, int), Bedingungen frei mit and/or verknüpfbar.
 Funktionen: Baukasten für Bedingungen, Python-Code live generiert (Kopierknopf), 10 fiktive Profile werden live ausgewertet,
 Schritt-für-Schritt-Auswertung (Vor/Zurück) inkl. Vorrang and vor or, Umschalter «von links nach rechts klammern» zum Vergleich,
-Wahrheitstabelle, 7 Übungen mit sofortiger Rückmeldung.
+Wahrheitstabelle mit not, 10 Übungen mit sofortiger Rückmeldung.
 Datenhaltung: keine. Design: nur dunkles Nord-Design, keine Varianten (Wunsch von Patrick), Open Sans + Google Sans Code.
 -->
 <html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="Partnerwahl-Algorithmus mit str, float, bool und int: Bedingungen mit and und or verknüpfen, Python-Code live sehen und Schritt für Schritt auswerten.">
+<meta name="description" content="Partnerwahl-Algorithmus mit str, float, bool und int: Bedingungen mit and, or, not und != verknüpfen, Python-Code live sehen und Schritt für Schritt auswerten.">
 <title>Partnerwahl mit and und or</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
 <style>
@@ -65,7 +65,10 @@ header.top p{color:var(--muted)}
 .builder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px;align-items:start}
 .panel{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:18px clamp(14px,2.4vw,22px);display:flex;flex-direction:column;gap:12px;min-width:0}
 .panel h3{font-size:15px;font-family:var(--mono);font-weight:600;color:var(--accent);letter-spacing:.04em;text-transform:uppercase}
-.cond{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px 10px;align-items:center;background:var(--nord0);border:1px solid var(--surface-2);border-left:3px solid var(--c);border-radius:8px;padding:10px 12px}
+.cond{display:grid;grid-template-columns:auto 96px minmax(0,1fr);gap:8px 10px;align-items:center;background:var(--nord0);border:1px solid var(--surface-2);border-left:3px solid var(--c);border-radius:8px;padding:10px 12px}
+.notbtn{font-family:var(--mono);font-weight:600;font-size:14px;padding:5px 10px;border-radius:6px;border:1px dashed var(--line);background:transparent;color:var(--muted);cursor:pointer;text-decoration:line-through;text-decoration-color:var(--nord3)}
+.notbtn:hover{border-color:var(--nord9)}
+.notbtn[aria-pressed="true"]{border:1px solid var(--nord15);background:var(--nord15);color:var(--nord0);text-decoration:none}
 .cond.off{opacity:.5;border-left-color:var(--line)}
 .cond label.on{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-weight:600;font-size:15px;cursor:pointer;grid-column:1 / -1}
 .cond label.on input{accent-color:var(--nord8);width:17px;height:17px}
@@ -194,16 +197,16 @@ td.T{color:var(--ok)}td.F{color:#e3a2a8}
     <div class="sec-head"><span class="no">01</span><h2 id="h-types">Vier Eigenschaften, vier Datentypen</h2></div>
     <div class="types">
       <div class="type" style="--c:var(--t-str)"><span class="tn">str · Text</span><h3>haarfarbe</h3><div class="ex">haarfarbe = "braun"</div><p>Text steht in Anführungszeichen. Vergleiche mit <code>==</code> oder <code>!=</code>. Gross- und Kleinschreibung zählt.</p></div>
-      <div class="type" style="--c:var(--t-float)"><span class="tn">float · Kommazahl</span><h3>groesse</h3><div class="ex">groesse = 1.78</div><p>Kommazahlen schreiben Sie mit Punkt. Vergleiche mit <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>.</p></div>
-      <div class="type" style="--c:var(--t-bool)"><span class="tn">bool · Wahrheitswert</span><h3>humor</h3><div class="ex">humor = True</div><p>Nur zwei Werte: <code>True</code> oder <code>False</code>, gross geschrieben, ohne Anführungszeichen.</p></div>
-      <div class="type" style="--c:var(--t-int)"><span class="tn">int · ganze Zahl</span><h3>intelligenz</h3><div class="ex">intelligenz = 7</div><p>Ganze Zahl ohne Komma, hier auf einer Skala von 1 bis 10.</p></div>
+      <div class="type" style="--c:var(--t-float)"><span class="tn">float · Kommazahl</span><h3>groesse</h3><div class="ex">groesse = 1.78</div><p>Kommazahlen schreiben Sie mit Punkt. Vergleiche mit <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code>, <code>&gt;=</code>, <code>==</code> und <code>!=</code>.</p></div>
+      <div class="type" style="--c:var(--t-bool)"><span class="tn">bool · Wahrheitswert</span><h3>humor</h3><div class="ex">humor = True</div><p>Nur zwei Werte: <code>True</code> oder <code>False</code>, gross geschrieben, ohne Anführungszeichen. Vergleiche mit <code>==</code> oder <code>!=</code>.</p></div>
+      <div class="type" style="--c:var(--t-int)"><span class="tn">int · ganze Zahl</span><h3>intelligenz</h3><div class="ex">intelligenz = 7</div><p>Ganze Zahl ohne Komma, hier auf einer Skala von 1 bis 10. Alle sechs Vergleiche sind möglich.</p></div>
     </div>
   </section>
 
   <!-- 2 Baukasten -->
   <section aria-labelledby="h-build">
     <div class="sec-head"><span class="no">02</span><h2 id="h-build">Ihr Algorithmus</h2></div>
-    <p>Jede Bedingung liefert <code>True</code> oder <code>False</code>. Schalten Sie Bedingungen ein oder aus und wählen Sie zwischen zwei Bedingungen <code>and</code> oder <code>or</code>.</p>
+    <p>Jede Bedingung liefert <code>True</code> oder <code>False</code>. Schalten Sie Bedingungen ein oder aus und wählen Sie zwischen zwei Bedingungen <code>and</code> oder <code>or</code>. Mit <code>not</code> kehren Sie eine Bedingung um.</p>
     <div class="builder">
       <div class="panel">
         <h3>Bedingungen</h3>
@@ -251,19 +254,21 @@ td.T{color:var(--ok)}td.F{color:#e3a2a8}
         <ul>
           <li><code>A and B</code> ist nur <code>True</code>, wenn <em>beide</em> Bedingungen wahr sind. Streng.</li>
           <li><code>A or B</code> ist <code>True</code>, wenn <em>mindestens eine</em> Bedingung wahr ist. Grosszügig.</li>
-          <li><code>and</code> bindet stärker als <code>or</code>, so wie Punkt vor Strich. <code>A or B and C</code> bedeutet <code>A or (B and C)</code>.</li>
+          <li><code>!=</code> heisst «ungleich»: <code>haarfarbe != "rot"</code> ist <code>True</code> für alle Haarfarben ausser rot.</li>
+          <li><code>not A</code> kehrt den Wert um: aus <code>True</code> wird <code>False</code> und umgekehrt. <code>not groesse &gt;= 1.80</code> bedeutet dasselbe wie <code>groesse &lt; 1.80</code>.</li>
+          <li>Reihenfolge: zuerst die Vergleiche, dann <code>not</code>, dann <code>and</code>, zuletzt <code>or</code>. <code>A or B and C</code> bedeutet <code>A or (B and C)</code>.</li>
           <li>Wollen Sie eine andere Reihenfolge, setzen Sie Klammern: <code>(A or B) and C</code>.</li>
           <li>Bei einem <code>bool</code> genügt der Name: <code>if humor:</code> bedeutet dasselbe wie <code>if humor == True:</code>.</li>
         </ul>
       </div>
       <div class="tbl">
         <table>
-          <thead><tr><th>A</th><th>B</th><th>A and B</th><th>A or B</th></tr></thead>
+          <thead><tr><th>A</th><th>B</th><th>not A</th><th>A and B</th><th>A or B</th></tr></thead>
           <tbody>
-            <tr><td class="T">True</td><td class="T">True</td><td class="T">True</td><td class="T">True</td></tr>
-            <tr><td class="T">True</td><td class="F">False</td><td class="F">False</td><td class="T">True</td></tr>
-            <tr><td class="F">False</td><td class="T">True</td><td class="F">False</td><td class="T">True</td></tr>
-            <tr><td class="F">False</td><td class="F">False</td><td class="F">False</td><td class="F">False</td></tr>
+            <tr><td class="T">True</td><td class="T">True</td><td class="F">False</td><td class="T">True</td><td class="T">True</td></tr>
+            <tr><td class="T">True</td><td class="F">False</td><td class="F">False</td><td class="F">False</td><td class="T">True</td></tr>
+            <tr><td class="F">False</td><td class="T">True</td><td class="T">True</td><td class="F">False</td><td class="T">True</td></tr>
+            <tr><td class="F">False</td><td class="F">False</td><td class="T">True</td><td class="F">False</td><td class="F">False</td></tr>
           </tbody>
         </table>
       </div>
@@ -295,17 +300,17 @@ const P=[
 const HAIR={blond:"var(--nord13)",braun:"var(--nord12)",schwarz:"var(--nord3)",rot:"var(--nord11)",blau:"var(--nord10)"};
 const ATTR=[
  {key:"haarfarbe",type:"str",c:"var(--t-str)",ops:["==","!="],vals:Object.keys(HAIR)},
- {key:"groesse",type:"float",c:"var(--t-float)",ops:[">=","<=",">","<"]},
- {key:"humor",type:"bool",c:"var(--t-bool)",ops:["=="],vals:["True","False"]},
- {key:"intelligenz",type:"int",c:"var(--t-int)",ops:[">=","<=",">","<","=="]}
+ {key:"groesse",type:"float",c:"var(--t-float)",ops:[">=","<=",">","<","==","!="]},
+ {key:"humor",type:"bool",c:"var(--t-bool)",ops:["==","!="],vals:["True","False"]},
+ {key:"intelligenz",type:"int",c:"var(--t-int)",ops:[">=","<=",">","<","==","!="]}
 ];
 /* Zustand: Standard-Algorithmus */
 const S={
  conds:[
-  {on:true,op:"==",val:"braun"},
-  {on:true,op:">=",val:"1.70"},
-  {on:true,op:"==",val:"True"},
-  {on:false,op:">=",val:"7"}
+  {on:true,neg:false,op:"==",val:"braun"},
+  {on:true,neg:false,op:">=",val:"1.70"},
+  {on:true,neg:false,op:"==",val:"True"},
+  {on:false,neg:false,op:">=",val:"7"}
  ],
  conn:[null,"and","or","and"],
  l2r:false, sel:8, step:0
@@ -327,15 +332,16 @@ function hl(src){
 function litVal(i){const a=ATTR[i],v=S.conds[i].val;
   if(a.type==="str")return '"'+v+'"';if(a.type==="bool")return v;return v;}
 function cmp(a,op,b){switch(op){case"==":return a===b;case"!=":return a!==b;case">=":return a>=b;case"<=":return a<=b;case">":return a>b;case"<":return a<b;}}
-function condVal(i,p){const a=ATTR[i],c=S.conds[i];let b;
+function rawVal(i,p){const a=ATTR[i],c=S.conds[i];let b;
   if(a.type==="str")b=c.val;else if(a.type==="bool")b=c.val==="True";else b=parseFloat(c.val);
   if(a.type!=="str"&&a.type!=="bool"&&isNaN(b))b=0;
   return cmp(p[a.key],c.op,b);}
+function condVal(i,p){const r=rawVal(i,p);return S.conds[i].neg?!r:r;}
 function active(){return S.conds.map((c,i)=>c.on?i:-1).filter(i=>i>=0);}
 function opsFor(idx){return idx.slice(1).map(i=>S.conn[i]);}
-function condText(i){return ATTR[i].key+" "+S.conds[i].op+" "+litVal(i);}
+function condText(i){return (S.conds[i].neg?"not ":"")+ATTR[i].key+" "+S.conds[i].op+" "+litVal(i);}
 function exprText(idx,parts){const ops=opsFor(idx);
-  if(S.l2r&&idx.length>2){    s=parts[0];for(let k=1;k<parts.length;k++){s=s+" "+ops[k-1]+" "+parts[k];if(k<parts.length-1)s="("+s+")";}return s;}
+  if(S.l2r&&idx.length>2){let s=parts[0];for(let k=1;k<parts.length;k++){s=s+" "+ops[k-1]+" "+parts[k];if(k<parts.length-1)s="("+s+")";}return s;}
   return parts.map((p,k)=>k?ops[k-1]+" "+p:p).join(" ");}
 /* Auswertung: liefert Endwert */
 function evaluate(vals,ops){vals=vals.slice();ops=ops.slice();
@@ -358,6 +364,8 @@ function buildConds(){
     cb.addEventListener("change",()=>{if(!cb.checked&&active().length===1){cb.checked=true;return;}c.on=cb.checked;update();});
     lab.append(cb,document.createTextNode(a.key+" "));const sm=document.createElement("small");sm.textContent=a.type;lab.appendChild(sm);
     row.appendChild(lab);
+    const nb=document.createElement("button");nb.type="button";nb.className="notbtn";nb.id="not"+i;nb.textContent="not";nb.setAttribute("aria-label","Bedingung für "+a.key+" mit not umkehren");
+    nb.addEventListener("click",()=>{c.neg=!c.neg;update();});row.appendChild(nb);
     const op=document.createElement("select");op.id="op"+i;op.setAttribute("aria-label","Vergleich für "+a.key);
     a.ops.forEach(o=>{const e=document.createElement("option");e.value=o;e.textContent=o;op.appendChild(e);});op.value=c.op;
     op.addEventListener("change",()=>{c.op=op.value;update();});row.appendChild(op);
@@ -373,6 +381,7 @@ function syncConds(){
   const idx=active();
   ATTR.forEach((a,i)=>{
     document.getElementById("row"+i).classList.toggle("off",!S.conds[i].on);
+    document.getElementById("not"+i).setAttribute("aria-pressed",String(!!S.conds[i].neg));
     if(i>0){const cn=document.getElementById("conn"+i);
       const live=S.conds[i].on&&idx.some(j=>j<i);cn.classList.toggle("inactive",!live);
       [...cn.children].forEach(b=>b.setAttribute("aria-pressed",String(b.textContent===S.conn[i])));}
@@ -421,10 +430,12 @@ function buildSteps(){
   const p=P[S.sel],idx=active(),ops=opsFor(idx);const steps=[];
   const cTxt=idx.map(i=>esc(condText(i)));
   steps.push({t:"Die Bedingung",h:joinX(cTxt,ops,-1),x:"So steht die Bedingung im Code. Python setzt jetzt die Werte von "+p.name+" ein."});
-  const vTxt2=idx.map(i=>{const a=ATTR[i];const v=p[a.key];const s=a.type==="str"?'"'+v+'"':a.type==="bool"?(v?"True":"False"):a.type==="float"?v.toFixed(2):String(v);return esc(s+" "+S.conds[i].op+" "+litVal(i));});
+  const vTxt2=idx.map(i=>{const a=ATTR[i];const v=p[a.key];const s=a.type==="str"?'"'+v+'"':a.type==="bool"?(v?"True":"False"):a.type==="float"?v.toFixed(2):String(v);return esc((S.conds[i].neg?"not ":"")+s+" "+S.conds[i].op+" "+litVal(i));});
   steps.push({t:"Werte einsetzen",h:joinX(vTxt2,ops,-1),x:"Anstelle der Variablennamen stehen jetzt die Werte aus dem Profil."});
+  const raws=idx.map(i=>rawVal(i,p)),anyNot=idx.some(i=>S.conds[i].neg);
+  steps.push({t:"Vergleiche auswerten",h:joinX(idx.map((i,k)=>(S.conds[i].neg?'<span class="op">not</span> ':"")+tf(raws[k])),ops,-1),x:"Jeder Vergleich ergibt True oder False."+(anyNot?" Das not ist noch nicht angewendet.":"")});
   let vals=idx.map(i=>condVal(i,p));
-  steps.push({t:"Vergleiche auswerten",h:joinX(vals.map(tf),ops,-1),x:"Jeder Vergleich ergibt True oder False."});
+  if(anyNot)steps.push({t:"not auswerten",h:joinX(idx.map((i,k)=>S.conds[i].neg?"<mark>"+tf(vals[k])+"</mark>":tf(vals[k])),ops,-1),x:"not kehrt den Wert um: aus True wird False und aus False wird True. not kommt vor and und or."});
   let v=vals.slice(),o=ops.slice();
   const pick=()=>{if(!S.l2r){const i=o.indexOf("and");if(i>=0)return i;}return 0;};
   while(o.length){
@@ -477,7 +488,10 @@ const EX=[
  {who:"Jona",c:'haarfarbe != "braun" and groesse < 1.70',f:p=>p.haarfarbe!=="braun"&&p.groesse<1.7,why:'"braun" != "braun" ist False. Damit ist die ganze and-Verknüpfung schon False.'},
  {who:"Sam",c:'haarfarbe == "Braun"',f:p=>p.haarfarbe==="Braun",why:'Sam hat "braun" mit kleinem b. Bei Strings zählt die Gross- und Kleinschreibung: "braun" == "Braun" ist False.'},
  {who:"Robin",c:'humor or haarfarbe == "rot" and groesse > 1.80',f:p=>p.humor||(p.haarfarbe==="rot"&&p.groesse>1.8),why:"and zuerst: True and False ergibt False. Dann True or False ergibt True. Wer von links nach rechts rechnet, erhält fälschlich False."},
- {who:"Noa",c:"(humor or intelligenz == 10) and groesse >= 1.75",f:p=>(p.humor||p.intelligenz===10)&&p.groesse>=1.75,why:"Die Klammer zuerst: False or True ergibt True. Dann 1.72 >= 1.75 ist False. True and False ergibt False."}
+ {who:"Noa",c:"(humor or intelligenz == 10) and groesse >= 1.75",f:p=>(p.humor||p.intelligenz===10)&&p.groesse>=1.75,why:"Die Klammer zuerst: False or True ergibt True. Dann 1.72 >= 1.75 ist False. True and False ergibt False."},
+ {who:"Mika",c:"not humor and intelligenz != 9",f:p=>!p.humor&&p.intelligenz!==9,why:"humor ist False, not macht daraus True. 8 != 9 ist True. True and True ergibt True."},
+ {who:"Luca",c:"humor != True or not groesse >= 1.80",f:p=>p.humor!==true||!(p.groesse>=1.8),why:"True != True ist False. 1.85 >= 1.80 ist True, not macht daraus False. False or False ergibt False."},
+ {who:"Kim",c:'haarfarbe != "blond" and not intelligenz < 8',f:p=>p.haarfarbe!=="blond"&&!(p.intelligenz<8),why:'"blau" != "blond" ist True. 8 < 8 ist False, not macht daraus True. True and True ergibt True.'}
 ];
 const exEl=document.getElementById("exlist");
 EX.forEach((e,k)=>{
@@ -488,7 +502,7 @@ EX.forEach((e,k)=>{
   [true,false].forEach(v=>{const b=document.createElement("button");b.type="button";b.textContent=v?"True":"False";
     b.addEventListener("click",()=>{
       if(v===sol){[...ans.children].forEach(x=>x.classList.remove("wrong"));b.classList.add("right");fb.className="fb good";fb.innerHTML="<b>✓ Richtig.</b> "+esc(e.why);card.classList.add("solved");}
-      else{b.classList.add("wrong");fb.className="fb badfb";fb.innerHTML="<b>✗ Noch nicht.</b> Werten Sie jeden Vergleich einzeln aus und denken Sie daran: and vor or.";}
+      else{b.classList.add("wrong");fb.className="fb badfb";fb.innerHTML="<b>✗ Noch nicht.</b> Werten Sie jeden Vergleich einzeln aus. Reihenfolge: Vergleiche, not, and, or.";}
     });ans.appendChild(b);});
   card.append(ans,fb);exEl.appendChild(card);
 });
