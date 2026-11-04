@@ -248,18 +248,20 @@ const CH = [
   theory:[
     ["p","Mit <code>input()</code> fragt das Programm nach einer Eingabe. Der Text in der Klammer wird als Frage angezeigt. Die Eingabe speichern Sie in einer Variablen."],
     ["code",'name = input("Wie heissen Sie?")\nprint("Hallo", name)',"Hallo Lea","Lea"],
-    ["p","In TigerPython erkennt <code>input()</code> Zahlen automatisch: Geben Sie 7 ein, erhalten Sie die Zahl 7 und können direkt damit rechnen. Geben Sie Text ein, erhalten Sie Text."],
+    ["p","TigerPython öffnet für <code>input()</code> ein Eingabefenster. Danach schaut es sich die Eingabe an und wählt den passenden Datentyp selbst. Eine ganze Zahl wird zur Zahl, eine Kommazahl mit Punkt zur Kommazahl, alles andere bleibt Text."],
+    ["table",["Eingabe","Bedeutung","Variable enthält","Datentyp"],[["7","ganze Zahl","7","int"],["1.75","Kommazahl","1.75","float"],["Lea","Text","\"Lea\"","str"]]],
+    ["p","Mit eingegebenen Zahlen können Sie deshalb sofort rechnen."],
     ["code",'zahl = input("Geben Sie eine Zahl ein:")\nprint("Das Doppelte ist", zahl * 2)',"Das Doppelte ist 14","7"],
-    ["merke","Ohne Variable geht die Eingabe verloren. Schreiben Sie deshalb immer <code>variable = input(\"Frage\")</code>."]
+    ["merke","In TigerPython brauchen Sie bei <code>input()</code> keine Umwandlung mit <code>int()</code> oder <code>float()</code>. Kommazahlen geben Sie mit Punkt ein: <code>1.75</code>, nicht <code>1,75</code>. Ohne Variable geht die Eingabe verloren, schreiben Sie deshalb immer <code>variable = input(\"Frage\")</code>."]
   ],
   ex:[
     {t:"vor",q:"Was gibt dieses Programm aus?",inp:"Noah",code:'name = input("Wie heissen Sie?")\nprint("Hallo", name)',out:"Hallo Noah"},
     {t:"vor",q:"Was gibt dieses Programm aus?",inp:"7",code:'zahl = input("Zahl?")\nprint(zahl * 2)',out:"14",why:"TigerPython liefert bei der Eingabe 7 die Zahl 7, also wird gerechnet."},
     {t:"vor",q:"Was gibt dieses Programm aus?",inp:"4, dann 5",code:'a = input("a?")\nb = input("b?")\nprint(a + b)',out:"9"},
-    {t:"mc",q:'Wozu dient der Text in <code>input("Wie alt sind Sie?")</code>?',opts:["Er wird als Antwort gespeichert.","Er wird als Frage angezeigt.","Er legt fest, ob eine Zahl erwartet wird.","Er ist ein Kommentar und wird ignoriert."],ok:1},
+    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"2.5",code:'zahl = input("Zahl?")\nprint(zahl * 2)',out:"5.0",why:"TigerPython erkennt 2.5 als Kommazahl (float). Rechnet man mit einer Kommazahl, ist auch das Ergebnis eine Kommazahl: 5.0."},
+    {t:"mc",q:'Sie geben bei <code>wert = input("Wert?")</code> den Text <code>Bern</code> ein. Was enthält <code>wert</code>?',opts:["Die Zahl 0","Den Text \"Bern\"","Nichts, es gibt eine Fehlermeldung","Den Text \"Wert?\""],ok:1,why:"Bern ist keine Zahl, also bleibt die Eingabe Text (str). Der Text in der Klammer ist nur die Frage."},
     {t:"lue",q:"Das Programm soll nach dem Alter fragen und das Alter im nächsten Jahr ausgeben. Füllen Sie die Lücken.",code:'alter = __("Wie alt sind Sie?")\nprint("Nächstes Jahr sind Sie", alter __ 1)',gaps:[["input"],["+"]]},
     {t:"vor",q:"Was gibt dieses Programm aus?",inp:"3",code:'n = input("n?")\nprint("*" * n)',out:"***"},
-    {t:"vor",q:"Was gibt dieses Programm aus?",inp:"Bern",code:'ort = input("Ort?")\nprint(ort + "er Bär")',out:"Berner Bär"},
     {t:"mc",q:"Was passiert bei dieser Zeile?",code:'input("Zahl?")',opts:["Die Eingabe wird angefordert, geht danach aber verloren.","Es gibt eine Fehlermeldung.","Die Eingabe wird in einer Variablen Zahl gespeichert.","Die Eingabe wird automatisch ausgegeben."],ok:0,why:"Ohne <code>variable = </code> wird die Eingabe nirgends gespeichert."},
     {t:"code",q:"Fragen Sie nach Vorname und Nachname und geben Sie dann zum Beispiel aus: <code>Willkommen, Lea Muster</code>",sol:'vorname = input("Vorname?")\nnachname = input("Nachname?")\nprint("Willkommen,", vorname, nachname)'},
     {t:"code",q:"Mini-Rechner: Lesen Sie zwei Zahlen ein und geben Sie Summe, Differenz und Produkt aus, jeweils mit Beschriftung.",sol:'a = input("Erste Zahl?")\nb = input("Zweite Zahl?")\nprint("Summe:", a + b)\nprint("Differenz:", a - b)\nprint("Produkt:", a * b)'},
