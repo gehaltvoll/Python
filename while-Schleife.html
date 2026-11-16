@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<!-- Entscheidungen:
+  Einsatztyp: Lernmaterial Informatik (TigerPython-Grundkurs), Zielgruppe Schüler:innen, Sie-Form, Schweizer Rechtschreibung.
+  Design: nur dunkles Nord-Design, eine Variante, kein Umschalter (gemäss Vorgabe). Open Sans + Google Sans Code.
+  Sprachumfang: TigerPython, ohne f-Strings, ohne Casts, input() erkennt Zahlen automatisch.
+  Funktionen: Flussdiagramm, Schritt-für-Schritt-Simulation (3 Beispiele, Vor/Zurück, Variablen, Ausgabe),
+    25 Übungen (8 Ausgabe vorhersagen, 6 Fehler finden, 11 selbst programmieren), Lösungen einblendbar,
+    Filter nach Kategorie, Fortschritt «erledigt» pro Browser (localStorage, nur Komfort), Kopierknopf bei Code.
+  Programmiert wird in TigerPython, kein Interpreter auf der Seite.
+-->
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Die while-Schleife – TigerPython</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:ital,wght@0,400;0,600;1,400&family=Open+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --nord0:#2E3440;--nord1:#3B4252;--nord2:#434C5E;--nord3:#4C566A;
+  --nord4:#D8DEE9;--nord5:#E5E9F0;--nord6:#ECEFF4;
+  --nord7:#8FBCBB;--nord8:#88C0D0;--nord9:#81A1C1;--nord10:#5E81AC;
+  --nord11:#BF616A;--nord12:#D08770;--nord13:#EBCB8B;--nord14:#A3BE8C;--nord15:#B48EAD;
+  --bg:var(--nord0);--surface:var(--nord1);--surface-2:var(--nord2);
+  --text:var(--nord6);--text-muted:var(--nord4);
+  --accent:var(--nord8);--accent-soft:var(--nord9);
+  --ok:var(--nord14);--warn:var(--nord13);--err:var(--nord11);--special:var(--nord15);--info:var(--nord8);
+  --font:"Open Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-mono:"Google Sans Code",ui-monospace,"Cascadia Code",Consolas,"SF Mono",monospace;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:17px;line-height:1.6}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent);text-decoration:underline}
+.wrap{max-width:880px;margin:0 auto;padding:0 16px}
+p,li{max-width:70ch}
+h1,h2,h3{line-height:1.25}
+h1{font-weight:700;font-size:2.4rem;margin:.2em 0 .3em}
+h2{font-weight:700;font-size:1.6rem;margin:0 0 .6em}
+h3{font-weight:600;font-size:1.15rem;margin:1.4em 0 .4em}
+.label{font-family:var(--font-mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--nord8)}
+code,kbd{font-family:var(--font-mono);font-size:.9em;background:var(--surface);border:1px solid var(--surface-2);padding:.05em .35em;border-radius:5px}
+
+/* Kopf & Navigation */
+header.hero{border-bottom:1px solid var(--surface-2);padding:48px 0 32px;background:
+  radial-gradient(600px 220px at 85% 0%, rgba(136,192,208,.12), transparent 70%)}
+.hero p.lead{font-size:1.15rem;color:var(--text-muted);margin:0}
+nav.top{position:sticky;top:0;z-index:20;background:rgba(46,52,64,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--surface-2)}
+nav.top .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.top a{font-family:var(--font-mono);font-size:.82rem;color:var(--text-muted);text-decoration:none;padding:6px 10px;border-radius:6px;white-space:nowrap}
+nav.top a:hover,nav.top a:focus-visible{background:var(--surface);color:var(--text)}
+nav.top a span{color:var(--nord3)}
+section{padding:44px 0;border-bottom:1px solid var(--surface-2)}
+section:last-of-type{border-bottom:0}
+.sec-head{display:flex;align-items:baseline;gap:12px}
+.sec-head .label{flex:none}
+
+/* Boxen */
+.box{border:1px solid var(--surface-2);border-left:4px solid var(--accent);background:var(--surface);border-radius:var(--r);padding:14px 18px;margin:18px 0}
+.box.merke{border-left-color:var(--special)}
+.box.warn{border-left-color:var(--warn)}
+.box.err{border-left-color:var(--err)}
+.box.ok{border-left-color:var(--ok)}
+.box > .label{display:block;margin-bottom:4px}
+.box.merke > .label{color:var(--special)}
+.box.warn > .label{color:var(--warn)}
+.box.err > .label{color:var(--err)}
+.box.ok > .label{color:var(--ok)}
+.box p{margin:.4em 0}
+
+/* Code */
+.codewrap{position:relative;margin:14px 0}
+pre.code{margin:0;background:#262b35;border:1px solid var(--surface-2);border-radius:var(--r);padding:14px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:.9em;line-height:1.5;color:var(--nord6);tab-size:4}
+pre.code .k{color:var(--nord9);font-weight:600}
+pre.code .s{color:var(--nord14)}
+pre.code .n{color:var(--nord15)}
+pre.code .c{color:var(--nord3);font-style:italic;filter:brightness(1.35)}
+pre.code .f{color:var(--nord8)}
+pre.code .o{color:var(--nord7)}
+.copy{position:absolute;top:8px;right:8px;background:var(--surface);border:1px solid var(--surface-2);color:var(--text-muted);border-radius:6px;font-family:var(--font-mono);font-size:.72rem;padding:3px 8px;cursor:pointer;opacity:.85}
+.copy:hover,.copy:focus-visible{opacity:1;color:var(--text);border-color:var(--nord3)}
+.out{font-family:var(--font-mono);font-size:.88em;background:#20242c;border:1px dashed var(--surface-2);border-radius:var(--r);padding:10px 14px;white-space:pre-wrap;color:var(--nord4)}
+.out::before{content:"Ausgabe";display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--nord3);filter:brightness(1.4);margin-bottom:4px}
+
+/* Grid / Vergleich */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--surface-2);border-radius:var(--r);padding:14px 16px}
+.card h3{margin-top:0}
+table.cmp{width:100%;border-collapse:collapse;margin:14px 0;font-size:.95rem}
+table.cmp th,table.cmp td{border-bottom:1px solid var(--surface-2);padding:8px 10px;text-align:left;vertical-align:top}
+table.cmp th{font-weight:600;color:var(--nord8);font-family:var(--font-mono);font-size:.82rem;text-transform:uppercase;letter-spacing:.05em}
+.tablewrap{overflow-x:auto}
+
+/* Anatomie */
+.anat{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:start;margin-top:10px}
+.anat .tag{font-family:var(--font-mono);font-size:.82rem;border-radius:5px;padding:1px 8px;color:var(--nord0);font-weight:600;white-space:nowrap}
+.t1{background:var(--nord9)}.t2{background:var(--nord13)}.t3{background:var(--nord15)}.t4{background:var(--nord14)}.t5{background:var(--nord12)}
+
+/* Flussdiagramm */
+.flow{display:block;width:100%;max-width:520px;height:auto;margin:10px auto}
+
+/* Simulation */
+.sim{background:var(--surface);border:1px solid var(--surface-2);border-radius:14px;padding:16px;margin-top:16px}
+.sim-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.btn{background:var(--surface-2);border:1px solid var(--nord3);border-radius:8px;padding:6px 12px;cursor:pointer;color:var(--text)}
+.btn:hover{border-color:var(--nord8)}
+.btn:focus-visible,.copy:focus-visible,nav.top a:focus-visible,.chk:focus-visible{outline:2px solid var(--nord8);outline-offset:2px}
+.btn[aria-pressed="true"]{background:var(--nord8);color:var(--nord0);border-color:var(--nord8);font-weight:600}
+.btn.primary{background:var(--nord10);border-color:var(--nord10);color:var(--nord6);font-weight:600}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.sim-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+@media (max-width:720px){.sim-grid{grid-template-columns:1fr}}
+.simcode{font-family:var(--font-mono);font-size:.9em;line-height:1.5;background:#262b35;border:1px solid var(--surface-2);border-radius:var(--r);padding:10px 0;overflow-x:auto}
+.simcode .ln{display:flex;padding:1px 12px 1px 0;border-left:3px solid transparent;white-space:pre}
+.simcode .ln .no{width:2.4em;text-align:right;padding-right:12px;color:var(--nord3);filter:brightness(1.4);flex:none;user-select:none}
+.simcode .ln.cur{background:rgba(136,192,208,.16);border-left-color:var(--nord8)}
+.simcode .ln.cur .no{color:var(--nord8);filter:none}
+.panel{background:#262b35;border:1px solid var(--surface-2);border-radius:var(--r);padding:10px 12px;margin-bottom:10px}
+.panel .label{display:block;margin-bottom:6px}
+.vars{display:flex;flex-wrap:wrap;gap:6px;font-family:var(--font-mono);font-size:.88rem}
+.var{background:var(--surface);border:1px solid var(--surface-2);border-radius:6px;padding:3px 8px}
+.var b{color:var(--nord8);font-weight:600}
+.var.changed{border-color:var(--nord13);box-shadow:0 0 0 1px var(--nord13) inset}
+.simout{font-family:var(--font-mono);font-size:.88rem;white-space:pre-wrap;min-height:1.5em;color:var(--nord4)}
+.cond{font-family:var(--font-mono);font-size:.88rem;padding:4px 10px;border-radius:6px;display:inline-block;color:var(--nord0);font-weight:600}
+.cond.t{background:var(--nord14)}.cond.f{background:var(--nord11)}
+.note{margin:12px 0 4px;min-height:3.2em;color:var(--text)}
+.sim-ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.sim-ctrl .count{font-family:var(--font-mono);font-size:.82rem;color:var(--text-muted);margin-left:auto}
+.runs{font-family:var(--font-mono);font-size:.82rem;color:var(--nord13)}
+
+/* Übungen */
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:8px 0 14px}
+.progress{display:flex;align-items:center;gap:10px;margin:6px 0 16px;font-family:var(--font-mono);font-size:.85rem;color:var(--text-muted)}
+.bar{flex:1;height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;max-width:360px}
+.bar i{display:block;height:100%;background:var(--nord14);width:0;transition:width .3s}
+.ex{background:var(--surface);border:1px solid var(--surface-2);border-radius:12px;padding:14px 16px;margin:12px 0;border-left:4px solid var(--nord9)}
+.ex.catB{border-left-color:var(--nord12)}
+.ex.catC{border-left-color:var(--nord15)}
+.ex.done{opacity:.72}
+.ex-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ex-id{font-family:var(--font-mono);font-weight:600;font-size:.82rem;background:var(--surface-2);padding:2px 8px;border-radius:5px;color:var(--nord8)}
+.ex-head h3{margin:0;font-size:1.05rem;flex:1;min-width:12ch}
+.lvl{font-family:var(--font-mono);font-size:.8rem;color:var(--nord13);letter-spacing:2px}
+.ex-cat{font-family:var(--font-mono);font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)}
+.ex-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chk{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:.9rem;color:var(--text-muted);background:transparent;border:1px solid var(--surface-2);border-radius:8px;padding:6px 10px}
+.chk[aria-pressed="true"]{color:var(--nord0);background:var(--nord14);border-color:var(--nord14);font-weight:600}
+.sol{margin-top:12px;border-top:1px dashed var(--nord3);padding-top:10px}
+.sol .label{color:var(--nord14)}
+.hint{color:var(--text-muted);font-size:.95rem}
+footer{padding:30px 0 50px;color:var(--text-muted);font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="label">TigerPython · Kapitel Schleifen</span>
+    <h1>Die <code style="font-size:.9em">while</code>-Schleife</h1>
+    <p class="lead">Wiederholen, <em>solange</em> eine Bedingung erfüllt ist – auch wenn Sie vorher nicht wissen, wie oft.</p>
+  </div>
+</header>
+
+<nav class="top" aria-label="Inhalt">
+  <div class="wrap">
+    <a href="#idee"><span>01</span> Idee</a>
+    <a href="#aufbau"><span>02</span> Aufbau</a>
+    <a href="#simulation"><span>03</span> Simulation</a>
+    <a href="#muster"><span>04</span> Muster</a>
+    <a href="#fehler"><span>05</span> Fehler</a>
+    <a href="#uebungen"><span>06</span> Übungen</a>
+  </div>
+</nav>
+
+<main>
+<!-- 01 IDEE -->
+<section id="idee"><div class="wrap">
+  <div class="sec-head"><span class="label">01</span><h2>Die Idee: repeat vs. while</h2></div>
+  <p>Mit <code>repeat</code> kennen Sie bereits eine Schleife: Sie sagen dem Programm im Voraus, <strong>wie oft</strong> etwas wiederholt werden soll. Oft wissen Sie das aber nicht. Denken Sie an eine Passwortabfrage: Sie fragen so lange nach, <strong>bis</strong> das richtige Passwort kommt – das kann beim ersten oder erst beim zehnten Versuch sein.</p>
+  <p>Genau dafür gibt es die <code>while</code>-Schleife. Das englische Wort <em>while</em> heisst «solange». Die Schleife wiederholt ihren Körper, <strong>solange eine Bedingung wahr (<code>True</code>) ist</strong>.</p>
+
+  <div class="two">
+    <div class="card">
+      <span class="label">repeat · feste Anzahl</span>
+      <div class="codewrap"><pre class="code">repeat 3:
+    print("Hallo")</pre></div>
+      <p class="hint">«Mach das genau 3-mal.»</p>
+    </div>
+    <div class="card">
+      <span class="label">while · solange Bedingung wahr</span>
+      <div class="codewrap"><pre class="code">pw = input("Passwort:")
+while pw != "geheim":
+    pw = input("Nochmals:")</pre></div>
+      <p class="hint">«Frag so lange, bis es stimmt.»</p>
+    </div>
+  </div>
+
+  <div class="box merke">
+    <span class="label">◆ Merke</span>
+    <p>Kennen Sie die Anzahl Wiederholungen im Voraus? → <code>repeat</code>.<br>
+    Hängt das Ende von einer Bedingung ab (Eingabe, Rechenergebnis, Zufall)? → <code>while</code>.</p>
+  </div>
+</div></section>
+
+<!-- 02 AUFBAU -->
+<section id="aufbau"><div class="wrap">
+  <div class="sec-head"><span class="label">02</span><h2>Aufbau einer while-Schleife</h2></div>
+  <div class="codewrap"><pre class="code">zahl = 1                 # 1. Startwert festlegen
+while zahl &lt;= 4:         # 2. Bedingung prüfen
+    print(zahl)          # 3. Schleifenkörper (eingerückt)
+    zahl = zahl + 1      # 4. Variable verändern!
+print("Fertig")          # 5. geht weiter, sobald Bedingung False</pre></div>
+  <div class="out">1
+2
+3
+4
+Fertig</div>
+
+  <div class="anat">
+    <span class="tag t1">while</span><span>Schlüsselwort: leitet die Schleife ein.</span>
+    <span class="tag t2">zahl &lt;= 4</span><span>Die <strong>Bedingung</strong>. Sie wird <em>vor jedem Durchgang</em> geprüft. Ist sie <code>True</code>, läuft der Körper; ist sie <code>False</code>, springt das Programm hinter die Schleife.</span>
+    <span class="tag t3">:</span><span>Doppelpunkt am Zeilenende – wie bei <code>if</code> und <code>repeat</code>.</span>
+    <span class="tag t4">Einrückung</span><span>Alle eingerückten Zeilen gehören zum Schleifenkörper.</span>
+    <span class="tag t5">zahl = zahl + 1</span><span>Etwas im Körper muss die Bedingung irgendwann <code>False</code> machen. Sonst entsteht eine <strong>Endlosschleife</strong>.</span>
+  </div>
+
+  <h3>Ablauf als Flussdiagramm</h3>
+  <svg class="flow" viewBox="0 0 520 330" role="img" aria-label="Flussdiagramm: Bedingung prüfen. Wenn wahr, Schleifenkörper ausführen und zurück zur Bedingung. Wenn falsch, weiter nach der Schleife.">
+    <defs>
+      <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#D8DEE9"/></marker>
+    </defs>
+    <g font-family="Google Sans Code, monospace" font-size="14">
+      <rect x="185" y="10" width="150" height="38" rx="19" fill="#434C5E" stroke="#4C566A"/>
+      <text x="260" y="34" text-anchor="middle" fill="#ECEFF4">Startwert</text>
+      <line x1="260" y1="48" x2="260" y2="84" stroke="#D8DEE9" stroke-width="1.6" marker-end="url(#ar)"/>
+      <polygon points="260,88 360,138 260,188 160,138" fill="#3B4252" stroke="#EBCB8B" stroke-width="2"/>
+      <text x="260" y="134" text-anchor="middle" fill="#EBCB8B">Bedingung</text>
+      <text x="260" y="152" text-anchor="middle" fill="#EBCB8B">wahr?</text>
+      <line x1="260" y1="188" x2="260" y2="232" stroke="#A3BE8C" stroke-width="1.6" marker-end="url(#ar)"/>
+      <text x="272" y="214" fill="#A3BE8C">✓ True</text>
+      <rect x="170" y="236" width="180" height="44" rx="8" fill="#3B4252" stroke="#B48EAD" stroke-width="2"/>
+      <text x="260" y="263" text-anchor="middle" fill="#ECEFF4">Schleifenkörper</text>
+      <path d="M170,258 H80 V138 H156" fill="none" stroke="#D8DEE9" stroke-width="1.6" marker-end="url(#ar)"/>
+      <text x="40" y="200" fill="#D8DEE9" font-size="12">zurück</text>
+      <line x1="360" y1="138" x2="440" y2="138" stroke="#BF616A" stroke-width="1.6"/>
+      <line x1="440" y1="138" x2="440" y2="290" stroke="#BF616A" stroke-width="1.6" marker-end="url(#ar)"/>
+      <text x="372" y="128" fill="#BF616A">✗ False</text>
+      <rect x="380" y="294" width="120" height="30" rx="15" fill="#434C5E" stroke="#4C566A"/>
+      <text x="440" y="314" text-anchor="middle" fill="#ECEFF4">weiter</text>
+    </g>
+  </svg>
+
+  <h3>Vergleichsoperatoren für Bedingungen</h3>
+  <div class="tablewrap"><table class="cmp">
+    <tr><th>Operator</th><th>Bedeutung</th><th>Beispiel</th></tr>
+    <tr><td><code>==</code></td><td>gleich</td><td><code>while antwort == "ja":</code></td></tr>
+    <tr><td><code>!=</code></td><td>ungleich</td><td><code>while pw != "geheim":</code></td></tr>
+    <tr><td><code>&lt;</code> <code>&lt;=</code></td><td>kleiner (gleich)</td><td><code>while i &lt;= 10:</code></td></tr>
+    <tr><td><code>&gt;</code> <code>&gt;=</code></td><td>grösser (gleich)</td><td><code>while n &gt; 0:</code></td></tr>
+    <tr><td><code>and</code> <code>or</code></td><td>kombinieren</td><td><code>while z &lt; 1 or z &gt; 10:</code></td></tr>
+  </table></div>
+  <div class="box warn">
+    <span class="label">⚠ Achtung</span>
+    <p><code>=</code> weist einen Wert zu, <code>==</code> vergleicht. In einer Bedingung steht immer <code>==</code>.</p>
+  </div>
+</div></section>
+
+<!-- 03 SIMULATION -->
+<section id="simulation"><div class="wrap">
+  <div class="sec-head"><span class="label">03</span><h2>Schritt für Schritt</h2></div>
+  <p>Gehen Sie die Programme Zeile für Zeile durch. Achten Sie darauf, wann die Bedingung geprüft wird und wie sich die Variablen verändern.</p>
+  <div class="sim">
+    <div class="sim-tabs" role="group" aria-label="Beispiel wählen" id="simTabs"></div>
+    <div class="sim-grid">
+      <div class="simcode" id="simCode" aria-label="Programmcode"></div>
+      <div>
+        <div class="panel"><span class="label">Bedingung</span><div id="simCond" aria-live="polite">–</div></div>
+        <div class="panel"><span class="label">Variablen</span><div class="vars" id="simVars"></div></div>
+        <div class="panel"><span class="label">Ausgabe</span><div class="simout" id="simOut"></div></div>
+        <div class="runs" id="simRuns"></div>
+      </div>
+    </div>
+    <p class="note" id="simNote" aria-live="polite"></p>
+    <div class="sim-ctrl">
+      <button class="btn" id="simReset">⟲ Neustart</button>
+      <button class="btn" id="simPrev">← Zurück</button>
+      <button class="btn primary" id="simNext">Weiter →</button>
+      <span class="count" id="simCount"></span>
+    </div>
+    <p class="hint" style="margin:.6em 0 0">Tipp: Pfeiltasten ← → funktionieren auch, wenn die Simulation im Fokus ist.</p>
+  </div>
+</div></section>
+
+<!-- 04 MUSTER -->
+<section id="muster"><div class="wrap">
+  <div class="sec-head"><span class="label">04</span><h2>Typische Muster</h2></div>
+  <p>Die meisten while-Schleifen folgen einem von vier Mustern. Wenn Sie diese erkennen, haben Sie für viele Aufgaben schon die halbe Lösung.</p>
+
+  <h3>① Zählen</h3>
+  <p>Eine Zählvariable startet bei einem Wert und wird in jedem Durchgang verändert.</p>
+  <div class="codewrap"><pre class="code">i = 10
+while i &gt;= 0:
+    print(i)
+    i = i - 2        # 10, 8, 6, 4, 2, 0</pre></div>
+
+  <h3>② Aufsummieren</h3>
+  <p>Eine Summen-Variable startet <strong>vor</strong> der Schleife bei 0 und wächst in jedem Durchgang.</p>
+  <div class="codewrap"><pre class="code">summe = 0
+i = 1
+while i &lt;= 100:
+    summe = summe + i
+    i = i + 1
+print("Summe:", summe)    # 5050</pre></div>
+
+  <h3>③ Eingabe prüfen</h3>
+  <p>Einmal vor der Schleife fragen – und in der Schleife so lange erneut fragen, bis die Eingabe gültig ist.</p>
+  <div class="codewrap"><pre class="code">alter = input("Ihr Alter:")
+while alter &lt; 0 or alter &gt; 120:
+    print("Das kann nicht stimmen.")
+    alter = input("Ihr Alter:")
+print("Danke!")</pre></div>
+
+  <h3>④ Bis ein Ziel erreicht ist</h3>
+  <p>Man rechnet weiter, bis ein Wert eine Grenze überschreitet, und zählt dabei die Durchgänge.</p>
+  <div class="codewrap"><pre class="code">guthaben = 1000
+jahre = 0
+while guthaben &lt; 1500:
+    guthaben = guthaben * 1.04    # 4 % Zins
+    jahre = jahre + 1
+print("Nach", jahre, "Jahren")    # Nach 11 Jahren</pre></div>
+
+  <div class="box">
+    <span class="label">ℹ Ausblick: break</span>
+    <p>Mit <code>break</code> verlassen Sie eine Schleife sofort. Man sieht manchmal <code>while True:</code> mit einem <code>break</code> im Innern. Für den Anfang ist es aber übersichtlicher, die Abbruchbedingung direkt nach <code>while</code> zu schreiben.</p>
+  </div>
+</div></section>
+
+<!-- 05 FEHLER -->
+<section id="fehler"><div class="wrap">
+  <div class="sec-head"><span class="label">05</span><h2>Häufige Fehler</h2></div>
+
+  <div class="box err">
+    <span class="label">✗ Endlosschleife</span>
+    <p>Die Variable in der Bedingung wird im Körper nie verändert – die Bedingung bleibt für immer <code>True</code>.</p>
+    <div class="codewrap"><pre class="code">i = 1
+while i &lt;= 5:
+    print(i)         # i bleibt 1 → läuft endlos</pre></div>
+    <p class="hint">In TigerPython stoppen Sie ein hängendes Programm mit dem Stopp-Knopf.</p>
+  </div>
+
+  <div class="box err">
+    <span class="label">✗ Falsch eingerückt</span>
+    <p>Die Änderung der Variable steht ausserhalb der Schleife und wird darum nie im Körper ausgeführt.</p>
+    <div class="codewrap"><pre class="code">i = 1
+while i &lt;= 5:
+    print(i)
+i = i + 1            # gehört nicht zur Schleife!</pre></div>
+  </div>
+
+  <div class="box err">
+    <span class="label">✗ Eins daneben</span>
+    <p><code>&lt;</code> statt <code>&lt;=</code> (oder umgekehrt) führt zu einem Durchgang zu wenig oder zu viel. Prüfen Sie immer den ersten und den letzten Durchgang.</p>
+  </div>
+
+  <div class="box err">
+    <span class="label">✗ Startwert in der Schleife</span>
+    <p>Steht <code>summe = 0</code> im Schleifenkörper, wird die Summe bei jedem Durchgang wieder auf 0 gesetzt.</p>
+  </div>
+
+  <div class="box err">
+    <span class="label">✗ Schleife läuft nie</span>
+    <p>Ist die Bedingung schon beim ersten Prüfen <code>False</code>, wird der Körper kein einziges Mal ausgeführt. Das ist manchmal gewollt, oft aber ein Hinweis auf einen falschen Startwert.</p>
+  </div>
+
+  <div class="box ok">
+    <span class="label">✓ Checkliste für jede while-Schleife</span>
+    <p>1. Hat die Variable in der Bedingung <strong>vor</strong> der Schleife einen Wert?<br>
+    2. Wird sie <strong>im Körper</strong> (eingerückt!) verändert?<br>
+    3. Wird die Bedingung dadurch irgendwann <code>False</code>?<br>
+    4. Stimmen erster und letzter Durchgang?</p>
+  </div>
+</div></section>
+
+<!-- 06 UEBUNGEN -->
+<section id="uebungen"><div class="wrap">
+  <div class="sec-head"><span class="label">06</span><h2>Übungen</h2></div>
+  <p>Lösen Sie die Aufgaben zuerst selbst – bei den Programmieraufgaben in TigerPython. Öffnen Sie die Lösung erst danach zum Vergleichen. Es gibt oft mehrere richtige Lösungen.</p>
+  <p class="hint"><span class="lvl">●○○</span> einfach · <span class="lvl">●●○</span> mittel · <span class="lvl">●●●</span> anspruchsvoll</p>
+  <div class="progress"><span id="progText">0 / 25 erledigt</span><div class="bar" aria-hidden="true"><i id="progBar"></i></div></div>
+  <div class="toolbar" role="group" aria-label="Übungen filtern" id="filters">
+    <button class="btn" data-f="all" aria-pressed="true">Alle</button>
+    <button class="btn" data-f="A" aria-pressed="false">A · Vorhersagen</button>
+    <button class="btn" data-f="B" aria-pressed="false">B · Fehler finden</button>
+    <button class="btn" data-f="C" aria-pressed="false">C · Programmieren</button>
+    <button class="btn" data-f="open" aria-pressed="false">Noch offen</button>
+  </div>
+  <div id="exList"></div>
+</div></section>
+</main>
+
+<footer><div class="wrap">TigerPython · while-Schleife · Lernmaterial Informatik</div></footer>
+
+<script>
+/* ---------- Syntax-Hervorhebung ---------- */
+const KW = new Set("while if elif else def return repeat for in and or not True False None break continue from import pass".split(" "));
+function esc(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function highlight(src){
+  let out = "", last = 0, m;
+  const re2 = /(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|(\b\d+(?:\.\d+)?\b)|([A-Za-z_äöüÄÖÜ][A-Za-z0-9_äöüÄÖÜ]*)|(==|!=|<=|>=|\/\/|[+\-*/%<>=])/g;
+  while ((m = re2.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const t = m[0];
+    if (m[1]) out += '<span class="c">'+esc(t)+'</span>';
+    else if (m[2]) out += '<span class="s">'+esc(t)+'</span>';
+    else if (m[3]) out += '<span class="n">'+t+'</span>';
+    else if (m[4]) {
+      if (KW.has(t)) out += '<span class="k">'+t+'</span>';
+      else if (src[re2.lastIndex] === "(") out += '<span class="f">'+t+'</span>';
+      else out += esc(t);
+    }
+    else out += '<span class="o">'+esc(t)+'</span>';
+    last = re2.lastIndex;
+  }
+  return out + esc(src.slice(last));
+}
+function enhance(pre){
+  const raw = pre.textContent;
+  pre.innerHTML = highlight(raw);
+  const wrap = pre.parentElement;
+  if (!wrap.classList.contains("codewrap")) return;
+  const b = document.createElement("button");
+  b.className = "copy"; b.type = "button"; b.textContent = "Kopieren";
+  b.setAttribute("aria-label","Code kopieren");
+  b.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(raw); b.textContent = "✓ Kopiert"; }
+    catch(e){ b.textContent = "Bitte manuell kopieren"; }
+    setTimeout(()=>b.textContent="Kopieren",1600);
+  });
+  wrap.appendChild(b);
+}
+document.querySelectorAll("pre.code").forEach(enhance);
+
+/* ---------- Simulation ---------- */
+function fmt(v){ return typeof v === "string" ? '"'+v+'"' : String(v); }
+const SIMS = [
+  { name:"Zählen bis 4",
+    code:['zahl = 1','while zahl <= 4:','    print(zahl)','    zahl = zahl + 1','print("Fertig")'],
+    build(){
+      const S=[]; let v={}, out=[], runs=0;
+      const push=(line,note,cond)=>S.push({line,note,cond,vars:{...v},out:[...out],runs});
+      v.zahl=1; push(0,"Die Variable <code>zahl</code> bekommt den Startwert 1.");
+      while(true){
+        const ok = v.zahl<=4;
+        push(1,"Bedingung prüfen: <code>"+v.zahl+" &lt;= 4</code> ist "+(ok?"<strong>True</strong> → der Schleifenkörper wird ausgeführt.":"<strong>False</strong> → die Schleife ist zu Ende, das Programm springt hinter die Schleife."),
+          {text:v.zahl+" <= 4",val:ok});
+        if(!ok) break;
+        runs++; out.push(String(v.zahl)); push(2,"<code>print(zahl)</code> gibt "+v.zahl+" aus.");
+        v.zahl=v.zahl+1; push(3,"<code>zahl</code> wird um 1 erhöht und ist jetzt "+v.zahl+". Zurück zur Bedingung!");
+      }
+      out.push("Fertig"); push(4,"Nach der Schleife: «Fertig» wird ausgegeben. Der Körper lief "+runs+"-mal.");
+      return S;
+    }},
+  { name:"Summe 1 bis 4",
+    code:['summe = 0','i = 1','while i <= 4:','    summe = summe + i','    i = i + 1','print("Summe:", summe)'],
+    build(){
+      const S=[]; let v={}, out=[], runs=0;
+      const push=(line,note,cond)=>S.push({line,note,cond,vars:{...v},out:[...out],runs});
+      v.summe=0; push(0,"Die Summe startet bei 0 – <em>vor</em> der Schleife.");
+      v.i=1; push(1,"Die Zählvariable <code>i</code> startet bei 1.");
+      while(true){
+        const ok=v.i<=4;
+        push(2,"Bedingung: <code>"+v.i+" &lt;= 4</code> ist "+(ok?"<strong>True</strong>.":"<strong>False</strong> → Schleife fertig."),{text:v.i+" <= 4",val:ok});
+        if(!ok) break;
+        runs++; const alt=v.summe; v.summe=v.summe+v.i;
+        push(3,"<code>summe = "+alt+" + "+v.i+"</code> → summe ist jetzt "+v.summe+".");
+        v.i=v.i+1; push(4,"<code>i</code> wird erhöht auf "+v.i+".");
+      }
+      out.push("Summe: "+v.summe); push(5,"Ausgabe der Summe: 1 + 2 + 3 + 4 = "+v.summe+".");
+      return S;
+    }},
+  { name:"Passwort",
+    code:['pw = input("Passwort:")','while pw != "geheim":','    print("Falsch!")','    pw = input("Passwort:")','print("Willkommen!")'],
+    build(){
+      const S=[]; let v={}, out=[], runs=0; const inputs=["1234","hallo","geheim"]; let k=0;
+      const push=(line,note,cond)=>S.push({line,note,cond,vars:{...v},out:[...out],runs});
+      v.pw=inputs[k++]; out.push("Passwort: "+v.pw); push(0,"Die Benutzerin tippt <code>1234</code> ein. (In dieser Simulation sind die Eingaben vorgegeben.)");
+      while(true){
+        const ok=v.pw!=="geheim";
+        push(1,"Bedingung: <code>\""+v.pw+"\" != \"geheim\"</code> ist "+(ok?"<strong>True</strong> – das Passwort ist falsch, also wird der Körper ausgeführt.":"<strong>False</strong> – das Passwort stimmt, die Schleife endet."),{text:'"'+v.pw+'" != "geheim"',val:ok});
+        if(!ok) break;
+        runs++; out.push("Falsch!"); push(2,"Hinweis «Falsch!» ausgeben.");
+        v.pw=inputs[k++]; out.push("Passwort: "+v.pw); push(3,"Erneut fragen. Eingabe: <code>"+v.pw+"</code>. Zurück zur Bedingung!");
+      }
+      out.push("Willkommen!"); push(4,"Geschafft. Wie oft die Schleife läuft, stand vorher nicht fest – darum <code>while</code> und nicht <code>repeat</code>.");
+      return S;
+    }}
+];
+const simTabs=document.getElementById("simTabs"), simCode=document.getElementById("simCode"),
+  simCond=document.getElementById("simCond"), simVars=document.getElementById("simVars"),
+  simOut=document.getElementById("simOut"), simNote=document.getElementById("simNote"),
+  simCount=document.getElementById("simCount"), simRuns=document.getElementById("simRuns"),
+  bPrev=document.getElementById("simPrev"), bNext=document.getElementById("simNext");
+let cur=0, steps=[], pos=-1;
+function loadSim(n){
+  cur=n; steps=SIMS[n].build(); pos=-1;
+  simTabs.querySelectorAll("button").forEach((b,i)=>b.setAttribute("aria-pressed",i===n));
+  simCode.innerHTML = SIMS[n].code.map((l,i)=>'<div class="ln" data-i="'+i+'"><span class="no">'+(i+1)+'</span><span>'+highlight(l)+'</span></div>').join("");
+  render();
+}
+function render(){
+  const s = pos>=0 ? steps[pos] : null, prev = pos>0 ? steps[pos-1] : null;
+  simCode.querySelectorAll(".ln").forEach(el=>el.classList.toggle("cur", s && +el.dataset.i===s.line));
+  if(!s){
+    simVars.innerHTML='<span class="hint">noch keine</span>'; simOut.textContent=""; simCond.textContent="–";
+    simNote.innerHTML="Klicken Sie auf <strong>Weiter</strong>, um die erste Zeile auszuführen."; simRuns.textContent="";
+  } else {
+    const keys=Object.keys(s.vars);
+    simVars.innerHTML = keys.length ? keys.map(k=>{
+      const ch = !prev || prev.vars[k]!==s.vars[k];
+      return '<span class="var'+(ch?' changed':'')+'"><b>'+k+'</b> = '+esc(fmt(s.vars[k]))+'</span>';
+    }).join("") : '<span class="hint">noch keine</span>';
+    simOut.textContent = s.out.join("\n");
+    simCond.innerHTML = s.cond ? '<span class="cond '+(s.cond.val?'t':'f')+'">'+esc(s.cond.text)+' → '+(s.cond.val?'✓ True':'✗ False')+'</span>' : '<span class="hint">wird in dieser Zeile nicht geprüft</span>';
+    simNote.innerHTML = s.note;
+    simRuns.textContent = "Schleifendurchgänge bisher: "+s.runs;
+  }
+  simCount.textContent = "Schritt "+(pos+1)+" / "+steps.length;
+  bPrev.disabled = pos<0; bNext.disabled = pos>=steps.length-1;
+}
+SIMS.forEach((s,i)=>{const b=document.createElement("button");b.className="btn";b.type="button";b.textContent=s.name;b.addEventListener("click",()=>loadSim(i));simTabs.appendChild(b);});
+bNext.addEventListener("click",()=>{if(pos<steps.length-1){pos++;render();}});
+bPrev.addEventListener("click",()=>{if(pos>=0){pos--;render();}});
+document.getElementById("simReset").addEventListener("click",()=>{pos=-1;render();});
+document.querySelector(".sim").addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"){bNext.click();e.preventDefault();}
+  if(e.key==="ArrowLeft"){bPrev.click();e.preventDefault();}
+});
+loadSim(0);
+
+/* ---------- Übungen ---------- */
+const CAT = {A:"Ausgabe vorhersagen",B:"Fehler finden",C:"Programmieren"};
+const EX = [
+/* A: Vorhersagen */
+{id:"A1",cat:"A",lvl:1,title:"Einfach zählen",
+ text:"Was gibt das Programm aus?",
+ code:'i = 1\nwhile i <= 5:\n    print(i)\n    i = i + 1',
+ sol:"Die Zahlen <strong>1 bis 5</strong>, je auf einer eigenen Zeile. Bei <code>i = 6</code> ist <code>6 &lt;= 5</code> False.",
+ out:"1\n2\n3\n4\n5"},
+{id:"A2",cat:"A",lvl:1,title:"In Dreierschritten rückwärts",
+ text:"Was gibt das Programm aus? Wie oft läuft der Schleifenkörper?",
+ code:'x = 10\nwhile x > 0:\n    print(x)\n    x = x - 3',
+ sol:"Der Körper läuft <strong>4-mal</strong>. Danach ist <code>x = -2</code>, und <code>-2 &gt; 0</code> ist False.",
+ out:"10\n7\n4\n1"},
+{id:"A3",cat:"A",lvl:2,title:"Verdoppeln",
+ text:"Achtung: Wo steht das <code>print</code>? Was wird ausgegeben?",
+ code:'n = 1\nwhile n < 100:\n    n = n * 2\nprint(n)',
+ sol:"<code>n</code> durchläuft 1, 2, 4, 8, 16, 32, 64, 128. Bei 128 ist die Bedingung False. Da <code>print</code> <em>nach</em> der Schleife steht, erscheint nur eine Zahl: <strong>128</strong>.",
+ out:"128"},
+{id:"A4",cat:"A",lvl:1,title:"Aufsummieren",
+ text:"Welche Zahl wird ausgegeben?",
+ code:'summe = 0\nk = 1\nwhile k <= 4:\n    summe = summe + k\n    k = k + 1\nprint(summe)',
+ sol:"0 + 1 + 2 + 3 + 4 = <strong>10</strong>.",
+ out:"10"},
+{id:"A5",cat:"A",lvl:1,title:"Läuft sie überhaupt?",
+ text:"Was gibt das Programm aus?",
+ code:'a = 5\nwhile a < 3:\n    print("Hallo")\nprint("Ende")',
+ sol:"Schon beim ersten Prüfen ist <code>5 &lt; 3</code> False. Der Körper wird <strong>nie</strong> ausgeführt. Es erscheint nur «Ende». (Obwohl <code>a</code> im Körper nicht verändert wird, entsteht keine Endlosschleife – der Körper läuft ja gar nicht.)",
+ out:"Ende"},
+{id:"A6",cat:"A",lvl:2,title:"Zwei Variablen",
+ text:"Was steht am Schluss in der Ausgabe?",
+ code:'z = 1\nzaehler = 0\nwhile z < 50:\n    z = z * 3\n    zaehler = zaehler + 1\nprint(zaehler, z)',
+ sol:"<code>z</code>: 1 → 3 → 9 → 27 → 81, dabei zählt <code>zaehler</code> 4 Durchgänge. 81 &lt; 50 ist False. Ausgabe: <strong>4 81</strong>.",
+ out:"4 81"},
+{id:"A7",cat:"A",lvl:2,title:"Schleife mit if",
+ text:"<code>%</code> berechnet den Rest einer Division (z. B. <code>7 % 2</code> ergibt 1). Was gibt das Programm aus?",
+ code:'i = 1\nwhile i <= 10:\n    if i % 2 == 0:\n        print(i)\n    i = i + 1',
+ sol:"Die Schleife läuft für alle <code>i</code> von 1 bis 10, aber nur gerade Zahlen (Rest 0 bei Division durch 2) werden ausgegeben.",
+ out:"2\n4\n6\n8\n10"},
+{id:"A8",cat:"A",lvl:3,title:"Eine berühmte Folge",
+ text:"Verfolgen Sie die drei Variablen in einer Tabelle. Was wird ausgegeben?",
+ code:'a = 0\nb = 1\nwhile b < 30:\n    print(b)\n    c = a + b\n    a = b\n    b = c',
+ sol:"Jede Zahl ist die Summe der beiden vorherigen – das ist die <strong>Fibonacci-Folge</strong>. Die nächste wäre 34, aber <code>34 &lt; 30</code> ist False.",
+ out:"1\n1\n2\n3\n5\n8\n13\n21"},
+/* B: Fehler finden */
+{id:"B1",cat:"B",lvl:1,title:"Das hört nie auf",
+ text:"Das Programm soll die Zahlen 1 bis 5 ausgeben. Was passiert stattdessen? Korrigieren Sie es.",
+ code:'i = 1\nwhile i <= 5:\n    print(i)',
+ sol:"<strong>Endlosschleife</strong>: <code>i</code> bleibt immer 1, es wird endlos 1 ausgegeben. Es fehlt die Erhöhung im Körper:",
+ solCode:'i = 1\nwhile i <= 5:\n    print(i)\n    i = i + 1'},
+{id:"B2",cat:"B",lvl:1,title:"Gleich ist nicht gleich",
+ text:"Das Programm soll so lange nach einer Zahl fragen, bis diese nicht 0 ist. TigerPython meldet einen Fehler. Warum?",
+ code:'zahl = 0\nwhile zahl = 0:\n    zahl = input("Zahl ungleich 0:")',
+ sol:"In der Bedingung steht <code>=</code> (Zuweisung) statt <code>==</code> (Vergleich).",
+ solCode:'zahl = 0\nwhile zahl == 0:\n    zahl = input("Zahl ungleich 0:")'},
+{id:"B3",cat:"B",lvl:2,title:"Eine Leerstelle zu wenig",
+ text:"Das Programm soll «Runde 1», «Runde 2», «Runde 3» ausgeben. Was passiert, und warum?",
+ code:'i = 1\nwhile i <= 3:\n    print("Runde", i)\ni = i + 1',
+ sol:"Die letzte Zeile ist nicht eingerückt und gehört nicht zur Schleife. <code>i</code> bleibt 1 → endlos «Runde 1». Lösung: Zeile einrücken.",
+ solCode:'i = 1\nwhile i <= 3:\n    print("Runde", i)\n    i = i + 1'},
+{id:"B4",cat:"B",lvl:1,title:"Eins zu wenig",
+ text:"Das Programm soll die Zahlen 1 bis 10 ausgeben. Welche Zahl fehlt? Korrigieren Sie es.",
+ code:'i = 1\nwhile i < 10:\n    print(i)\n    i = i + 1',
+ sol:"Es fehlt die <strong>10</strong>, denn <code>10 &lt; 10</code> ist False. Richtig ist <code>&lt;=</code> (oder <code>i &lt; 11</code>).",
+ solCode:'i = 1\nwhile i <= 10:\n    print(i)\n    i = i + 1'},
+{id:"B5",cat:"B",lvl:2,title:"Die Summe stimmt nicht",
+ text:"Das Programm soll 1 + 2 + 3 + 4 + 5 = 15 berechnen, gibt aber 5 aus. Finden Sie den Fehler.",
+ code:'i = 1\nwhile i <= 5:\n    summe = 0\n    summe = summe + i\n    i = i + 1\nprint(summe)',
+ sol:"<code>summe = 0</code> steht im Körper und setzt die Summe bei jedem Durchgang zurück. Am Schluss bleibt nur der letzte Wert 5. Der Startwert gehört <em>vor</em> die Schleife.",
+ solCode:'summe = 0\ni = 1\nwhile i <= 5:\n    summe = summe + i\n    i = i + 1\nprint(summe)'},
+{id:"B6",cat:"B",lvl:2,title:"Countdown in die falsche Richtung",
+ text:"Das Programm soll von 10 auf 1 herunterzählen und dann «Start!» ausgeben. Was geht schief?",
+ code:'n = 10\nwhile n > 0:\n    print(n)\n    n = n + 1\nprint("Start!")',
+ sol:"<code>n</code> wird grösser statt kleiner, die Bedingung <code>n &gt; 0</code> bleibt immer True → Endlosschleife.",
+ solCode:'n = 10\nwhile n > 0:\n    print(n)\n    n = n - 1\nprint("Start!")'},
+/* C: Programmieren */
+{id:"C1",cat:"C",lvl:1,title:"1 bis 20",
+ text:"Schreiben Sie ein Programm, das mit einer while-Schleife die Zahlen von 1 bis 20 ausgibt.",
+ solCode:'i = 1\nwhile i <= 20:\n    print(i)\n    i = i + 1'},
+{id:"C2",cat:"C",lvl:1,title:"Countdown",
+ text:"Geben Sie die Zahlen von 10 bis 1 aus, danach «Start!».",
+ solCode:'n = 10\nwhile n >= 1:\n    print(n)\n    n = n - 1\nprint("Start!")'},
+{id:"C3",cat:"C",lvl:1,title:"Gerade Zahlen",
+ text:"Geben Sie alle geraden Zahlen von 2 bis 50 aus. Versuchen Sie es ohne <code>if</code>.",
+ sol:"Trick: Starten Sie bei 2 und erhöhen Sie jeweils um 2.",
+ solCode:'z = 2\nwhile z <= 50:\n    print(z)\n    z = z + 2'},
+{id:"C4",cat:"C",lvl:2,title:"Der kleine Gauss",
+ text:"Berechnen Sie die Summe aller Zahlen von 1 bis 100 und geben Sie sie aus.",
+ sol:"Ergebnis: <strong>5050</strong>.",
+ solCode:'summe = 0\ni = 1\nwhile i <= 100:\n    summe = summe + i\n    i = i + 1\nprint("Summe:", summe)'},
+{id:"C5",cat:"C",lvl:2,title:"Einmaleins",
+ text:"Der Benutzer gibt eine Zahl ein. Das Programm gibt die ersten 10 Vielfachen aus, z. B. für 7: <code>1 * 7 = 7</code> bis <code>10 * 7 = 70</code>.",
+ sol:"Mit mehreren Werten in <code>print</code>, getrennt durch Kommas, brauchen Sie keine Umwandlung.",
+ solCode:'zahl = input("Welche Reihe?")\ni = 1\nwhile i <= 10:\n    print(i, "*", zahl, "=", i * zahl)\n    i = i + 1'},
+{id:"C6",cat:"C",lvl:2,title:"Passwortabfrage",
+ text:"Fragen Sie so lange nach dem Passwort, bis «geheim» eingegeben wird. Bei falscher Eingabe soll «Falsch, bitte nochmals.» erscheinen, am Schluss «Willkommen!».",
+ solCode:'eingabe = input("Passwort:")\nwhile eingabe != "geheim":\n    print("Falsch, bitte nochmals.")\n    eingabe = input("Passwort:")\nprint("Willkommen!")'},
+{id:"C7",cat:"C",lvl:2,title:"Gültige Eingabe erzwingen",
+ text:"Verlangen Sie eine Zahl zwischen 1 und 10. Ist die Eingabe ausserhalb, erscheint «Ungültig!» und es wird erneut gefragt. Zum Schluss: «Sie haben 7 gewählt.» (mit der eingegebenen Zahl).",
+ sol:"Die Bedingung beschreibt den <em>ungültigen</em> Fall: zu klein <strong>oder</strong> zu gross.",
+ solCode:'zahl = input("Zahl zwischen 1 und 10:")\nwhile zahl < 1 or zahl > 10:\n    print("Ungültig!")\n    zahl = input("Zahl zwischen 1 und 10:")\nprint("Sie haben", zahl, "gewählt.")'},
+{id:"C8",cat:"C",lvl:2,title:"Summieren bis 0",
+ text:"Der Benutzer gibt beliebig viele Zahlen ein. Mit der Eingabe 0 ist Schluss. Danach gibt das Programm die Summe aller eingegebenen Zahlen aus.",
+ sol:"Typisches Muster: einmal vor der Schleife einlesen, am Ende des Körpers erneut einlesen.",
+ solCode:'summe = 0\nzahl = input("Zahl (0 = Ende):")\nwhile zahl != 0:\n    summe = summe + zahl\n    zahl = input("Zahl (0 = Ende):")\nprint("Summe:", summe)'},
+{id:"C9",cat:"C",lvl:2,title:"Sparkonto",
+ text:"Sie legen 1000 CHF zu 5 % Zins pro Jahr an. Nach wie vielen Jahren haben Sie zum ersten Mal mindestens 2000 CHF? Geben Sie die Anzahl Jahre und den Kontostand aus.",
+ sol:"Nach <strong>15 Jahren</strong> (rund 2078.93 CHF). Zins von 5 % heisst: mal 1.05.",
+ solCode:'kapital = 1000\njahre = 0\nwhile kapital < 2000:\n    kapital = kapital * 1.05\n    jahre = jahre + 1\nprint("Nach", jahre, "Jahren:", kapital, "CHF")'},
+{id:"C10",cat:"C",lvl:3,title:"Zahlenraten",
+ text:"Das Programm denkt sich eine Zufallszahl von 1 bis 100 aus. Der Benutzer rät; das Programm antwortet «Zu klein!» oder «Zu gross!», bis die Zahl erraten ist. Am Schluss erscheint die Anzahl Versuche. <br><span class=\"hint\">Zufallszahl: <code>from random import randint</code> und <code>geheim = randint(1, 100)</code></span>",
+ solCode:'from random import randint\ngeheim = randint(1, 100)\nversuche = 1\ntipp = input("Ihr Tipp (1 bis 100):")\nwhile tipp != geheim:\n    if tipp < geheim:\n        print("Zu klein!")\n    else:\n        print("Zu gross!")\n    tipp = input("Neuer Tipp:")\n    versuche = versuche + 1\nprint("Richtig! Sie brauchten", versuche, "Versuche.")'},
+{id:"C11",cat:"C",lvl:3,title:"Quersumme",
+ text:"Berechnen Sie die Quersumme einer eingegebenen ganzen Zahl (z. B. 4728 → 4 + 7 + 2 + 8 = 21). <br><span class=\"hint\">Hilfe: <code>zahl % 10</code> liefert die letzte Ziffer, <code>zahl // 10</code> schneidet die letzte Ziffer ab (ganzzahlige Division).</span>",
+ sol:"Solange noch Ziffern übrig sind (<code>zahl &gt; 0</code>), wird die letzte Ziffer addiert und abgeschnitten.",
+ solCode:'zahl = input("Ganze Zahl:")\nquersumme = 0\nwhile zahl > 0:\n    quersumme = quersumme + zahl % 10\n    zahl = zahl // 10\nprint("Quersumme:", quersumme)'}
+];
+
+const KEY="tp-while-uebungen-erledigt";
+let done = new Set();
+try { done = new Set(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify([...done])); }catch(e){} }
+let filter="all";
+const list=document.getElementById("exList");
+
+function codeBlock(src){
+  const w=document.createElement("div"); w.className="codewrap";
+  const p=document.createElement("pre"); p.className="code"; p.textContent=src;
+  w.appendChild(p); enhance(p); return w;
+}
+function renderEx(){
+  list.innerHTML="";
+  EX.forEach(ex=>{
+    if(filter==="open" && done.has(ex.id)) return;
+    if(["A","B","C"].includes(filter) && ex.cat!==filter) return;
+    const art=document.createElement("article");
+    art.className="ex cat"+ex.cat+(done.has(ex.id)?" done":"");
+    art.id="ex-"+ex.id;
+    art.innerHTML='<div class="ex-head"><span class="ex-id">'+ex.id+'</span><h3>'+ex.title+'</h3>'
+      +'<span class="ex-cat">'+CAT[ex.cat]+'</span><span class="lvl" aria-label="Schwierigkeit '+ex.lvl+' von 3">'+"●".repeat(ex.lvl)+"○".repeat(3-ex.lvl)+'</span></div>'
+      +'<p>'+ex.text+'</p>';
+    if(ex.code) art.appendChild(codeBlock(ex.code));
+    const act=document.createElement("div"); act.className="ex-actions";
+    const bs=document.createElement("button"); bs.className="btn"; bs.type="button"; bs.textContent="Lösung anzeigen";
+    bs.setAttribute("aria-expanded","false");
+    const bd=document.createElement("button"); bd.className="chk"; bd.type="button";
+    const setD=()=>{const d=done.has(ex.id); bd.setAttribute("aria-pressed",d); bd.textContent=d?"✓ erledigt":"☐ als erledigt markieren";};
+    setD();
+    act.append(bs,bd); art.appendChild(act);
+    const sol=document.createElement("div"); sol.className="sol"; sol.hidden=true;
+    sol.innerHTML='<span class="label">✓ Lösung</span>'+(ex.sol?'<p>'+ex.sol+'</p>':'');
+    if(ex.out){const o=document.createElement("div");o.className="out";o.textContent=ex.out;sol.appendChild(o);}
+    if(ex.solCode) sol.appendChild(codeBlock(ex.solCode));
+    art.appendChild(sol);
+    bs.addEventListener("click",()=>{sol.hidden=!sol.hidden; bs.textContent=sol.hidden?"Lösung anzeigen":"Lösung verbergen"; bs.setAttribute("aria-expanded",!sol.hidden);});
+    bd.addEventListener("click",()=>{
+      done.has(ex.id)?done.delete(ex.id):done.add(ex.id); save(); setD();
+      art.classList.toggle("done",done.has(ex.id)); progress();
+      if(filter==="open" && done.has(ex.id)) setTimeout(renderEx,300);
+    });
+    list.appendChild(art);
+  });
+  if(!list.children.length) list.innerHTML='<div class="box ok"><span class="label">✓ Alles erledigt</span><p>In dieser Auswahl sind keine offenen Übungen mehr.</p></div>';
+}
+function progress(){
+  const n=EX.filter(e=>done.has(e.id)).length;
+  document.getElementById("progText").textContent=n+" / "+EX.length+" erledigt";
+  document.getElementById("progBar").style.width=(100*n/EX.length)+"%";
+}
+document.getElementById("filters").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  filter=b.dataset.f;
+  document.querySelectorAll("#filters button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  renderEx();
+});
+renderEx(); progress();
+</script>
+</body>
+</html>
